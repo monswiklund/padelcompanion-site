@@ -34,6 +34,7 @@ import {
   renderCustomCourtNames,
   updateCustomCourtName,
   updateSetupUI,
+  updateScoringLabel,
   togglePlayerList,
   autoFillScore,
   toggleManualBye,
@@ -110,21 +111,24 @@ function init() {
     if (actionsSection) actionsSection.style.display = "block";
     renderSchedule();
     renderLeaderboard();
-    updateSetupUI();
     updateGridColumns();
   }
 
-  // Initialize Custom Selects (must be after values are set)
-  setupCustomSelects();
-
   // Initialize event listeners
   initEventListeners(elements);
+
+  // Initialize Custom Selects (must be after values are set and listeners are ready)
+  setupCustomSelects();
 
   // Initialize History
   initHistory();
 
   // Setup resize handler
   window.addEventListener("resize", handleResize);
+
+  // Initial UI Sync
+  updateSetupUI();
+  updateScoringLabel();
 }
 
 // ===== Event Listeners =====
@@ -277,8 +281,18 @@ function initEventListeners(elements) {
 
   elements.scoringMode.addEventListener("change", () => {
     state.scoringMode = elements.scoringMode.value;
+    updateScoringLabel();
     saveState();
   });
+
+  const rankingCriteriaSelect = document.getElementById("rankingCriteria");
+  if (rankingCriteriaSelect) {
+    rankingCriteriaSelect.addEventListener("change", () => {
+      state.rankingCriteria = rankingCriteriaSelect.value;
+      updateRankingCriteria();
+      saveState();
+    });
+  }
 
   elements.courtFormat.addEventListener("change", () => {
     state.courtFormat = elements.courtFormat.value;
@@ -577,6 +591,7 @@ window.editRound = editRound;
 window.toggleLeaderboardVisibility = toggleLeaderboardVisibility;
 window.togglePositionChanges = togglePositionChanges;
 window.updateRankingCriteria = updateRankingCriteria;
+window.updateSetupUI = updateSetupUI;
 window.endTournament = () => endTournament(showFinalStandings);
 window.validateCourts = validateCourts;
 window.toggleAdvancedSettings = toggleAdvancedSettings;

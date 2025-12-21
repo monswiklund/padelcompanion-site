@@ -91,15 +91,56 @@
 
 /* ===== Setup Card ===== */
 .setup-card {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto var(--space-2xl);
 }
 
 .setup-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: var(--space-md);
   margin-bottom: var(--space-xl);
+}
+
+.setup-grid .format-group {
+  grid-column: span 2;
+}
+
+.setup-grid .courts-group {
+  grid-column: span 2;
+}
+
+.setup-grid .court-names-group {
+  grid-column: span 2;
+}
+
+.setup-grid .scoring-mode-group {
+  grid-column: span 3;
+}
+
+.setup-grid .total-points-group {
+  grid-column: span 3;
+}
+
+.setup-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 640px) {
+  .setup-grid,
+  .setup-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .setup-grid .format-group,
+  .setup-grid .courts-group,
+  .setup-grid .court-names-group,
+  .setup-grid .scoring-mode-group,
+  .setup-grid .total-points-group {
+    grid-column: span 1;
+  }
 }
 
 @media (max-width: 640px) {
@@ -967,15 +1008,15 @@ select.locked {
 .rounds-container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-xs);
 }
 
 .round {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--space-lg);
-  margin-top: var(--space-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm) var(--space-lg);
+  margin-top: 0;
   scroll-margin-top: 120px; /* Offset for sticky header + toolbar */
 }
 
@@ -984,10 +1025,10 @@ select.locked {
 }
 
 .round-header {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--accent);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-xs);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -997,9 +1038,9 @@ select.locked {
 /* Make header clickable for completed rounds */
 .round.completed .round-header {
   cursor: pointer;
-  padding: var(--space-sm) var(--space-md);
-  margin: calc(-1 * var(--space-sm)) calc(-1 * var(--space-md));
-  margin-bottom: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  margin: calc(-1 * var(--space-xs)) calc(-1 * var(--space-md));
+  margin-bottom: var(--space-xs);
   border-radius: var(--radius-md);
   transition: background var(--transition-fast);
 }
@@ -1036,6 +1077,11 @@ select.locked {
 }
 
 /* Collapsed state */
+.round.collapsed {
+  padding-top: var(--space-xs);
+  padding-bottom: var(--space-xs);
+}
+
 .round.collapsed .round-content {
   max-height: 0;
   opacity: 0;
@@ -1399,7 +1445,7 @@ select.locked {
     box-shadow: none;
     margin-bottom: 20px;
   }
-  
+
   .round-header {
     color: black;
     border-bottom: 1px solid #eee;
@@ -1409,15 +1455,17 @@ select.locked {
     background: white !important;
     color: black !important;
   }
-  
+
   .match-card {
     background: white !important;
     border: 1px solid #ccc;
     color: black;
     box-shadow: none;
   }
-  
-  .court-label, .team, .score-input {
+
+  .court-label,
+  .team,
+  .score-input {
     background: transparent !important;
     color: black !important;
     text-shadow: none !important;
@@ -1955,7 +2003,7 @@ select.locked {
     padding: var(--space-md);
     gap: var(--space-sm);
   }
-  
+
   .action-btn {
     min-height: 52px;
   }
@@ -2131,7 +2179,7 @@ select.locked {
 }
 
 .custom-select-trigger::after {
-  content: '';
+  content: "";
   width: 16px;
   height: 16px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(156, 163, 175, 1)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");

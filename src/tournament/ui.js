@@ -46,6 +46,8 @@ export function initElements() {
     pairingStrategy: document.getElementById("pairingStrategy"),
     preferredPartnersList: document.getElementById("preferredPartnersList"),
     addPartnerPairBtn: document.getElementById("addPartnerPairBtn"),
+    advancedSettingsContent: document.getElementById("advancedSettingsContent"),
+    advancedToggleWrapper: document.getElementById("advancedToggleWrapper"),
     playerList: document.getElementById("playerList"),
     playerCount: document.getElementById("playerCount"),
     playersHint: document.getElementById("playersHint"),
@@ -138,16 +140,30 @@ export function validateCourts() {
 
 export function toggleCustomCourtNames() {
   const els = getElements();
+  if (!els.customCourtNamesSection) return;
+
   const isCustom = state.courtFormat === "custom";
-  els.customCourtNamesSection.style.display = isCustom ? "block" : "none";
+
   if (isCustom) {
+    els.customCourtNamesSection.style.display = "flex";
     renderCustomCourtNames();
+  } else {
+    els.customCourtNamesSection.style.display = "none";
   }
 }
 
 export function renderCustomCourtNames() {
   const els = getElements();
-  const count = state.courts || 2;
+  if (!els.customCourtNamesList) return;
+
+  const count = Math.max(1, state.courts || 2);
+
+  // Ensure array has enough slots
+  if (!Array.isArray(state.customCourtNames)) {
+    state.customCourtNames = [];
+  }
+
+  // Fill with defaults if missing
   while (state.customCourtNames.length < count) {
     state.customCourtNames.push(`Court ${state.customCourtNames.length + 1}`);
   }
@@ -157,8 +173,11 @@ export function renderCustomCourtNames() {
     (_, i) => `
     <div class="custom-court-name-row">
       <input type="text" class="form-input" 
-             value="${state.customCourtNames[i] || `Court ${i + 1}`}"
-             onchange="window.updateCustomCourtName(${i}, this.value)"
+             value="${(state.customCourtNames[i] || `Court ${i + 1}`).replace(
+               /"/g,
+               "&quot;"
+             )}"
+             oninput="window.updateCustomCourtName(${i}, this.value)"
              placeholder="Court ${i + 1}">
     </div>
   `
@@ -603,14 +622,22 @@ export function renderLeaderboard() {
   // Sync toggle buttons state
   const visBtn = document.getElementById("toggleVisibilityBtn");
   if (visBtn) {
-    visBtn.textContent = state.hideLeaderboard ? "👁️" : "🙈";
-    visBtn.title = state.hideLeaderboard ? "Show Leaderboard" : "Hide Leaderboard";
+    visBtn.textContent = state.hideLeaderboard
+      ? "Show Standings"
+      : "Hide Standings";
+    visBtn.title = state.hideLeaderboard
+      ? "Show Leaderboard"
+      : "Hide Leaderboard";
   }
 
   const posBtn = document.getElementById("togglePositionBtn");
   if (posBtn) {
-    posBtn.textContent = state.showPositionChanges ? "↕️" : "➖";
-    posBtn.title = state.showPositionChanges ? "Hide Rank Changes" : "Show Rank Changes";
+    posBtn.textContent = state.showPositionChanges
+      ? "Hide Rank Diff"
+      : "Show Rank Diff";
+    posBtn.title = state.showPositionChanges
+      ? "Hide Rank Changes"
+      : "Show Rank Changes";
   }
 
   if (!state.leaderboard || state.leaderboard.length === 0) {
@@ -717,13 +744,12 @@ export function renderLeaderboard() {
 // ===== Settings Lock/Unlock UI =====
 export function updateSetupUI() {
   const els = getElements();
-  const format = els.format ? els.format.value : "americano";
+  const format = state.format; // Use state.format as the source of truth
   const isTeam = format === "team" || format === "teamMexicano";
 
   // Update UI labels for Team Mode
   const playersHeader = document.getElementById("playersHeader");
   if (playersHeader) {
-    const countSpan = playersHeader.querySelector(".player-count");
     if (playersHeader.firstChild) {
       playersHeader.firstChild.textContent = isTeam ? "Teams " : "Players ";
     }
@@ -767,50 +793,63 @@ export function updateSetupUI() {
   }
 
   // Toggle Advanced Settings visibility based on Format
+  const advancedSettingsContent = document.getElementById("advancedSettingsContent");
+  const advancedToggleWrapper = document.getElementById("advancedToggleWrapper");
   const maxRepeatsContainer = document.getElementById("maxRepeatsContainer");
-  const pairingStrategyContainer = document.getElementById(
-    "pairingStrategyContainer"
-  );
-  const preferredPartnersContainer = document.getElementById(
-    "preferredPartnersContainer"
-  );
+  const pairingStrategyContainer = document.getElementById("pairingStrategyContainer");
+  const preferredPartnersContainer = document.getElementById("preferredPartnersContainer");
 
-  // Only Mexicano supports these dynamic matchup rules
-  const showMatchupRules = format === "mexicano";
+  // Mexicano: All rules
+  // Team Mexicano: Only Max Repeats (Strategy is N/A for fixed teams, Partners N/A)
+  const isMexicano = format === "mexicano";
+  const isTeamMexicano = format === "teamMexicano";
+  const isMexicanoRelated = isMexicano || isTeamMexicano;
+
+  if (advancedToggleWrapper) {
+    const shouldShowWrapper = isMexicanoRelated;
+    advancedToggleWrapper.style.setProperty("display", shouldShowWrapper ? "flex" : "none", "important");
+  }
+
+  if (advancedSettingsContent) {
+    // If it's a Mexicano format, ensure content is shown if it was hidden
+    if (isMexicanoRelated) {
+       advancedSettingsContent.style.setProperty("display", "block", "important");
+    } else {
+      advancedSettingsContent.style.setProperty("display", "none", "important");
+    }
+    
+    // Update toggle button state to match visibility
+    const btn = document.getElementById("advancedSettingsToggle");
+    if (btn) {
+      const isVisible = advancedSettingsContent.style.display !== "none";
+      const text = btn.querySelector(".toggle-text");
+      const icon = btn.querySelector(".toggle-icon");
+      
+      btn.classList.toggle("expanded", isVisible);
+      if (text) text.textContent = isVisible ? "Hide Advanced Settings" : "Show Advanced Settings";
+      if (icon) icon.style.transform = isVisible ? "rotate(180deg)" : "rotate(0deg)";
+    }
+  }
 
   if (maxRepeatsContainer) {
-    maxRepeatsContainer.style.display = showMatchupRules ? "flex" : "none";
+    maxRepeatsContainer.style.setProperty("display", isMexicanoRelated ? "flex" : "none", "important");
   }
+
   if (pairingStrategyContainer) {
-    pairingStrategyContainer.style.display = showMatchupRules ? "flex" : "none";
+    pairingStrategyContainer.style.setProperty("display", isMexicano ? "flex" : "none", "important");
   }
+  
   if (preferredPartnersContainer) {
-    preferredPartnersContainer.style.display = showMatchupRules
-      ? "block"
-      : "none";
+    preferredPartnersContainer.style.setProperty("display", isMexicano ? "block" : "none", "important");
   }
 
   // Disable "Strict Pattern" if strategy is Optimal (redundant)
   const strictStrategy = document.getElementById("strictStrategy");
-  if (strictStrategy && pairingStrategyContainer) {
-    const isOptimal = els.pairingStrategy
-      ? els.pairingStrategy.value === "optimal"
-      : state.pairingStrategy === "optimal";
-
+  if (strictStrategy && els.pairingStrategy) {
+    const isOptimal = els.pairingStrategy.value === "optimal";
     strictStrategy.disabled = isOptimal;
-    if (isOptimal) {
-      strictStrategy.checked = false; // Uncheck if disabled
-    } else {
-      strictStrategy.checked = state.strictStrategy || false; // Restore state
-    }
-
-    const wrapper = strictStrategy.closest(".form-check");
-    if (wrapper) {
-      wrapper.style.opacity = isOptimal ? "0.5" : "1";
-      wrapper.title = isOptimal
-        ? "Recursive by definition in Optimal strategy"
-        : "";
-      wrapper.style.display = "block";
+    if (strictStrategy.parentElement) {
+      strictStrategy.parentElement.style.opacity = isOptimal ? "0.5" : "1";
     }
   }
 
@@ -843,6 +882,26 @@ export function updateGridColumns() {
     grids.forEach((grid) => {
       grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     });
+  }
+}
+
+// ===== Scoring Label =====
+export function updateScoringLabel() {
+  const mode = document.getElementById("scoringMode")?.value || state.scoringMode;
+  const label = document.getElementById("scoringValueLabel");
+  const input = document.getElementById("points");
+
+  if (!label || !input) return;
+
+  if (mode === "total") {
+    label.textContent = "Total Points (Score A + B)";
+    input.value = 24;
+  } else if (mode === "race") {
+    label.textContent = "Winning Score (First to...)";
+    input.value = 21;
+  } else if (mode === "time") {
+    label.textContent = "Match Duration (Minutes)";
+    input.value = 12;
   }
 }
 
@@ -953,84 +1012,93 @@ export function updateRoundScale() {
 // ===== Custom Select Logic =====
 export function setupCustomSelects() {
   const selects = document.querySelectorAll(".form-select");
-  
-  selects.forEach(select => {
+
+  selects.forEach((select) => {
     // Skip if already initialized or if explicitly excluded
-    if (select.closest('.custom-select-wrapper') || select.classList.contains('no-custom')) return;
-    
+    if (
+      select.closest(".custom-select-wrapper") ||
+      select.classList.contains("no-custom")
+    )
+      return;
+
     const wrapper = document.createElement("div");
     wrapper.classList.add("custom-select-wrapper");
     select.parentNode.insertBefore(wrapper, select);
     wrapper.appendChild(select);
-    
+
     // Create custom UI
     const customSelect = document.createElement("div");
     customSelect.classList.add("custom-select");
-    
+
     const trigger = document.createElement("div");
     trigger.classList.add("custom-select-trigger");
     if (select.classList.contains("btn-sm")) {
       trigger.classList.add("btn-sm");
     }
-    trigger.innerHTML = `<span>${select.options[select.selectedIndex].text}</span>`;
-    
+    trigger.innerHTML = `<span>${
+      select.options[select.selectedIndex].text
+    }</span>`;
+
     const optionsDiv = document.createElement("div");
     optionsDiv.classList.add("custom-options");
-    
+
     // Populate options
-    Array.from(select.options).forEach(option => {
+    Array.from(select.options).forEach((option) => {
       const optionEl = document.createElement("div");
       optionEl.classList.add("custom-option");
       optionEl.textContent = option.text;
       optionEl.dataset.value = option.value;
       if (option.selected) optionEl.classList.add("selected");
-      
+
       optionEl.addEventListener("click", () => {
         // Update original select
         select.value = option.dataset.value;
-        select.dispatchEvent(new Event('change')); // Trigger change event
-        
+        // Dispatch event with bubbling to ensure all listeners (including global ones) catch it
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+
         // Update UI
         trigger.innerHTML = `<span>${option.text}</span>`;
-        optionsDiv.querySelectorAll(".custom-option").forEach(el => el.classList.remove("selected"));
+        optionsDiv
+          .querySelectorAll(".custom-option")
+          .forEach((el) => el.classList.remove("selected"));
         optionEl.classList.add("selected");
-        
+
         // Close
         customSelect.classList.remove("open");
         optionsDiv.classList.remove("show");
       });
-      
+
       optionsDiv.appendChild(optionEl);
     });
-    
+
     customSelect.appendChild(trigger);
     customSelect.appendChild(optionsDiv);
     wrapper.appendChild(customSelect);
-    
+
     // Toggle logic
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
-      
+
       // Close other open selects
-      document.querySelectorAll(".custom-select.open").forEach(el => {
+      document.querySelectorAll(".custom-select.open").forEach((el) => {
         if (el !== customSelect) {
           el.classList.remove("open");
           el.querySelector(".custom-options").classList.remove("show");
         }
       });
-      
+
       customSelect.classList.toggle("open");
       optionsDiv.classList.toggle("show");
     });
-    
+
     // Hide original select visually but keep it for logic
     select.style.display = "none";
   });
-  
+
   // Global click outside to close
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".custom-select")) {
-      document.querySelectorAll(".custom-select.open").forEach(el => {
+      document.querySelectorAll(".custom-select.open").forEach((el) => {
         el.classList.remove("open");
         el.querySelector(".custom-options").classList.remove("show");
       });
@@ -1494,26 +1562,32 @@ export function resetSchedule() {
 // ===== Leaderboard Visibility Toggles =====
 export function toggleLeaderboardVisibility() {
   state.hideLeaderboard = !state.hideLeaderboard;
-  
+
   const btn = document.getElementById("toggleVisibilityBtn");
   if (btn) {
-    btn.textContent = state.hideLeaderboard ? "👁️" : "🙈";
+    btn.textContent = state.hideLeaderboard
+      ? "Show Standings"
+      : "Hide Standings";
     btn.title = state.hideLeaderboard ? "Show Leaderboard" : "Hide Leaderboard";
   }
-  
+
   renderLeaderboard();
   saveState();
 }
 
 export function togglePositionChanges() {
   state.showPositionChanges = !state.showPositionChanges;
-  
+
   const btn = document.getElementById("togglePositionBtn");
   if (btn) {
-    btn.textContent = state.showPositionChanges ? "↕️" : "➖";
-    btn.title = state.showPositionChanges ? "Hide Rank Changes" : "Show Rank Changes";
+    btn.textContent = state.showPositionChanges
+      ? "Hide Rank Diff"
+      : "Show Rank Diff";
+    btn.title = state.showPositionChanges
+      ? "Hide Rank Changes"
+      : "Show Rank Changes";
   }
-  
+
   renderLeaderboard();
   saveState();
 }
@@ -1558,6 +1632,8 @@ export function endTournament(showFinalStandingsCallback) {
 export function toggleAdvancedSettings() {
   const content = document.getElementById("advancedSettingsContent");
   const btn = document.getElementById("advancedSettingsToggle");
+  if (!content || !btn) return;
+
   const text = btn.querySelector(".toggle-text");
   const icon = btn.querySelector(".toggle-icon");
 
@@ -1596,12 +1672,16 @@ export function exportTournamentData(data = null) {
   // 2. Standings
   csvContent += `Final Standings\n`;
   csvContent += `Rank,Player,Points,Wins,Played,Points Lost,Diff\n`;
-  
-  const sortedPlayers = [...target.leaderboard].sort((a, b) => b.points - a.points);
-  
+
+  const sortedPlayers = [...target.leaderboard].sort(
+    (a, b) => b.points - a.points
+  );
+
   sortedPlayers.forEach((p, index) => {
     const diff = (p.points || 0) - (p.pointsLost || 0);
-    csvContent += `${index + 1},"${p.name}",${p.points},${p.wins},${p.played},${p.pointsLost || 0},${diff}\n`;
+    csvContent += `${index + 1},"${p.name}",${p.points},${p.wins},${p.played},${
+      p.pointsLost || 0
+    },${diff}\n`;
   });
   csvContent += `\n`;
 
@@ -1609,22 +1689,26 @@ export function exportTournamentData(data = null) {
   csvContent += `Match History\n`;
   csvContent += `Round,Court,Team 1,Score T1,Score T2,Team 2\n`;
 
-  target.schedule.forEach(round => {
+  target.schedule.forEach((round) => {
     if (!round.completed) return;
-    
-    round.matches.forEach(match => {
-        const team1Names = match.team1.map(p => p.name).join(" & ");
-        const team2Names = match.team2.map(p => p.name).join(" & ");
-        
-        // Helper for court name
-        let courtName = `Court ${match.court}`;
-        if (target.courtFormat === 'custom' && target.customCourtNames && target.customCourtNames[match.court - 1]) {
-             courtName = target.customCourtNames[match.court - 1];
-        } else if (target.courtFormat === 'number') {
-             courtName = `${match.court}`;
-        }
 
-        csvContent += `Round ${round.number},"${courtName}","${team1Names}",${match.score1},${match.score2},"${team2Names}"\n`;
+    round.matches.forEach((match) => {
+      const team1Names = match.team1.map((p) => p.name).join(" & ");
+      const team2Names = match.team2.map((p) => p.name).join(" & ");
+
+      // Helper for court name
+      let courtName = `Court ${match.court}`;
+      if (
+        target.courtFormat === "custom" &&
+        target.customCourtNames &&
+        target.customCourtNames[match.court - 1]
+      ) {
+        courtName = target.customCourtNames[match.court - 1];
+      } else if (target.courtFormat === "number") {
+        courtName = `${match.court}`;
+      }
+
+      csvContent += `Round ${round.number},"${courtName}","${team1Names}",${match.score1},${match.score2},"${team2Names}"\n`;
     });
   });
 
@@ -1632,7 +1716,10 @@ export function exportTournamentData(data = null) {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `padel_tournament_${new Date().toISOString().slice(0,10)}.csv`);
+  link.setAttribute(
+    "download",
+    `padel_tournament_${new Date().toISOString().slice(0, 10)}.csv`
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -1642,24 +1729,26 @@ export function exportTournamentData(data = null) {
 export async function shareResults(data = null) {
   const target = data || state;
   const date = new Date().toLocaleDateString();
-  
+
   let text = `Padel Tournament Results - ${date}\n\n`;
-  text += `Winner: ${target.leaderboard[0]?.name || 'Unknown'}\n`;
+  text += `Winner: ${target.leaderboard[0]?.name || "Unknown"}\n`;
   text += `Format: ${target.format}\n\n`;
-  
+
   text += `Top Standings:\n`;
-  const topPlayers = [...target.leaderboard].sort((a, b) => b.points - a.points).slice(0, 5);
+  const topPlayers = [...target.leaderboard]
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 5);
   topPlayers.forEach((p, i) => {
-    text += `${i+1}. ${p.name}: ${p.points} pts (${p.wins}W)\n`;
+    text += `${i + 1}. ${p.name}: ${p.points} pts (${p.wins}W)\n`;
   });
-  
+
   text += `\nFull results: https://padelcompanion.se/tournament/`;
 
   try {
     await navigator.clipboard.writeText(text);
     showToast("Results copied to clipboard");
   } catch (err) {
-    console.error('Failed to copy: ', err);
+    console.error("Failed to copy: ", err);
     showToast("Failed to copy results", "error");
   }
 }
