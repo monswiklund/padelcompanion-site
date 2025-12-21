@@ -47,7 +47,6 @@ export function initElements() {
     preferredPartnersList: document.getElementById("preferredPartnersList"),
     addPartnerPairBtn: document.getElementById("addPartnerPairBtn"),
     advancedSettingsContent: document.getElementById("advancedSettingsContent"),
-    advancedToggleWrapper: document.getElementById("advancedToggleWrapper"),
     playerList: document.getElementById("playerList"),
     playerCount: document.getElementById("playerCount"),
     playersHint: document.getElementById("playersHint"),
@@ -793,54 +792,62 @@ export function updateSetupUI() {
   }
 
   // Toggle Advanced Settings visibility based on Format
-  const advancedSettingsContent = document.getElementById("advancedSettingsContent");
-  const advancedToggleWrapper = document.getElementById("advancedToggleWrapper");
-  const maxRepeatsContainer = document.getElementById("maxRepeatsContainer");
-  const pairingStrategyContainer = document.getElementById("pairingStrategyContainer");
-  const preferredPartnersContainer = document.getElementById("preferredPartnersContainer");
 
-  // Mexicano: All rules
-  // Team Mexicano: Only Max Repeats (Strategy is N/A for fixed teams, Partners N/A)
-  const isMexicano = format === "mexicano";
-  const isTeamMexicano = format === "teamMexicano";
+  // Normalize format just in case
+  const fmt = String(format).trim();
+  const isMexicano = fmt.toLowerCase() === "mexicano";
+  const isTeamMexicano = fmt === "teamMexicano";
   const isMexicanoRelated = isMexicano || isTeamMexicano;
 
-  if (advancedToggleWrapper) {
-    const shouldShowWrapper = isMexicanoRelated;
-    advancedToggleWrapper.style.setProperty("display", shouldShowWrapper ? "flex" : "none", "important");
-  }
+  // Use cached elements if available, fallback to query
+  const advancedToggleWrapper =
+    els.advancedToggleWrapper ||
+    document.getElementById("advancedToggleWrapper");
+  const advancedSettingsContent =
+    els.advancedSettingsContent ||
+    document.getElementById("advancedSettingsContent");
+  const maxRepeatsContainer = document.getElementById("maxRepeatsContainer");
+  const pairingStrategyContainer = document.getElementById(
+    "pairingStrategyContainer"
+  );
+  const preferredPartnersContainer = document.getElementById(
+    "preferredPartnersContainer"
+  );
 
   if (advancedSettingsContent) {
-    // If it's a Mexicano format, ensure content is shown if it was hidden
+    // Use CSS classes for animation instead of display property
     if (isMexicanoRelated) {
-       advancedSettingsContent.style.setProperty("display", "block", "important");
+      advancedSettingsContent.classList.remove("collapsed");
+      advancedSettingsContent.classList.add("expanded");
+      advancedSettingsContent.style.removeProperty("display");
     } else {
-      advancedSettingsContent.style.setProperty("display", "none", "important");
-    }
-    
-    // Update toggle button state to match visibility
-    const btn = document.getElementById("advancedSettingsToggle");
-    if (btn) {
-      const isVisible = advancedSettingsContent.style.display !== "none";
-      const text = btn.querySelector(".toggle-text");
-      const icon = btn.querySelector(".toggle-icon");
-      
-      btn.classList.toggle("expanded", isVisible);
-      if (text) text.textContent = isVisible ? "Hide Advanced Settings" : "Show Advanced Settings";
-      if (icon) icon.style.transform = isVisible ? "rotate(180deg)" : "rotate(0deg)";
+      advancedSettingsContent.classList.remove("expanded");
+      advancedSettingsContent.classList.add("collapsed");
     }
   }
 
   if (maxRepeatsContainer) {
-    maxRepeatsContainer.style.setProperty("display", isMexicanoRelated ? "flex" : "none", "important");
+    maxRepeatsContainer.style.setProperty(
+      "display",
+      isMexicanoRelated ? "flex" : "none",
+      "important"
+    );
   }
 
   if (pairingStrategyContainer) {
-    pairingStrategyContainer.style.setProperty("display", isMexicano ? "flex" : "none", "important");
+    pairingStrategyContainer.style.setProperty(
+      "display",
+      isMexicano ? "flex" : "none",
+      "important"
+    );
   }
-  
+
   if (preferredPartnersContainer) {
-    preferredPartnersContainer.style.setProperty("display", isMexicano ? "block" : "none", "important");
+    preferredPartnersContainer.style.setProperty(
+      "display",
+      isMexicano ? "block" : "none",
+      "important"
+    );
   }
 
   // Disable "Strict Pattern" if strategy is Optimal (redundant)
@@ -887,7 +894,8 @@ export function updateGridColumns() {
 
 // ===== Scoring Label =====
 export function updateScoringLabel() {
-  const mode = document.getElementById("scoringMode")?.value || state.scoringMode;
+  const mode =
+    document.getElementById("scoringMode")?.value || state.scoringMode;
   const label = document.getElementById("scoringValueLabel");
   const input = document.getElementById("points");
 
@@ -1052,12 +1060,12 @@ export function setupCustomSelects() {
 
       optionEl.addEventListener("click", () => {
         // Update original select
-        select.value = option.dataset.value;
+        select.value = optionEl.dataset.value;
         // Dispatch event with bubbling to ensure all listeners (including global ones) catch it
         select.dispatchEvent(new Event("change", { bubbles: true }));
 
         // Update UI
-        trigger.innerHTML = `<span>${option.text}</span>`;
+        trigger.innerHTML = `<span>${optionEl.textContent}</span>`;
         optionsDiv
           .querySelectorAll(".custom-option")
           .forEach((el) => el.classList.remove("selected"));
@@ -1628,27 +1636,7 @@ export function endTournament(showFinalStandingsCallback) {
   );
 }
 
-// ===== Advanced Settings Toggle =====
-export function toggleAdvancedSettings() {
-  const content = document.getElementById("advancedSettingsContent");
-  const btn = document.getElementById("advancedSettingsToggle");
-  if (!content || !btn) return;
-
-  const text = btn.querySelector(".toggle-text");
-  const icon = btn.querySelector(".toggle-icon");
-
-  if (content.style.display === "none") {
-    content.style.display = "block";
-    btn.classList.add("expanded");
-    if (text) text.textContent = "Hide Advanced Settings";
-    if (icon) icon.style.transform = "rotate(180deg)";
-  } else {
-    content.style.display = "none";
-    btn.classList.remove("expanded");
-    if (text) text.textContent = "Show Advanced Settings";
-    if (icon) icon.style.transform = "rotate(0deg)";
-  }
-}
+// Advanced settings now auto-show/hide based on format (no toggle needed)
 
 // ===== Toolbar Toggle =====
 export function toggleToolbar() {

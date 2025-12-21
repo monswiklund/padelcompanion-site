@@ -373,7 +373,24 @@
 
 /* ===== Advanced Settings (Merged) ===== */
 .advanced-settings-content {
-  animation: fadeIn 0.3s ease;
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, opacity 0.3s ease-out,
+    margin 0.3s ease-out;
+}
+
+.advanced-settings-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.advanced-settings-content.expanded {
+  max-height: 1200px; /* Large enough for all content */
+  opacity: 1;
+  margin-top: var(--space-lg);
+  pointer-events: auto;
 }
 
 .control-divider-horizontal {

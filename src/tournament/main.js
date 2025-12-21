@@ -52,7 +52,6 @@ import {
   updateGridColumns,
   updateTextSize,
   validateCourts,
-  toggleAdvancedSettings,
   updateRoundScale,
   toggleToolbar,
   exportTournamentData,
@@ -594,7 +593,6 @@ window.updateRankingCriteria = updateRankingCriteria;
 window.updateSetupUI = updateSetupUI;
 window.endTournament = () => endTournament(showFinalStandings);
 window.validateCourts = validateCourts;
-window.toggleAdvancedSettings = toggleAdvancedSettings;
 window.toggleToolbar = toggleToolbar;
 window.exportTournamentData = exportTournamentData;
 window.shareResults = shareResults;
