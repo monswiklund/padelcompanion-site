@@ -54,10 +54,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/tournament-wHCg7wGT.js"></script>
+    <script type="module" crossorigin src="/assets/tournament-OpClKrz7.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-    <link rel="stylesheet" crossorigin href="/assets/tournament-CSHnIVzS.css">
-    <link rel="stylesheet" crossorigin href="/assets/style-CShHFyDi.css">
+    <link rel="stylesheet" crossorigin href="/assets/tournament-CdsNbO-T.css">
+    <link rel="stylesheet" crossorigin href="/assets/style-CqHaNH4I.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <header class="header scrolled">
@@ -114,7 +114,7 @@
 
           <div class="setup-grid">
             <!-- Format Selection -->
-            <div class="form-group">
+            <div class="form-group format-group">
               <div class="form-label-row">
                 <label for="format" style="margin-bottom:0">Format</label>
                 <button type="button" class="help-icon always-enabled" id="helpFormat">?</button>
@@ -122,50 +122,18 @@
               <select
                 id="format"
                 class="form-select"
-                onchange="updateSetupUI()"
               >
-                <option value="americano">Americano (Individual)</option>
-                <option value="mexicano">Mexicano (Dynamic)</option>
-                <option value="team">Team Americano (Fixed Teams)</option>
+                <option value="americano">Americano</option>
+                <option value="mexicano">Mexicano</option>
+                <option value="team">Team Americano</option>
                 <option value="teamMexicano">
-                  Team Mexicano (Fixed + Dynamic)
+                  Team Mexicano
                 </option>
               </select>
-            </div>
-
-            <!-- Scoring Rules -->
-            <div class="form-group">
-              <div class="form-label-row">
-                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
-                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
-              </div>
-              <select
-                id="scoringMode"
-                class="form-select"
-                onchange="updateScoringLabel()"
-              >
-                <option value="total" selected>
-                  Total Points (Shared Pot)
-                </option>
-                <option value="race">Race to Points (First into...)</option>
-                <option value="time">Time Based (Max points in...)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label id="scoringValueLabel" for="points">Total Points</label>
-              <input
-                type="number"
-                id="points"
-                class="form-input"
-                value="24"
-                min="1"
-                max="999"
-              />
             </div>
 
             <!-- Courts -->
-            <div class="form-group">
+            <div class="form-group courts-group">
               <label for="courts">Courts</label>
               <input
                 type="number"
@@ -184,15 +152,44 @@
             </div>
 
             <!-- Court Naming -->
-            <div class="form-group">
+            <div class="form-group court-names-group">
               <label for="courtFormat">Court Names</label>
               <select id="courtFormat" class="form-select">
-                <option value="number"># (1, 2, 3...)</option>
                 <option value="court" selected>
-                  Court # (Court 1, Court 2...)
+                  Court 1, Court 2...
                 </option>
                 <option value="custom">Custom names</option>
               </select>
+            </div>
+
+            <!-- Scoring Rules -->
+            <div class="form-group scoring-mode-group">
+              <div class="form-label-row">
+                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
+                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
+              </div>
+              <select
+                id="scoringMode"
+                class="form-select"
+              >
+                <option value="total" selected>
+                  Total Points (Shared Pot)
+                </option>
+                <option value="race">Race to Points (First into...)</option>
+                <option value="time">Time Based (Max points in...)</option>
+              </select>
+            </div>
+
+            <div class="form-group total-points-group">
+              <label id="scoringValueLabel" for="points">Total Points</label>
+              <input
+                type="number"
+                id="points"
+                class="form-input"
+                value="24"
+                min="1"
+                max="999"
+              />
             </div>
 
             <!-- Custom Court Names (shown when custom selected) -->
@@ -208,26 +205,10 @@
             </div>
           </div>
 
-          <script>
-            function updateScoringLabel() {
-              const mode = document.getElementById("scoringMode").value;
-              const label = document.getElementById("scoringValueLabel");
-              const input = document.getElementById("points");
+          <!-- Advanced Settings now auto-show/hide based on format -->
 
-              if (mode === "total") {
-                label.textContent = "Total Points (Score A + B)";
-                input.value = 24;
-              } else if (mode === "race") {
-                label.textContent = "Winning Score (First to...)";
-                input.value = 21;
-              } else if (mode === "time") {
-                label.textContent = "Match Duration (Minutes)";
-                input.value = 12;
-              }
-            }
-          </script>
           <!-- Advanced Settings Section (Inside Card) -->
-          <div id="advancedSettingsContent" class="advanced-settings-content">
+          <div id="advancedSettingsContent" class="advanced-settings-content collapsed">
             <div class="control-divider-horizontal"></div>
             
             <div class="card-header-advanced">
@@ -305,10 +286,7 @@
                 >
               </div>
             </div>
-            </div>
           </div>
-
-
         </div>
 
         <!-- Players Section -->
@@ -569,7 +547,6 @@
                 id="rankingCriteria"
                 class="form-select btn-sm"
                 style="width: auto; padding-right: 32px"
-                onchange="updateRankingCriteria()"
               >
                 <option value="points" selected>Sort: Points</option>
                 <option value="wins">Sort: Wins</option>
