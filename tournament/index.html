@@ -54,10 +54,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/tournament-BEUfoG44.js"></script>
+    <script type="module" crossorigin src="/assets/tournament-DcZoRtWe.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-    <link rel="stylesheet" crossorigin href="/assets/tournament-BoQ6orVG.css">
-    <link rel="stylesheet" crossorigin href="/assets/style-C35pS7yi.css">
+    <link rel="stylesheet" crossorigin href="/assets/tournament-BbY4hWe-.css">
+    <link rel="stylesheet" crossorigin href="/assets/style-CShHFyDi.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <header class="header scrolled">
@@ -133,6 +133,37 @@
               </select>
             </div>
 
+            <!-- Scoring Rules -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
+                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
+              </div>
+              <select
+                id="scoringMode"
+                class="form-select"
+                onchange="updateScoringLabel()"
+              >
+                <option value="total" selected>
+                  Total Points (Shared Pot)
+                </option>
+                <option value="race">Race to Points (First into...)</option>
+                <option value="time">Time Based (Max points in...)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label id="scoringValueLabel" for="points">Total Points</label>
+              <input
+                type="number"
+                id="points"
+                class="form-input"
+                value="24"
+                min="1"
+                max="999"
+              />
+            </div>
+
             <!-- Courts -->
             <div class="form-group">
               <label for="courts">Courts</label>
@@ -174,37 +205,6 @@
               <div id="customCourtNamesList" class="custom-court-names">
                 <!-- Dynamically generated inputs -->
               </div>
-            </div>
-
-            <!-- Scoring Rules -->
-            <div class="form-group">
-              <div class="form-label-row">
-                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
-                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
-              </div>
-              <select
-                id="scoringMode"
-                class="form-select"
-                onchange="updateScoringLabel()"
-              >
-                <option value="total" selected>
-                  Total Points (Shared Pot)
-                </option>
-                <option value="race">Race to Points (First into...)</option>
-                <option value="time">Time Based (Max points in...)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label id="scoringValueLabel" for="points">Total Points</label>
-              <input
-                type="number"
-                id="points"
-                class="form-input"
-                value="24"
-                min="1"
-                max="999"
-              />
             </div>
           </div>
 
