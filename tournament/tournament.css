@@ -14,6 +14,9 @@
   --accent-glow: rgba(59, 130, 246, 0.4);
   --border-color: rgba(255, 255, 255, 0.1);
   --input-bg: #22222e;
+
+  /* Mobile-specific spacing - consistent with main stylesheet */
+  --mobile-side-margin: 1rem;
 }
 
 [data-theme="light"] {
@@ -686,6 +689,16 @@ select.locked {
   max-width: 95%;
   width: 100%;
   margin: 0 auto;
+}
+
+/* Mobile: Consistent side margins for schedule section */
+@media (max-width: 768px) {
+  .schedule-section {
+    max-width: none;
+    margin-left: var(--mobile-side-margin);
+    margin-right: var(--mobile-side-margin);
+    width: auto;
+  }
 }
 
 /* Independent Header Row */
@@ -2015,6 +2028,10 @@ select.locked {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --mobile-side-margin: 0.875rem; /* 14px on very small screens */
+  }
+
   .actions-grid {
     grid-template-columns: 1fr;
     padding: var(--space-md);

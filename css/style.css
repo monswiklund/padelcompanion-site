@@ -50,6 +50,9 @@
   --space-3xl: 4rem;
   --space-4xl: 6rem;
 
+  /* Mobile-specific spacing for consistent side margins */
+  --mobile-side-margin: 1rem; /* 16px consistent margin on phones */
+
   /* Borders */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -188,6 +191,27 @@ p {
 
 .section {
   padding: var(--space-4xl) 0;
+}
+
+/* Mobile: Consistent side margins for phones */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--mobile-side-margin);
+  }
+
+  .section {
+    padding: var(--space-3xl) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --mobile-side-margin: 0.875rem; /* 14px on very small screens */
+  }
+
+  .section {
+    padding: var(--space-2xl) 0;
+  }
 }
 
 .grid {
@@ -2023,8 +2047,8 @@ p {
 
 @media (max-width: 480px) {
   .cookie-banner {
-    left: var(--space-md);
-    right: var(--space-md);
-    bottom: var(--space-md);
+    left: var(--mobile-side-margin);
+    right: var(--mobile-side-margin);
+    bottom: var(--mobile-side-margin);
   }
 }
