@@ -30,12 +30,20 @@ export const state = {
 const historyStack = [];
 const MAX_HISTORY = 20;
 
+function updateUndoButton() {
+  const undoBtn = document.getElementById("undoBtn");
+  if (undoBtn) {
+    undoBtn.disabled = historyStack.length === 0;
+  }
+}
+
 export function pushHistory() {
   const snapshot = JSON.parse(JSON.stringify(state));
   historyStack.push(snapshot);
   if (historyStack.length > MAX_HISTORY) {
     historyStack.shift();
   }
+  updateUndoButton();
 }
 
 export function undoLastAction() {
@@ -43,6 +51,7 @@ export function undoLastAction() {
   const previousState = historyStack.pop();
 
   restoreState(previousState);
+  updateUndoButton();
   return true;
 }
 

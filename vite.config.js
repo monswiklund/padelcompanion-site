@@ -12,8 +12,8 @@ export default defineConfig({
       },
       includeAssets: ["assets/app-icon.jpeg", "assets/court-bg.svg"],
       manifest: {
-        name: "Padel Companion - Tournament Generator",
-        short_name: "Padel Companion",
+        name: "Tournament - Padel Companion",
+        short_name: "Tournament",
         description:
           "Generate Americano and Mexicano padel tournament schedules",
         theme_color: "#0a0a0f",

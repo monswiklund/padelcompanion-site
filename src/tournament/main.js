@@ -64,7 +64,21 @@ import { initPWA } from "../shared/pwa.js";
 // ===== Initialize Application =====
 function init() {
   // Initialize PWA
-  initPWA("installBtn");
+  initPWA("installBtn", () => {
+    showInfoModal(
+      "Install App on iPhone",
+      `
+      <div style="text-align: center;">
+        <p style="margin-bottom: 20px;">To install <strong>Tournament - Padel Companion</strong> as an app on your Home Screen:</p>
+        <ol style="text-align: left; padding-left: 20px; line-height: 1.6;">
+          <li style="margin-bottom: 12px;">Tap the <strong>Share</strong> button <span style="font-size: 1.2em">⎋</span> (square with arrow) at the bottom in Safari.</li>
+          <li style="margin-bottom: 12px;">Scroll down and tap <strong>Add to Home Screen</strong> <span style="font-size: 1.2em">⊞</span>.</li>
+          <li>Tap <strong>Add</strong> in the top right corner.</li>
+        </ol>
+      </div>
+      `
+    );
+  });
 
   // Initialize theme
   const theme = initTheme();

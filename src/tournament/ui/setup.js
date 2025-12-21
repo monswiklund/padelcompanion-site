@@ -146,10 +146,24 @@ export function generateSchedule() {
 
     els.scheduleSection.scrollIntoView({ behavior: "smooth" });
 
+    // Animate first round with entrance effect
+    setTimeout(() => {
+      const firstRound = document.getElementById("round-0");
+      if (firstRound) {
+        firstRound.classList.add("animate-in", "highlight");
+        setTimeout(() => {
+          firstRound.classList.remove("animate-in", "highlight");
+        }, 1600);
+      }
+    }, 100);
+
     state.isLocked = true;
     updateSetupUI();
 
     saveState();
+
+    // Celebration toast
+    showToast(`🎾 Tournament started! Round 1 ready`);
   };
 
   if (state.courts > maxPossibleCourts) {

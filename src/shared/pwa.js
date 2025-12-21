@@ -1,11 +1,15 @@
-/**
- * PWA Install Prompt Logic
- * Handles the 'beforeinstallprompt' event and the install button UI
- */
-export function initPWA(installBtnId) {
+export function initPWA(installBtnId, onIOSInstall) {
   let deferredPrompt;
   const installBtn = document.getElementById(installBtnId);
 
+  // iOS Detection
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone;
+
+  // Android/Chrome Logic
   window.addEventListener("beforeinstallprompt", (e) => {
     // Prevent the mini-infobar from appearing on mobile
     e.preventDefault();
@@ -31,6 +35,14 @@ export function initPWA(installBtnId) {
       });
     }
   });
+
+  // iOS Logic
+  if (isIOS && !isStandalone && installBtn && onIOSInstall) {
+    installBtn.style.display = "inline-flex";
+    installBtn.addEventListener("click", () => {
+      onIOSInstall();
+    });
+  }
 
   window.addEventListener("appinstalled", () => {
     // Hide the app-provided install promotion

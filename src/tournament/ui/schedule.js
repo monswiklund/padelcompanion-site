@@ -9,7 +9,7 @@ import {
   updateSliderMax,
   updateTextSize,
 } from "./controls.js";
-import { renderLeaderboard } from "./leaderboard.js";
+import { renderLeaderboard, getSortedLeaderboard } from "./leaderboard.js";
 import { setRenderScheduleCallback } from "./setup.js";
 import { showToast } from "../../shared/utils.js";
 import { showConfirmModal, showInputModal } from "../modals.js";
@@ -391,6 +391,7 @@ export function completeRound() {
   const currentRoundIndex = state.schedule.length - 1;
   const currentRound = state.schedule[currentRoundIndex];
 
+  // 1. Validate all scores first
   let allScoresValid = true;
   currentRound.matches.forEach((match, matchIndex) => {
     const score1Input = document.getElementById(
@@ -422,6 +423,38 @@ export function completeRound() {
         score2Input?.classList.remove("error");
       }
     }
+  });
+
+  if (!allScoresValid) {
+    if (state.scoringMode === "total") {
+      showToast(`Scores must sum to ${state.pointsPerMatch}`);
+    } else {
+      showToast("Please enter valid positive scores");
+    }
+    return;
+  }
+
+  // 2. Snapshot current ranks before updating stats
+  // This ensures 'rank change' shows the diff from THIS round
+  const currentSorted = getSortedLeaderboard();
+  currentSorted.forEach((p, index) => {
+    const player = state.leaderboard.find((lp) => lp.id === p.id);
+    if (player) {
+      player.previousRank = index + 1;
+    }
+  });
+
+  // 3. Update stats
+  currentRound.matches.forEach((match, matchIndex) => {
+    const score1Input = document.getElementById(
+      `score-${currentRoundIndex}-${matchIndex}-1`
+    );
+    const score2Input = document.getElementById(
+      `score-${currentRoundIndex}-${matchIndex}-2`
+    );
+
+    const score1 = parseInt(score1Input?.value) || 0;
+    const score2 = parseInt(score2Input?.value) || 0;
 
     match.score1 = score1;
     match.score2 = score2;
@@ -492,6 +525,13 @@ export function completeRound() {
     return;
   }
 
+  // Animate the button before completing
+  const completeBtn = document.querySelector(".complete-round-btn");
+  if (completeBtn) {
+    completeBtn.classList.add("completing");
+    completeBtn.textContent = "✓ Completing...";
+  }
+
   pushHistory();
 
   currentRound.completed = true;
@@ -523,14 +563,14 @@ export function completeRound() {
     const nextRound = { ...state.allRounds[state.currentRound - 1] };
     state.schedule.push(nextRound);
   } else if (state.format === "teamMexicano") {
-    if (state.currentRound <= 8) {
+    if (state.currentRound <= 20) {
       const nextRound = generateTeamMexicanoNextRound();
       if (nextRound.matches.length > 0) {
         state.schedule.push(nextRound);
       }
     }
   } else if (state.format === "mexicano") {
-    if (state.currentRound <= 8) {
+    if (state.currentRound <= 20) {
       const nextRound = generateMexicanoNextRound(state.leaderboard);
       if (nextRound.matches.length > 0) {
         state.schedule.push(nextRound);
@@ -541,6 +581,15 @@ export function completeRound() {
   renderLeaderboard();
   renderSchedule();
   saveState();
+
+  // Animate completed round with flash
+  const completedRoundEl = document.getElementById(
+    `round-${currentRoundIndex}`
+  );
+  if (completedRoundEl) {
+    completedRoundEl.classList.add("complete-flash");
+    setTimeout(() => completedRoundEl.classList.remove("complete-flash"), 1000);
+  }
 
   // Show completion toast with indication of new round
   const completedRoundNum = currentRound.number;
@@ -559,7 +608,14 @@ export function completeRound() {
     const newRoundIndex = state.schedule.length - 1;
     const newRoundEl = document.getElementById(`round-${newRoundIndex}`);
     if (newRoundEl) {
+      // Add entrance animation
+      newRoundEl.classList.add("animate-in", "highlight");
       newRoundEl.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // Remove animation classes after animation completes
+      setTimeout(() => {
+        newRoundEl.classList.remove("animate-in", "highlight");
+      }, 1600);
     }
   }, 100);
 }
