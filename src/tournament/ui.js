@@ -600,6 +600,19 @@ export function renderSchedule() {
 export function renderLeaderboard() {
   const els = getElements();
 
+  // Sync toggle buttons state
+  const visBtn = document.getElementById("toggleVisibilityBtn");
+  if (visBtn) {
+    visBtn.textContent = state.hideLeaderboard ? "👁️" : "🙈";
+    visBtn.title = state.hideLeaderboard ? "Show Leaderboard" : "Hide Leaderboard";
+  }
+
+  const posBtn = document.getElementById("togglePositionBtn");
+  if (posBtn) {
+    posBtn.textContent = state.showPositionChanges ? "↕️" : "➖";
+    posBtn.title = state.showPositionChanges ? "Hide Rank Changes" : "Show Rank Changes";
+  }
+
   if (!state.leaderboard || state.leaderboard.length === 0) {
     els.leaderboardBody.innerHTML =
       '<tr><td colspan="7" class="text-center">No players yet</td></tr>';
@@ -935,6 +948,94 @@ export function updateRoundScale() {
   if (roundScaleLabel) {
     roundScaleLabel.textContent = `${size}%`;
   }
+}
+
+// ===== Custom Select Logic =====
+export function setupCustomSelects() {
+  const selects = document.querySelectorAll(".form-select");
+  
+  selects.forEach(select => {
+    // Skip if already initialized or if explicitly excluded
+    if (select.closest('.custom-select-wrapper') || select.classList.contains('no-custom')) return;
+    
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("custom-select-wrapper");
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    
+    // Create custom UI
+    const customSelect = document.createElement("div");
+    customSelect.classList.add("custom-select");
+    
+    const trigger = document.createElement("div");
+    trigger.classList.add("custom-select-trigger");
+    if (select.classList.contains("btn-sm")) {
+      trigger.classList.add("btn-sm");
+    }
+    trigger.innerHTML = `<span>${select.options[select.selectedIndex].text}</span>`;
+    
+    const optionsDiv = document.createElement("div");
+    optionsDiv.classList.add("custom-options");
+    
+    // Populate options
+    Array.from(select.options).forEach(option => {
+      const optionEl = document.createElement("div");
+      optionEl.classList.add("custom-option");
+      optionEl.textContent = option.text;
+      optionEl.dataset.value = option.value;
+      if (option.selected) optionEl.classList.add("selected");
+      
+      optionEl.addEventListener("click", () => {
+        // Update original select
+        select.value = option.dataset.value;
+        select.dispatchEvent(new Event('change')); // Trigger change event
+        
+        // Update UI
+        trigger.innerHTML = `<span>${option.text}</span>`;
+        optionsDiv.querySelectorAll(".custom-option").forEach(el => el.classList.remove("selected"));
+        optionEl.classList.add("selected");
+        
+        // Close
+        customSelect.classList.remove("open");
+        optionsDiv.classList.remove("show");
+      });
+      
+      optionsDiv.appendChild(optionEl);
+    });
+    
+    customSelect.appendChild(trigger);
+    customSelect.appendChild(optionsDiv);
+    wrapper.appendChild(customSelect);
+    
+    // Toggle logic
+    trigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      
+      // Close other open selects
+      document.querySelectorAll(".custom-select.open").forEach(el => {
+        if (el !== customSelect) {
+          el.classList.remove("open");
+          el.querySelector(".custom-options").classList.remove("show");
+        }
+      });
+      
+      customSelect.classList.toggle("open");
+      optionsDiv.classList.toggle("show");
+    });
+    
+    // Hide original select visually but keep it for logic
+    select.style.display = "none";
+  });
+  
+  // Global click outside to close
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".custom-select")) {
+      document.querySelectorAll(".custom-select.open").forEach(el => {
+        el.classList.remove("open");
+        el.querySelector(".custom-options").classList.remove("show");
+      });
+    }
+  });
 }
 
 // ===== Score Auto-Fill =====
@@ -1393,12 +1494,26 @@ export function resetSchedule() {
 // ===== Leaderboard Visibility Toggles =====
 export function toggleLeaderboardVisibility() {
   state.hideLeaderboard = !state.hideLeaderboard;
+  
+  const btn = document.getElementById("toggleVisibilityBtn");
+  if (btn) {
+    btn.textContent = state.hideLeaderboard ? "👁️" : "🙈";
+    btn.title = state.hideLeaderboard ? "Show Leaderboard" : "Hide Leaderboard";
+  }
+  
   renderLeaderboard();
   saveState();
 }
 
 export function togglePositionChanges() {
   state.showPositionChanges = !state.showPositionChanges;
+  
+  const btn = document.getElementById("togglePositionBtn");
+  if (btn) {
+    btn.textContent = state.showPositionChanges ? "↕️" : "➖";
+    btn.title = state.showPositionChanges ? "Hide Rank Changes" : "Show Rank Changes";
+  }
+  
   renderLeaderboard();
   saveState();
 }

@@ -131,6 +131,37 @@
               </select>
             </div>
 
+            <!-- Scoring Rules -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
+                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
+              </div>
+              <select
+                id="scoringMode"
+                class="form-select"
+                onchange="updateScoringLabel()"
+              >
+                <option value="total" selected>
+                  Total Points (Shared Pot)
+                </option>
+                <option value="race">Race to Points (First into...)</option>
+                <option value="time">Time Based (Max points in...)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label id="scoringValueLabel" for="points">Total Points</label>
+              <input
+                type="number"
+                id="points"
+                class="form-input"
+                value="24"
+                min="1"
+                max="999"
+              />
+            </div>
+
             <!-- Courts -->
             <div class="form-group">
               <label for="courts">Courts</label>
@@ -166,43 +197,12 @@
             <div
               id="customCourtNamesSection"
               class="form-group"
-              style="display: none"
+              style="display: none; grid-column: 1 / -1;"
             >
               <label>Court Names</label>
               <div id="customCourtNamesList" class="custom-court-names">
                 <!-- Dynamically generated inputs -->
               </div>
-            </div>
-
-            <!-- Scoring Rules -->
-            <div class="form-group">
-              <div class="form-label-row">
-                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
-                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
-              </div>
-              <select
-                id="scoringMode"
-                class="form-select"
-                onchange="updateScoringLabel()"
-              >
-                <option value="total" selected>
-                  Total Points (Shared Pot)
-                </option>
-                <option value="race">Race to Points (First into...)</option>
-                <option value="time">Time Based (Max points in...)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label id="scoringValueLabel" for="points">Total Points</label>
-              <input
-                type="number"
-                id="points"
-                class="form-input"
-                value="24"
-                min="1"
-                max="999"
-              />
             </div>
           </div>
 
@@ -534,36 +534,39 @@
         </div>
 
         <!-- Tournament Actions -->
-        <div id="tournamentActionsSection" class="tournament-actions section" style="display: none;">
-          <div class="actions-row">
+        <div id="tournamentActionsSection" class="tournament-actions" style="display: none;">
+          <div class="actions-header">
+            <h3>Tournament Controls</h3>
+          </div>
+          <div class="actions-grid">
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               onclick="promptAddLatePlayer()"
               title="Add a player who arrived late"
             >
-              + Late Player
+              <span class="action-text">Add Late Player</span>
             </button>
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               id="undoBtn"
               title="Undo last action (Ctrl+Z)"
               disabled
             >
-              ↩ Undo
+              <span class="action-text">Undo Last Action</span>
             </button>
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               id="resetBtn"
               title="Reset Tournament - Start over with same players"
             >
-              Reset Tournament
+              <span class="action-text">Reset Tournament</span>
             </button>
             <button
-              class="btn btn-danger"
+              class="btn btn-danger action-btn"
               onclick="endTournament()"
               title="End Tournament - Finalize results"
             >
-              End Tournament
+              <span class="action-text">End Tournament</span>
             </button>
           </div>
         </div>
@@ -589,16 +592,20 @@
                 <option value="pointRatio">Sort: Point Win %</option>
               </select>
               <button
-                class="btn btn-secondary btn-sm"
+                id="togglePositionBtn"
+                class="btn btn-secondary btn-sm icon-btn"
                 onclick="togglePositionChanges()"
+                title="Toggle Rank Changes"
               >
-                Show/Hide Rank
+                ↕️
               </button>
               <button
-                class="btn btn-secondary btn-sm"
+                id="toggleVisibilityBtn"
+                class="btn btn-secondary btn-sm icon-btn"
                 onclick="toggleLeaderboardVisibility()"
+                title="Toggle Leaderboard Visibility"
               >
-                Hide
+                👁️
               </button>
             </div>
           </div>
@@ -664,8 +671,8 @@
     <section class="partners section" id="partners">
       <div class="container">
         <div class="features-header">
-          <h2>Trusted By <span class="text-gradient">Partners</span></h2>
-          <p>Collaborating with leading brands to grow the sport of padel.</p>
+          <h2>Community & <span class="text-gradient">Partners</span></h2>
+          <p>Join us in growing the sport of padel.</p>
         </div>
 
         <div class="partners-grid">
@@ -675,7 +682,7 @@
               <span>Your Logo Here</span>
             </div>
             <div class="partner-info">
-              <h3>Become a Sponsor</h3>
+              <h3>Become a Partner</h3>
               <p>Showcase your brand to thousands of padel players.</p>
               <a
                 href="mailto:wiklundlabs@gmail.com"
@@ -755,8 +762,8 @@
     </footer>
 
     <script type="module" src="/src/tournament/main.js"></script>
-    <!-- SimpleAnalytics -->
-    <script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
-    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
+    <!-- 100% privacy-first analytics -->
+    <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
   </body>
 </html>

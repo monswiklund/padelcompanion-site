@@ -10,8 +10,8 @@
   --bg-card-hover: #22222e;
 
   --text-primary: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  --text-secondary: #e5e7eb; /* Even brighter for dark mode */
+  --text-muted: #d1d5db; /* Even brighter for dark mode */
 
   --accent: #3b82f6;
   --accent-light: #60a5fa;
@@ -74,9 +74,9 @@
   --bg-secondary: #f1f5f9;
   --bg-card: #ffffff;
   --bg-card-hover: #f8fafc;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-primary: #020617; /* Darkest slate for primary */
+  --text-secondary: #0f172a; /* Very dark slate for secondary */
+  --text-muted: #334155; /* Dark slate for muted */
   --border-color: rgba(0, 0, 0, 0.1);
   --input-bg: #f1f5f9;
   --gradient-hero: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
@@ -1729,17 +1729,18 @@ p {
     position: fixed;
     top: 0;
     right: -100%;
-    width: 75%;
-    max-width: 300px;
+    width: 80%;
+    max-width: 320px;
     height: 100vh;
     background: var(--bg-secondary);
     flex-direction: column;
-    align-items: flex-start;
-    padding: 80px var(--space-xl) var(--space-xl);
-    gap: var(--space-lg);
+    align-items: stretch;
+    padding: 100px 0 var(--space-xl);
+    gap: 0;
     transition: right var(--transition-base);
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
     z-index: 100;
+    overflow-y: auto;
   }
 
   .nav.open {
@@ -1748,7 +1749,22 @@ p {
 
   .nav a {
     font-size: 1.1rem;
-    padding: var(--space-sm) 0;
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border-color);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    transition: background var(--transition-fast);
+  }
+
+  .nav a:first-child {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .nav a:hover,
+  .nav a:active {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
   }
 
   .hero-buttons {

@@ -56,6 +56,7 @@ import {
   toggleToolbar,
   exportTournamentData,
   shareResults,
+  setupCustomSelects,
 } from "./ui.js";
 
 import { initPWA } from "../shared/pwa.js";
@@ -88,6 +89,11 @@ function init() {
     elements.pairingStrategy.value = state.pairingStrategy;
   }
 
+  const rankingCriteriaSelect = document.getElementById("rankingCriteria");
+  if (rankingCriteriaSelect) {
+    rankingCriteriaSelect.value = state.rankingCriteria;
+  }
+
   const strictStrategy = document.getElementById("strictStrategy");
   if (strictStrategy) {
     strictStrategy.checked = state.strictStrategy || false;
@@ -107,6 +113,9 @@ function init() {
     updateSetupUI();
     updateGridColumns();
   }
+
+  // Initialize Custom Selects (must be after values are set)
+  setupCustomSelects();
 
   // Initialize event listeners
   initEventListeners(elements);
