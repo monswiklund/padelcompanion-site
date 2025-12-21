@@ -119,6 +119,9 @@ function init() {
   // Initialize Custom Selects (must be after values are set and listeners are ready)
   setupCustomSelects();
 
+  // Initialize event delegation for dynamic content
+  initEventDelegation();
+
   // Initialize History
   initHistory();
 
@@ -565,13 +568,149 @@ function initEventListeners(elements) {
   }
 }
 
-// ===== Global Function Registration =====
-// These need to be on window for onclick handlers in rendered HTML
+// ===== Event Delegation System =====
+// Centralized event handling instead of window.* globals
+
+/**
+ * Initialize event delegation for dynamically rendered content
+ */
+function initEventDelegation() {
+  // Click event delegation
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const id = target.dataset.id ? parseInt(target.dataset.id) : null;
+    const roundIndex = target.dataset.round
+      ? parseInt(target.dataset.round)
+      : null;
+
+    switch (action) {
+      case "remove-player":
+        if (id !== null) {
+          removePlayer(id);
+          renderPlayers();
+        }
+        break;
+      case "toggle-player-list":
+        togglePlayerList();
+        break;
+      case "remove-pair":
+        if (id !== null) {
+          removePreferredPair(id);
+          renderPreferredPartners();
+        }
+        break;
+      case "toggle-bye":
+        if (id !== null) {
+          toggleManualBye(id);
+        }
+        break;
+      case "toggle-round":
+        if (roundIndex !== null) {
+          toggleRoundCollapse(roundIndex);
+        }
+        break;
+      case "complete-round":
+        completeRound();
+        break;
+      case "edit-round":
+        if (roundIndex !== null) {
+          editRound(roundIndex);
+        }
+        break;
+      case "toggle-visibility":
+        toggleLeaderboardVisibility();
+        break;
+      case "toggle-position":
+        togglePositionChanges();
+        break;
+      case "end-tournament":
+        endTournament(showFinalStandings);
+        break;
+      case "toggle-toolbar":
+        toggleToolbar();
+        break;
+      case "export-data":
+        exportTournamentData();
+        break;
+      case "share-results":
+        shareResults();
+        break;
+      case "add-late-player":
+        promptAddLatePlayer();
+        break;
+    }
+  });
+
+  // Change event delegation for selects
+  document.addEventListener("change", (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const pairId = target.dataset.pairId
+      ? parseInt(target.dataset.pairId)
+      : null;
+    const which = target.dataset.which ? parseInt(target.dataset.which) : null;
+
+    if (action === "update-partner" && pairId !== null && which !== null) {
+      updatePreferredPair(pairId, which, parseInt(target.value));
+      renderPreferredPartners();
+    }
+  });
+
+  // Input event delegation for score autofill
+  document.addEventListener("input", (e) => {
+    const target = e.target.closest("[data-action='autofill-score']");
+    if (!target) return;
+
+    const roundIndex = parseInt(target.dataset.round);
+    const matchIndex = parseInt(target.dataset.match);
+    const team = parseInt(target.dataset.team);
+    autoFillScore(roundIndex, matchIndex, team, target.value);
+  });
+}
+
+// Call in init
+function promptAddLatePlayer() {
+  const isTeam = state.format === "team" || state.format === "teamMexicano";
+  showInputModal(
+    isTeam ? "Add Late Team" : "Add Late Player",
+    isTeam ? "Enter new team name:" : "Enter new player name:",
+    (name) => {
+      if (name && name.trim()) {
+        if (state.format === "americano" || state.format === "team") {
+          const confirmSwitch = confirm(
+            "Adding a player/team mid-tournament will switch the remaining rounds to Mexicano (Dynamic) logic to accommodate the change. Continue?"
+          );
+          if (!confirmSwitch) return;
+          state.format = "mexicano";
+          state.allRounds = null;
+          showToast("Switched to Mexicano format");
+        }
+
+        addLatePlayer(name.trim());
+
+        const countSpan = document.getElementById("playerCount");
+        if (countSpan) {
+          countSpan.textContent = `(${state.players.length})`;
+        }
+
+        renderLeaderboard();
+        showToast(`Added ${name.trim()} to tournament`);
+      }
+    }
+  );
+}
+
+// ===== Legacy Window Functions (Backward Compatibility) =====
+// Keep for onclick="" handlers until all HTML is migrated to data-action
 window.removePlayer = (id) => {
   removePlayer(id);
   renderPlayers();
 };
-
 window.togglePlayerList = togglePlayerList;
 window.updatePreferredPair = (pairId, which, playerId) => {
   updatePreferredPair(pairId, which, playerId);
@@ -596,43 +735,7 @@ window.validateCourts = validateCourts;
 window.toggleToolbar = toggleToolbar;
 window.exportTournamentData = exportTournamentData;
 window.shareResults = shareResults;
-
-console.log("Global functions registered:", {
-  autoFillScore: typeof window.autoFillScore,
-  validateCourts: typeof window.validateCourts,
-});
-
-window.promptAddLatePlayer = () => {
-  const isTeam = state.format === "team" || state.format === "teamMexicano";
-  showInputModal(
-    isTeam ? "Add Late Team" : "Add Late Player",
-    isTeam ? "Enter new team name:" : "Enter new player name:",
-    (name) => {
-      if (name && name.trim()) {
-        // Warn about format switch for Americano/Team
-        if (state.format === "americano" || state.format === "team") {
-          const confirmSwitch = confirm(
-            "Adding a player/team mid-tournament will switch the remaining rounds to Mexicano (Dynamic) logic to accommodate the change. Continue?"
-          );
-          if (!confirmSwitch) return;
-          state.format = "mexicano";
-          state.allRounds = null;
-          showToast("Switched to Mexicano format");
-        }
-
-        addLatePlayer(name.trim());
-
-        const countSpan = document.getElementById("playerCount");
-        if (countSpan) {
-          countSpan.textContent = `(${state.players.length})`;
-        }
-
-        renderLeaderboard();
-        showToast(`Added ${name.trim()} to tournament`);
-      }
-    }
-  );
-};
+window.promptAddLatePlayer = promptAddLatePlayer;
 
 // ===== Start Application =====
 init();
