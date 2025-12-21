@@ -54,9 +54,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/tournament-DcZoRtWe.js"></script>
+    <script type="module" crossorigin src="/assets/tournament-t4DW331v.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-    <link rel="stylesheet" crossorigin href="/assets/tournament-BbY4hWe-.css">
+    <link rel="stylesheet" crossorigin href="/assets/tournament-yNNWDgxo.css">
     <link rel="stylesheet" crossorigin href="/assets/style-CShHFyDi.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
@@ -199,7 +199,7 @@
             <div
               id="customCourtNamesSection"
               class="form-group"
-              style="display: none"
+              style="display: none; grid-column: 1 / -1;"
             >
               <label>Court Names</label>
               <div id="customCourtNamesList" class="custom-court-names">
@@ -536,36 +536,39 @@
         </div>
 
         <!-- Tournament Actions -->
-        <div id="tournamentActionsSection" class="tournament-actions section" style="display: none;">
-          <div class="actions-row">
+        <div id="tournamentActionsSection" class="tournament-actions" style="display: none;">
+          <div class="actions-header">
+            <h3>Tournament Controls</h3>
+          </div>
+          <div class="actions-grid">
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               onclick="promptAddLatePlayer()"
               title="Add a player who arrived late"
             >
-              + Late Player
+              <span class="action-text">Add Late Player</span>
             </button>
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               id="undoBtn"
               title="Undo last action (Ctrl+Z)"
               disabled
             >
-              ↩ Undo
+              <span class="action-text">Undo Last Action</span>
             </button>
             <button
-              class="btn btn-secondary"
+              class="btn btn-secondary action-btn"
               id="resetBtn"
               title="Reset Tournament - Start over with same players"
             >
-              Reset Tournament
+              <span class="action-text">Reset Tournament</span>
             </button>
             <button
-              class="btn btn-danger"
+              class="btn btn-danger action-btn"
               onclick="endTournament()"
               title="End Tournament - Finalize results"
             >
-              End Tournament
+              <span class="action-text">End Tournament</span>
             </button>
           </div>
         </div>
@@ -591,16 +594,20 @@
                 <option value="pointRatio">Sort: Point Win %</option>
               </select>
               <button
-                class="btn btn-secondary btn-sm"
+                id="togglePositionBtn"
+                class="btn btn-secondary btn-sm icon-btn"
                 onclick="togglePositionChanges()"
+                title="Toggle Rank Changes"
               >
-                Show/Hide Rank
+                ↕️
               </button>
               <button
-                class="btn btn-secondary btn-sm"
+                id="toggleVisibilityBtn"
+                class="btn btn-secondary btn-sm icon-btn"
                 onclick="toggleLeaderboardVisibility()"
+                title="Toggle Leaderboard Visibility"
               >
-                Hide
+                👁️
               </button>
             </div>
           </div>
