@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Free Padel Tournament Generator - Create Americano and Mexicano schedules instantly. The ultimate tool for padel organizers."
+    />
+    <title>Tournament Generator - Padel Companion</title>
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://padelcompanion.se/tournament/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://padelcompanion.se/tournament/" />
+    <meta
+      property="og:title"
+      content="Tournament Generator - Padel Companion"
+    />
+    <meta
+      property="og:description"
+      content="Create Americano and Mexicano schedules instantly. The ultimate tool for padel organizers."
+    />
+    <meta
+      property="og:image"
+      content="https://padelcompanion.se/assets/app-icon.jpeg"
+    />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta
+      property="twitter:url"
+      content="https://padelcompanion.se/tournament/"
+    />
+    <meta
+      property="twitter:title"
+      content="Tournament Generator - Padel Companion"
+    />
+    <meta
+      property="twitter:description"
+      content="Create Americano and Mexicano schedules instantly. The ultimate tool for padel organizers."
+    />
+    <meta
+      property="twitter:image"
+      content="https://padelcompanion.se/assets/app-icon.jpeg"
+    />
+
+    <link rel="icon" type="image/jpeg" href="/assets/app-icon.jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/tournament/tournament.css" />
+  </head>
+  <body>
+    <header class="header scrolled">
+      <div class="container header-inner">
+        <a href="/" class="logo">
+          <img src="/assets/app-icon.jpeg" alt="Padel Companion Logo" />
+          <span>Padel Companion</span>
+        </a>
+        <div class="header-actions">
+          <nav class="nav" id="nav">
+            <a href="/">Home</a>
+            <a href="/#features">Features</a>
+            <a href="/tournament/" class="active">Tournament</a>
+            <a href="/support.html">Support</a>
+          </nav>
+          <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <button
+            class="btn btn-primary btn-sm"
+            id="installBtn"
+            style="display: none"
+          >
+            Install App 📲
+          </button>
+          <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+            <span class="hamburger"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="tournament-page">
+      <div class="container">
+        <!-- Header -->
+        <div class="tool-header">
+          <div class="presented-by">
+            <span>Presented by</span>
+            <span class="sponsor-name text-gradient">Your Brand Here</span>
+            <a href="mailto:wiklundlabs@gmail.com?subject=Sponsorship" class="sponsor-link" title="Become a sponsor">Become a sponsor</a>
+          </div>
+          <h1>Americano & Mexicano Generator</h1>
+          <p>
+            Create Americano and Mexicano schedules for your padel group in
+            seconds.
+          </p>
+        </div>
+
+        <!-- Setup Card (Basics) -->
+        <div class="setup-card card">
+          <div class="card-header-basic">
+            <h3>Tournament Setup</h3>
+          </div>
+
+          <div class="setup-grid">
+            <!-- Format Selection -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="format" style="margin-bottom:0">Format</label>
+                <button type="button" class="help-icon always-enabled" id="helpFormat">?</button>
+              </div>
+              <select
+                id="format"
+                class="form-select"
+                onchange="updateSetupUI()"
+              >
+                <option value="americano">Americano (Individual)</option>
+                <option value="mexicano">Mexicano (Dynamic)</option>
+                <option value="team">Team Americano (Fixed Teams)</option>
+                <option value="teamMexicano">
+                  Team Mexicano (Fixed + Dynamic)
+                </option>
+              </select>
+            </div>
+
+            <!-- Courts -->
+            <div class="form-group">
+              <label for="courts">Courts</label>
+              <input
+                type="number"
+                id="courts"
+                class="form-input"
+                value="2"
+                min="1"
+                max="50"
+                oninput="validateCourts()"
+              />
+              <span
+                id="courtsWarning"
+                class="form-warning"
+                style="display: none"
+              ></span>
+            </div>
+
+            <!-- Court Naming -->
+            <div class="form-group">
+              <label for="courtFormat">Court Names</label>
+              <select id="courtFormat" class="form-select">
+                <option value="number"># (1, 2, 3...)</option>
+                <option value="court" selected>
+                  Court # (Court 1, Court 2...)
+                </option>
+                <option value="custom">Custom names</option>
+              </select>
+            </div>
+
+            <!-- Custom Court Names (shown when custom selected) -->
+            <div
+              id="customCourtNamesSection"
+              class="form-group"
+              style="display: none"
+            >
+              <label>Court Names</label>
+              <div id="customCourtNamesList" class="custom-court-names">
+                <!-- Dynamically generated inputs -->
+              </div>
+            </div>
+
+            <!-- Scoring Rules -->
+            <div class="form-group">
+              <div class="form-label-row">
+                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
+                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
+              </div>
+              <select
+                id="scoringMode"
+                class="form-select"
+                onchange="updateScoringLabel()"
+              >
+                <option value="total" selected>
+                  Total Points (Shared Pot)
+                </option>
+                <option value="race">Race to Points (First into...)</option>
+                <option value="time">Time Based (Max points in...)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label id="scoringValueLabel" for="points">Total Points</label>
+              <input
+                type="number"
+                id="points"
+                class="form-input"
+                value="24"
+                min="1"
+                max="999"
+              />
+            </div>
+          </div>
+
+          <script>
+            function updateScoringLabel() {
+              const mode = document.getElementById("scoringMode").value;
+              const label = document.getElementById("scoringValueLabel");
+              const input = document.getElementById("points");
+
+              if (mode === "total") {
+                label.textContent = "Total Points (Score A + B)";
+                input.value = 24;
+              } else if (mode === "race") {
+                label.textContent = "Winning Score (First to...)";
+                input.value = 21;
+              } else if (mode === "time") {
+                label.textContent = "Match Duration (Minutes)";
+                input.value = 12;
+              }
+            }
+          </script>
+          <!-- Advanced Settings Section (Inside Card) -->
+          <div id="advancedSettingsContent" class="advanced-settings-content">
+            <div class="control-divider-horizontal"></div>
+            
+            <div class="card-header-advanced">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3>Matchup Rules</h3>
+                <button type="button" class="help-icon always-enabled" id="helpMatchup">?</button>
+              </div>
+              <p class="text-muted text-sm">
+                Fine-tune how teams are formed and players are paired.
+              </p>
+            </div>
+
+            <!-- Matchup Settings -->
+            <div class="matchup-settings-content">
+              <div class="setup-grid-2">
+                <div class="form-group" id="maxRepeatsContainer">
+                  <label for="maxRepeats">Max Partner Repeats</label>
+                  <select id="maxRepeats" class="form-select always-enabled">
+                    <option value="0">0 (never repeat)</option>
+                    <option value="1">1 time</option>
+                    <option value="2">2 times</option>
+                    <option value="3">3 times</option>
+                    <option value="99" selected>Unlimited</option>
+                  </select>
+                  <small class="form-hint"
+                    >How many times players can partner with the same
+                    person</small
+                  >
+                </div>
+
+                <div class="form-group" id="pairingStrategyContainer">
+                  <label for="pairingStrategy">Team Pairing Strategy</label>
+                  <select id="pairingStrategy" class="form-select always-enabled">
+                    <option value="oneThree">
+                      1 & 3 vs 2 & 4 (Standard Mexicano)
+                    </option>
+                    <option value="oneTwo">1 & 2 vs 3 & 4 (Top vs Bottom)</option>
+                    <option value="oneFour">
+                      1 & 4 vs 2 & 3 (Cross Balance)
+                    </option>
+                    <option value="optimal" selected>
+                      Optimal (Fewest Repeats)
+                    </option>
+                  </select>
+                  <div class="form-check" style="margin-top: 8px;">
+                     <input type="checkbox" id="strictStrategy" class="form-checkbox always-enabled">
+                     <label for="strictStrategy" class="form-label-inline" style="font-size: 0.9em; color: var(--text-secondary);">
+                       Strict Pattern
+                     </label>
+                  </div>
+                  <small class="form-hint"
+                    >If checked, force strategy even if it causes repeats</small
+                  >
+                </div>
+              </div>
+
+              <div class="form-group preferred-partners-section" id="preferredPartnersContainer">
+                <label
+                  >Preferred Partners
+                  <span class="optional-tag">(optional)</span></label
+                >
+                <div id="preferredPartnersList" class="preferred-partners-list">
+                  <!-- Partner pairs will be added here -->
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  id="addPartnerPairBtn"
+                  disabled
+                >
+                  + Add Fixed Pair
+                </button>
+                <small class="form-hint"
+                  >These players will always play together as a team</small
+                >
+              </div>
+            </div>
+            </div>
+            
+            <div class="control-divider-horizontal"></div>
+              
+            <div class="form-group">
+              <label class="text-error" style="color: var(--error)">Danger Zone</label>
+              <p class="text-muted text-sm" style="margin-bottom: var(--space-sm)">
+                If something goes wrong, use this to clear all data and start fresh.
+              </p>
+              <button 
+                type="button" 
+                class="btn btn-danger btn-sm always-enabled" 
+                id="factoryResetBtn"
+                style="width: 100%; border: 1px solid rgba(255,255,255,0.2);"
+              >
+                ⚠️ Factory Reset (Emergency)
+              </button>
+            </div>
+          </div>
+
+
+        </div>
+
+        <!-- Players Section -->
+          <div class="players-section">
+            <div class="players-header">
+              <h3 id="playersHeader">
+                Players <span class="player-count" id="playerCount">(0)</span>
+              </h3>
+              <div class="player-actions">
+                <button
+                  class="btn btn-danger btn-sm"
+                  id="clearAllPlayersBtn"
+                  title="Remove All Players"
+                >
+                  Clear All
+                </button>
+                <button class="btn btn-secondary btn-sm" id="importPlayersBtn">
+                  Import...
+                </button>
+                <button class="btn btn-secondary btn-sm" id="addPlayerBtn">
+                  + Add Player
+                </button>
+              </div>
+            </div>
+
+            <!-- Import Modal -->
+            <div class="modal-overlay" id="importModal" style="display: none">
+              <div class="modal">
+                <div class="modal-header">
+                  <h3>Import Players</h3>
+                  <button class="close-modal" id="closeImportModal">
+                    Close
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p class="modal-hint">
+                    Paste names below (one per line, or comma separated).
+                    Duplicates will be skipped.
+                  </p>
+                  <textarea
+                    id="importTextarea"
+                    class="form-input"
+                    rows="8"
+                    placeholder="Anna&#10;Bertil&#10;Cecilia, David..."
+                  ></textarea>
+                </div>
+                <div class="modal-footer">
+                  <span id="importStatus" class="import-status"></span>
+                  <div class="modal-actions">
+                    <button class="btn btn-ghost" id="cancelImportBtn">
+                      Cancel
+                    </button>
+                    <button class="btn btn-primary" id="confirmImportBtn">
+                      Import Players
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="player-input-row"
+              id="playerInputRow"
+              style="display: none"
+            >
+              <input
+                type="text"
+                class="form-input"
+                id="playerNameInput"
+                placeholder="Enter name..."
+                maxlength="20"
+              />
+              <button class="btn btn-primary btn-sm" id="confirmAddBtn">
+                Add
+              </button>
+              <button class="btn btn-ghost btn-sm" id="cancelAddBtn">
+                Cancel
+              </button>
+            </div>
+
+            <div class="player-list-wrapper expanded" id="playerListWrapper">
+              <ul class="player-list" id="playerList">
+                <!-- Players will be added here -->
+              </ul>
+            </div>
+            <button
+              class="expand-players-btn"
+              id="expandPlayersBtn"
+              onclick="togglePlayerList()"
+            >
+              Show Less ▲
+            </button>
+
+            <p class="players-hint" id="playersHint">
+              Add at least 4 players to generate a schedule
+            </p>
+          </div>
+
+          <!-- Generate Button -->
+          <button class="btn btn-primary btn-lg" id="generateBtn" disabled>
+            Generate Schedule
+          </button>
+        </div>
+
+        <!-- Schedule Output -->
+        <div
+          class="schedule-section"
+          id="scheduleSection"
+          style="display: none"
+        >
+
+
+          <div class="sticky-wrapper">
+            <div class="schedule-toolbar" id="scheduleToolbar">
+              <span class="toolbar-label">View:</span>
+              <div class="schedule-controls" id="scheduleControlsContent">
+                <div class="control-group">
+                  <label for="gridColumns">Cols:</label>
+                  <input
+                    type="range"
+                    id="gridColumns"
+                    min="0"
+                    max="6"
+                    value="0"
+                    step="1"
+                  />
+                  <span id="gridColumnsLabel" class="range-value">Auto</span>
+                </div>
+                <div class="control-divider"></div>
+                <div class="control-group">
+                  <label for="roundScale">Scale:</label>
+                  <input
+                    type="range"
+                    id="roundScale"
+                    min="50"
+                    max="150"
+                    value="100"
+                    step="10"
+                  />
+                  <span id="roundScaleLabel" class="range-value">100%</span>
+                </div>
+                <div class="control-divider"></div>
+                <div class="control-group">
+                  <label for="textSize">Text:</label>
+                  <input
+                    type="range"
+                    id="textSize"
+                    min="50"
+                    max="250"
+                    value="100"
+                    step="10"
+                  />
+                <span id="textSizeLabel" class="range-value">100%</span>
+                </div>
+              </div>
+              <div class="toolbar-actions">
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="printBtn"
+                  title="Print Schedule"
+                >
+                  Print
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="schedule-header-row">
+            <h2 class="section-title">Tournament Schedule</h2>
+            <span class="status-badge" id="runningBadge" style="display: none;">Running</span>
+          </div>
+
+          <!-- Match Timer (Hidden by default, shown for Time mode) -->
+          <div
+            id="matchTimerContainer"
+            class="timer-container"
+            style="display: none"
+          >
+            <div class="timer-wrapper">
+              <div class="timer-display" id="timerDisplay" title="Click to edit time" style="cursor: pointer;">12:00</div>
+            </div>
+            <div class="timer-controls">
+              <button class="btn btn-primary btn-sm" id="timerStartBtn">
+                Start
+              </button>
+              <button
+                class="btn btn-secondary btn-sm"
+                id="timerPauseBtn"
+                style="display: none"
+              >
+                Pause
+              </button>
+              <button class="btn btn-ghost btn-sm" id="timerResetBtn">
+                Reset
+              </button>
+              <button class="btn btn-ghost btn-sm" id="timerSubBtn">
+                -1m
+              </button>
+              <button class="btn btn-ghost btn-sm" id="timerAddBtn">
+                +1m
+              </button>
+            </div>
+          </div>
+
+          <div class="rounds-container" id="roundsContainer">
+            <!-- Rounds will be generated here -->
+          </div>
+        </div>
+
+        <!-- Tournament Actions -->
+        <div id="tournamentActionsSection" class="tournament-actions section" style="display: none;">
+          <div class="actions-row">
+            <button
+              class="btn btn-secondary"
+              onclick="promptAddLatePlayer()"
+              title="Add a player who arrived late"
+            >
+              + Late Player
+            </button>
+            <button
+              class="btn btn-secondary"
+              id="undoBtn"
+              title="Undo last action (Ctrl+Z)"
+              disabled
+            >
+              ↩ Undo
+            </button>
+            <button
+              class="btn btn-secondary"
+              id="resetBtn"
+              title="Reset Tournament - Start over with same players"
+            >
+              Reset Tournament
+            </button>
+            <button
+              class="btn btn-danger"
+              onclick="endTournament()"
+              title="End Tournament - Finalize results"
+            >
+              End Tournament
+            </button>
+          </div>
+        </div>
+
+        <!-- Leaderboard (for Mexicano) -->
+        <div
+          class="leaderboard-section"
+          id="leaderboardSection"
+          style="display: none"
+        >
+          <div class="leaderboard-header">
+            <h3>Leaderboard</h3>
+            <div class="leaderboard-actions">
+              <select
+                id="rankingCriteria"
+                class="form-select btn-sm"
+                style="width: auto; padding-right: 32px"
+                onchange="updateRankingCriteria()"
+              >
+                <option value="points" selected>Sort: Points</option>
+                <option value="wins">Sort: Wins</option>
+                <option value="winRatio">Sort: Win Rate %</option>
+                <option value="pointRatio">Sort: Point Win %</option>
+              </select>
+              <button
+                class="btn btn-secondary btn-sm"
+                onclick="togglePositionChanges()"
+              >
+                Show/Hide Rank
+              </button>
+              <button
+                class="btn btn-secondary btn-sm"
+                onclick="toggleLeaderboardVisibility()"
+              >
+                Hide
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="leaderboard-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Player</th>
+                  <th>Pts</th>
+                  <th>W</th>
+                  <th title="Score Difference">Diff</th>
+                  <th title="Win Rate">%</th>
+                  <th>Pl</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboardBody">
+                <!-- Leaderboard rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- History Section -->
+
+
+      <!-- History Section (List View) -->
+      <section class="section history-section-page" id="historySectionPage" style="display: block; margin-top: var(--space-xl);">
+        <div class="container">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+             <h2>Past Tournaments</h2>
+             <div class="search-wrapper">
+               <input type="text" id="historySearch" placeholder="Filter by winner, date..." class="form-input search-input" />
+             </div>
+          </div>
+
+          <div class="table-responsive history-table-wrapper">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Format</th>
+                  <th>Winner</th>
+                  <th>Players</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <!-- Rows injected by JS -->
+              </tbody>
+            </table>
+            <div id="historyEmptyStatePage" class="empty-state-page" style="display: none; padding: 2rem; text-align: center;">
+               <p class="text-muted">No history found.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </div>
+    </main>
+
+    <!-- Partners Section -->
+    <section class="partners section" id="partners">
+      <div class="container">
+        <div class="features-header">
+          <h2>Trusted By <span class="text-gradient">Partners</span></h2>
+          <p>Collaborating with leading brands to grow the sport of padel.</p>
+        </div>
+
+        <div class="partners-grid">
+          <!-- Premium/Featured Partner Placeholder -->
+          <div class="card partner-card featured">
+            <div class="partner-logo-placeholder">
+              <span>Your Logo Here</span>
+            </div>
+            <div class="partner-info">
+              <h3>Become a Sponsor</h3>
+              <p>Showcase your brand to thousands of padel players.</p>
+              <a
+                href="mailto:wiklundlabs@gmail.com"
+                class="btn btn-primary btn-sm"
+                >Contact Us</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-brand">
+            <a href="/" class="logo">
+              <img src="/assets/app-icon.jpeg" alt="Padel Companion Logo" />
+              <span>Padel Companion</span>
+            </a>
+            <p>
+              Your digital padel companion. Track scores, view statistics, and
+              organize tournaments with ease.
+            </p>
+          </div>
+
+          <div class="footer-links-row">
+            <div class="footer-links">
+              <h5>Legal</h5>
+              <ul>
+                <li><a href="/privacy.html">Privacy Policy</a></li>
+                <li><a href="/terms.html">Terms of Service</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-links">
+              <h5>Support</h5>
+              <ul>
+                <li><a href="/support.html">Help & FAQ</a></li>
+                <li><a href="mailto:wiklundlabs@gmail.com">Contact Us</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-donate">
+            <h5
+              style="
+                color: var(--text-muted);
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                font-weight: 600;
+                margin-bottom: var(--space-lg);
+              "
+            >
+              Donate
+            </h5>
+            <a
+              href="https://buymeacoffee.com/wiklundlabs"
+              target="_blank"
+              rel="noopener"
+              class="footer-donate-btn"
+            >
+              <img
+                src="/assets/buymeacoffee.png"
+                alt="Buy Me A Coffee"
+                style="height: 40px !important; width: 145px !important"
+              />
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>&copy; 2025 Padel Companion. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/tournament/main.js"></script>
+    <!-- SimpleAnalytics -->
+    <script async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
+  </body>
+</html>
