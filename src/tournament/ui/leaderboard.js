@@ -10,25 +10,33 @@ import { getElements } from "./elements.js";
 export function renderLeaderboard() {
   const els = getElements();
 
-  // Sync toggle buttons state
+  // Sync toggle buttons state with clear ON/OFF visual indicators
   const visBtn = document.getElementById("toggleVisibilityBtn");
   if (visBtn) {
-    visBtn.textContent = state.hideLeaderboard
-      ? "Show Standings"
-      : "Hide Standings";
-    visBtn.title = state.hideLeaderboard
-      ? "Show Leaderboard"
-      : "Hide Leaderboard";
+    if (state.hideLeaderboard) {
+      visBtn.innerHTML = "Scores";
+      visBtn.classList.add("toggle-off");
+      visBtn.classList.remove("toggle-on");
+    } else {
+      visBtn.innerHTML = "Scores";
+      visBtn.classList.add("toggle-on");
+      visBtn.classList.remove("toggle-off");
+    }
+    visBtn.title = "Click to toggle score visibility";
   }
 
   const posBtn = document.getElementById("togglePositionBtn");
   if (posBtn) {
-    posBtn.textContent = state.showPositionChanges
-      ? "Hide Rank Diff"
-      : "Show Rank Diff";
-    posBtn.title = state.showPositionChanges
-      ? "Hide Rank Changes"
-      : "Show Rank Changes";
+    if (state.showPositionChanges) {
+      posBtn.innerHTML = "Ranks";
+      posBtn.classList.add("toggle-on");
+      posBtn.classList.remove("toggle-off");
+    } else {
+      posBtn.innerHTML = "Ranks";
+      posBtn.classList.add("toggle-off");
+      posBtn.classList.remove("toggle-on");
+    }
+    posBtn.title = "Click to toggle rank change indicators";
   }
 
   if (!state.leaderboard || state.leaderboard.length === 0) {

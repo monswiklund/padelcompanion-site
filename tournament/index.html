@@ -415,19 +415,6 @@
                 </div>
                 <div class="control-divider"></div>
                 <div class="control-group">
-                  <label for="roundScale">Scale:</label>
-                  <input
-                    type="range"
-                    id="roundScale"
-                    min="50"
-                    max="150"
-                    value="100"
-                    step="10"
-                  />
-                  <span id="roundScaleLabel" class="range-value">100%</span>
-                </div>
-                <div class="control-divider"></div>
-                <div class="control-group">
                   <label for="textSize">Text:</label>
                   <input
                     type="range"
@@ -540,35 +527,28 @@
         >
           <div class="leaderboard-header">
             <h3>Leaderboard</h3>
-            <div class="leaderboard-actions">
+            <div class="leaderboard-controls">
+              <button
+                id="togglePositionBtn"
+                class="btn btn-secondary btn-sm toggle-off"
+                onclick="togglePositionChanges()"
+                title="Toggle rank change indicators"
+              >Ranks</button>
+              <button
+                id="toggleVisibilityBtn"
+                class="btn btn-secondary btn-sm toggle-off"
+                onclick="toggleLeaderboardVisibility()"
+                title="Toggle score visibility"
+              >Scores</button>
               <select
                 id="rankingCriteria"
                 class="form-select btn-sm"
-                style="width: auto; padding-right: 32px"
               >
-                <option value="points" selected>Sort: Points</option>
-                <option value="wins">Sort: Wins</option>
-                <option value="winRatio">Sort: Win Rate %</option>
-                <option value="pointRatio">Sort: Point Win %</option>
+                <option value="points" selected>Points</option>
+                <option value="wins">Wins</option>
+                <option value="winRatio">Win %</option>
+                <option value="pointRatio">Pts %</option>
               </select>
-              <button
-                id="togglePositionBtn"
-                class="btn btn-secondary btn-sm icon-btn"
-                onclick="togglePositionChanges()"
-                title="Toggle Rank Changes"
-                style="width: auto; padding-left: 12px; padding-right: 12px;"
-              >
-                Show Rank Diff
-              </button>
-              <button
-                id="toggleVisibilityBtn"
-                class="btn btn-secondary btn-sm icon-btn"
-                onclick="toggleLeaderboardVisibility()"
-                title="Toggle Leaderboard Visibility"
-                style="width: auto; padding-left: 12px; padding-right: 12px;"
-              >
-                Show Standings
-              </button>
             </div>
           </div>
           <div class="table-responsive">

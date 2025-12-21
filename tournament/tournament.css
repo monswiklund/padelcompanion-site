@@ -2,10 +2,84 @@
 /* Imports shared design system from base */
 @import "/css/base.css";
 
+/* ===== Page Layout ===== */
+.tournament-page {
+  padding-top: calc(var(--header-height, 70px) + var(--space-lg));
+  min-height: 100vh;
+}
+
+/* ===== Tool Header (Hero Section) ===== */
+.tool-header {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  margin: 0 calc(-1 * var(--space-lg)) var(--space-2xl);
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 15, 0.95) 0%,
+    rgba(10, 10, 15, 0.8) 100%
+  );
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+[data-theme="light"] .tool-header {
+  background: linear-gradient(
+    180deg,
+    rgba(30, 41, 59, 0.95) 0%,
+    rgba(51, 65, 85, 0.85) 100%
+  );
+}
+
+.tool-header h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: var(--space-sm);
+  color: white;
+}
+
+.tool-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.presented-by {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}
+
+.sponsor-name {
+  font-weight: 600;
+}
+
+.sponsor-link {
+  color: var(--text-muted);
+  text-decoration: underline;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.sponsor-link:hover {
+  opacity: 1;
+}
+
 /* ===== Setup Card ===== */
 .setup-card {
   max-width: 800px;
   margin: 0 auto var(--space-2xl);
+}
+
+.setup-card:hover {
+  /* Override base .card:hover - no background change */
+  background: var(--bg-card);
+  transform: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(59, 130, 246, 0.2);
 }
 
 .setup-grid {
@@ -547,32 +621,39 @@ select.locked {
 /* Leaderboard header */
 .leaderboard-header {
   display: flex;
-  flex-direction: column; /* Stack vertically for cleaner look in narrow view */
-  align-items: flex-start;
-  gap: var(--space-sm);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
   margin-bottom: var(--space-md);
 }
 
 .leaderboard-header h3 {
   margin: 0;
-  font-size: 1.5rem; /* Make title slightly bigger */
+  font-size: 1.25rem;
 }
 
-.leaderboard-actions {
+.leaderboard-controls {
   display: flex;
+  align-items: center;
   gap: var(--space-xs);
-  width: 100%; /* Full width for actions */
-  flex-wrap: wrap;
 }
 
-/* Make select and buttons fill available space nicely */
-.leaderboard-actions select {
-  flex-grow: 1;
-  min-width: 120px;
+.leaderboard-controls .btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
 }
 
-.leaderboard-actions button {
-  flex-grow: 0;
+.leaderboard-controls .btn.toggle-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.leaderboard-controls .btn.toggle-off {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+  color: var(--text-muted);
 }
 
 /* Rank change indicators */
@@ -592,6 +673,51 @@ select.locked {
   color: #f97316;
   font-size: 0.5rem;
   margin-left: 4px;
+}
+
+/* Toggle button active/inactive states */
+.leaderboard-actions .toggle-on {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.leaderboard-actions .toggle-off {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .leaderboard-actions .toggle-off {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+/* Player actions responsive layout */
+.player-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .players-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .player-actions {
+    width: 100%;
+    order: 3;
+  }
+
+  .player-actions .btn {
+    flex: 1;
+    min-width: 0;
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+    font-size: 0.8rem;
+  }
 }
 
 /* ===== Schedule Section ===== */
@@ -1040,24 +1166,55 @@ select.locked {
 
 .matches-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-md);
-
-  /* Scale support - zoom scales the entire grid */
-  zoom: var(--round-scale, 1);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
 }
 
 /* Responsive grid for many courts */
 @media (min-width: 1200px) {
   .matches-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   }
 }
 
 @media (min-width: 1600px) {
   .matches-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   }
+}
+
+.match-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.match-card-header .court-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  background: none;
+  padding: 0;
+  margin: 0;
+}
+
+.match-card-header .match-info-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .match-card {
@@ -1065,15 +1222,14 @@ select.locked {
   background-size: cover;
   aspect-ratio: 20/11;
   width: 100%;
-  max-width: 400px; /* Prevent stretching when only 1 column */
-  margin: 0 auto; /* Center when constrained */
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-md);
+  border-left: 3px solid rgba(255, 255, 255, 0.4);
+  border-right: 3px solid rgba(255, 255, 255, 0.4);
   padding: 4px;
   text-align: center;
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
@@ -1143,29 +1299,33 @@ select.locked {
   display: none; /* Hide the "vs" text, net line replaces it */
 }
 
+/* Match Card Footer with Score */
+.match-card-footer {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: var(--space-sm);
+}
+
 /* Score input area */
 .score-input-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px dashed rgba(255, 255, 255, 0.3);
-  position: relative;
-  z-index: 1;
+  gap: var(--space-sm);
 }
 
 .score-input {
-  width: 36px;
-  padding: 2px 4px;
+  width: 48px;
+  padding: var(--space-xs) var(--space-sm);
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid var(--border-color);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: var(--input-bg);
+  color: var(--text-primary);
   appearance: textfield;
   -moz-appearance: textfield;
 }
@@ -1178,19 +1338,19 @@ select.locked {
 }
 
 .score-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .score-input:focus {
   outline: none;
-  border-color: white;
-  background: rgba(255, 255, 255, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
 }
 
 .score-separator {
-  color: white;
+  color: var(--text-primary);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 /* Waiting/Bye players - Compact Version */
@@ -1248,6 +1408,14 @@ select.locked {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
+}
+
+[data-theme="light"] .bye-selector-label {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bye-selector {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .bye-hint {
@@ -1829,11 +1997,21 @@ select.locked {
 .tournament-actions {
   max-width: 600px;
   margin: var(--space-2xl) auto 0;
+  margin-left: auto;
+  margin-right: auto;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+  .tournament-actions {
+    margin-left: var(--mobile-side-margin);
+    margin-right: var(--mobile-side-margin);
+    max-width: none;
+  }
 }
 
 [data-theme="light"] .tournament-actions {

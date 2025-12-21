@@ -165,57 +165,71 @@ export function renderSchedule() {
           ${round.matches
             .map(
               (match, matchIndex) => `
-            <div class="match-card">
-              <div class="court-label">${getCourtName(match.court)}</div>
-              <div class="match-info-sub" style="font-size: 0.8em; color: var(--text-secondary); margin-bottom: 4px;">
+            <div class="match-card-wrapper">
+              <div class="match-card-header">
+                <span class="court-label">${getCourtName(match.court)}</span>
+                <span class="match-info-sub">
+                  ${
+                    state.scoringMode === "total"
+                      ? `Total ${state.pointsPerMatch}`
+                      : state.scoringMode === "race"
+                      ? `Race to ${state.pointsPerMatch}`
+                      : `${state.pointsPerMatch} mins`
+                  }
+                </span>
+              </div>
+              <div class="match-card">
+                <div class="match-teams">
+                  <div class="team">
+                    <span>${match.team1[0].name}</span>
+                    ${
+                      match.team1[1]
+                        ? `<span>${match.team1[1].name}</span>`
+                        : ""
+                    }
+                  </div>
+                  <div class="team">
+                    <span>${match.team2[0].name}</span>
+                    ${
+                      match.team2[1]
+                        ? `<span>${match.team2[1].name}</span>`
+                        : ""
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="match-card-footer">
                 ${
-                  state.scoringMode === "total"
-                    ? `Total ${state.pointsPerMatch}`
-                    : state.scoringMode === "race"
-                    ? `Race to ${state.pointsPerMatch}`
-                    : `${state.pointsPerMatch} mins`
+                  !isCompleted
+                    ? `
+                <div class="score-input-row">
+                  <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-1" 
+                         min="0" max="${
+                           state.scoringMode === "total"
+                             ? state.pointsPerMatch
+                             : 999
+                         }" placeholder="0" 
+                         value="${match.score1 || ""}"
+                         data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="1">
+                  <span class="score-separator">-</span>
+                  <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-2" 
+                         min="0" max="${
+                           state.scoringMode === "total"
+                             ? state.pointsPerMatch
+                             : 999
+                         }" placeholder="0"
+                         value="${match.score2 || ""}"
+                         data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="2">
+                </div>
+                `
+                    : `
+                <div class="score-input-row">
+                  <span class="score-display">${match.score1} - ${match.score2}</span>
+                  <button class="btn btn-sm btn-ghost edit-score-btn" data-action="edit-round" data-round="${roundIndex}">Edit</button>
+                </div>
+                `
                 }
               </div>
-              <div class="match-teams">
-                <div class="team">
-                  <span>${match.team1[0].name}</span>
-                  ${match.team1[1] ? `<span>${match.team1[1].name}</span>` : ""}
-                </div>
-                <div class="team">
-                  <span>${match.team2[0].name}</span>
-                  ${match.team2[1] ? `<span>${match.team2[1].name}</span>` : ""}
-                </div>
-              </div>
-              ${
-                !isCompleted
-                  ? `
-              <div class="score-input-row">
-                <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-1" 
-                       min="0" max="${
-                         state.scoringMode === "total"
-                           ? state.pointsPerMatch
-                           : 999
-                       }" placeholder="0" 
-                       value="${match.score1 || ""}"
-                       data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="1">
-                <span class="score-separator">-</span>
-                <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-2" 
-                       min="0" max="${
-                         state.scoringMode === "total"
-                           ? state.pointsPerMatch
-                           : 999
-                       }" placeholder="0"
-                       value="${match.score2 || ""}"
-                       data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="2">
-              </div>
-              `
-                  : `
-              <div class="score-input-row">
-                <span class="score-display">${match.score1} - ${match.score2}</span>
-                <button class="btn btn-sm btn-ghost edit-score-btn" data-action="edit-round" data-round="${roundIndex}">Edit</button>
-              </div>
-              `
-              }
             </div>
           `
             )
@@ -527,6 +541,19 @@ export function completeRound() {
   renderLeaderboard();
   renderSchedule();
   saveState();
+
+  // Show completion toast with indication of new round
+  const completedRoundNum = currentRound.number;
+  const hasNextRound = state.schedule.length > currentRoundIndex + 1;
+  if (hasNextRound) {
+    showToast(
+      `✓ Round ${completedRoundNum} complete! Round ${
+        completedRoundNum + 1
+      } ready`
+    );
+  } else {
+    showToast(`✓ Round ${completedRoundNum} complete!`);
+  }
 
   setTimeout(() => {
     const newRoundIndex = state.schedule.length - 1;

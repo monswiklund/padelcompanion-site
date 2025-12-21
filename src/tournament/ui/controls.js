@@ -55,28 +55,14 @@ export function updateScoringLabel() {
 }
 
 /**
- * Update slider max based on courts
+ * Update slider max - always allow up to 6 columns
  */
 export function updateSliderMax() {
   const els = getElements();
   if (!els.gridColumns) return;
 
-  let maxCourts = state.courts || 2;
-  if (state.schedule.length > 0) {
-    const currentRound = state.schedule[state.schedule.length - 1];
-    if (currentRound && currentRound.matches) {
-      maxCourts = Math.max(maxCourts, currentRound.matches.length);
-    }
-  }
-
-  maxCourts = Math.min(Math.max(maxCourts, 1), 6);
-  els.gridColumns.max = maxCourts;
-  state.maxCourts = maxCourts;
-
-  if (state.gridColumns > maxCourts && state.gridColumns !== 0) {
-    state.gridColumns = maxCourts;
-    updateGridColumns();
-  }
+  // Always allow up to 6 columns regardless of court count
+  els.gridColumns.max = 6;
 }
 
 /**
@@ -158,16 +144,23 @@ export function updateTextSize() {
  * Update round scale
  */
 export function updateRoundScale() {
-  const els = getElements();
-  const scale = state.roundScale || 1;
-
-  const roundsContainer = document.getElementById("roundsContainer");
-  if (roundsContainer) {
-    roundsContainer.style.setProperty("--round-scale", scale);
-  }
-
   const slider = document.getElementById("roundScale");
   const label = document.getElementById("roundScaleLabel");
+
+  // Read slider value and update state
+  if (slider) {
+    state.roundScale = parseInt(slider.value) / 100;
+    saveState();
+  }
+
+  const scale = state.roundScale || 1;
+
+  // Apply scale to match card wrappers via CSS variable
+  const roundsContainer = document.getElementById("roundsContainer");
+  if (roundsContainer) {
+    roundsContainer.style.setProperty("--card-scale", scale);
+  }
+
   if (slider) slider.value = Math.round(scale * 100);
   if (label) label.textContent = `${Math.round(scale * 100)}%`;
 }

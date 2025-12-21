@@ -5,7 +5,7 @@
 
 import { getStateSnapshot, restoreState, saveState } from "./state.js";
 import { showToast } from "../shared/utils.js";
-import { renderSchedule, renderLeaderboard } from "./ui.js";
+import { renderSchedule, renderLeaderboard } from "./ui/index.js";
 import { showConfirmModal } from "./modals.js";
 
 const HISTORY_KEY = "padel_history_v1";

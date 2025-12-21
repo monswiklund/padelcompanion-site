@@ -57,7 +57,7 @@ import {
   exportTournamentData,
   shareResults,
   setupCustomSelects,
-} from "./ui.js";
+} from "./ui/index.js";
 
 import { initPWA } from "../shared/pwa.js";
 
