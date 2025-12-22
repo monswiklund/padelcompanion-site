@@ -150,6 +150,33 @@ function init() {
   // Initial UI Sync
   updateSetupUI();
   updateScoringLabel();
+
+  // Initialize scroll animations
+  initScrollAnimations();
+}
+
+// ===== Scroll Animations =====
+function initScrollAnimations() {
+  const targets = document.querySelectorAll(
+    ".section-title, .card-header-basic h3, .card-header-advanced h3, .leaderboard-header h3, .players-header h3"
+  );
+
+  // Immediately animate elements visible on load
+  targets.forEach((el) => el.classList.add("animate-in"));
+
+  // Also watch for new elements coming into view
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate-in");
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  targets.forEach((el) => observer.observe(el));
 }
 
 // ===== Scroll to Top =====
