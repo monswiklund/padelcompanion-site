@@ -150,6 +150,29 @@ function init() {
   // Initial UI Sync
   updateSetupUI();
   updateScoringLabel();
+
+  // Initialize ripple effect on buttons
+  initRippleEffect();
+}
+
+// ===== Ripple Effect =====
+function initRippleEffect() {
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn");
+    if (!btn) return;
+
+    const rect = btn.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    ripple.className = "ripple";
+    ripple.style.width = ripple.style.height = `${Math.max(
+      rect.width,
+      rect.height
+    )}px`;
+    ripple.style.left = `${e.clientX - rect.left - ripple.offsetWidth / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - ripple.offsetHeight / 2}px`;
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
 }
 
 // ===== Scroll to Top =====
