@@ -3,7 +3,7 @@
 
 import { state, saveState } from "../state.js";
 import { createId } from "../../shared/utils.js";
-import { showInfoModal, showConfirmModal } from "../modals.js";
+import { showInfoModal, showConfirmModal, showAlertModal } from "../modals.js";
 import { getElements } from "./elements.js";
 import {
   removePreferredPair,
@@ -44,8 +44,8 @@ const CONFIG_OPTIONS = {
   pointsPerMatch: {
     label: "Points",
     type: "number",
-    min: 1,
-    max: 99,
+    min: 4,
+    max: 50,
   },
   maxRepeats: {
     label: "Repeats",
@@ -69,6 +69,12 @@ const CONFIG_OPTIONS = {
       { value: "oneTwo", label: "1&2 vs 3&4" },
       { value: "oneFour", label: "1&4 vs 2&3" },
     ],
+    mexicanoOnly: true,
+    helpId: "helpMatchup",
+  },
+  strictStrategy: {
+    label: "Prioritize Pattern",
+    type: "toggle",
     mexicanoOnly: true,
     helpId: "helpMatchup",
   },
@@ -97,6 +103,15 @@ function getDisplayValue(key, value) {
 }
 
 /**
+ * Get dynamic label for points setting based on scoring mode
+ */
+function getPointsLabel() {
+  if (state.scoringMode === "time") return "Minutes";
+  if (state.scoringMode === "race") return "Race to";
+  return "Total Points";
+}
+
+/**
  * Render the interactive tournament configuration panel
  */
 export function renderTournamentConfig() {
@@ -119,25 +134,63 @@ export function renderTournamentConfig() {
   const playerCount = state.players?.length || 0;
   const playerLabel = isTeam ? "teams" : "players";
 
-  // Build configuration rows
-  let html = `
-    <div class="config-grid">
-      ${renderConfigRow("format", state.format)}
-      ${renderConfigRow(
-        "players",
-        playerCount > 0 ? `${playerCount} ${playerLabel}` : "None added",
-        { readonly: true }
-      )}
-      ${renderConfigRow("courts", state.courts)}
-      ${renderConfigRow("scoringMode", state.scoringMode)}
-  `;
+  // Clamp courts if they exceed max available for current players
+  const maxCourts = Math.max(1, Math.floor(playerCount / 4));
+  if (state.courts > maxCourts) {
+    state.courts = maxCourts;
+    saveState();
+  }
 
-  // Mexicano-specific settings
+  // Clamp pointsPerMatch if outside bounds (4-50)
+  if (state.pointsPerMatch < 4) {
+    state.pointsPerMatch = 4;
+    saveState();
+  } else if (state.pointsPerMatch > 50) {
+    state.pointsPerMatch = 50;
+    saveState();
+  }
+
+  // Build configuration rows - format-specific layouts
+  let html = `<div class="config-grid">`;
+
+  // Common: Format
+  html += renderConfigRow("format", state.format);
+
   if (isMexicano) {
-    html += `
-      ${renderConfigRow("maxRepeats", state.maxRepeats)}
-      ${renderConfigRow("pairingStrategy", state.pairingStrategy)}
-    `;
+    // Mexicano layout: Format → Spacer → Scoring → Points → Repeats → Courts → Pairing → Prioritize Pattern
+    html += `<div class="config-row-spacer"></div>`;
+    html += renderConfigRow("scoringMode", state.scoringMode);
+    html += renderConfigRow("pointsPerMatch", state.pointsPerMatch, {
+      label: getPointsLabel(),
+    });
+    html += renderConfigRow("maxRepeats", state.maxRepeats);
+    html += renderConfigRow("courts", state.courts);
+    html += renderConfigRow("pairingStrategy", state.pairingStrategy);
+    html += renderConfigRow("strictStrategy", state.strictStrategy, {
+      disabled: state.pairingStrategy === "optimal",
+    });
+
+    // Inline warning for conflict combination
+    const hasConflict =
+      state.pairingStrategy !== "optimal" &&
+      state.strictStrategy &&
+      state.maxRepeats === 0;
+
+    if (hasConflict) {
+      html += `
+        <div class="config-warning">
+          <span class="warning-icon">(!)</span>
+          <span>Prioritize Pattern may override 'No repeats' when the pattern requires it.</span>
+        </div>
+      `;
+    }
+  } else {
+    // Americano layout: Format → Courts → Scoring → Points
+    html += renderConfigRow("courts", state.courts);
+    html += renderConfigRow("scoringMode", state.scoringMode);
+    html += renderConfigRow("pointsPerMatch", state.pointsPerMatch, {
+      label: getPointsLabel(),
+    });
   }
 
   html += `</div>`;
@@ -206,9 +259,73 @@ function renderCustomSelect(key, value, config) {
   `;
 }
 
+/**
+ * Render a custom numeric stepper UI
+ */
+function renderCustomStepper(key, value, config) {
+  const min = config.min ?? 1;
+  const max = config.max ?? 99;
+  const val = Number.isFinite(value) ? value : min;
+
+  const decDisabled = val <= min;
+  const incDisabled = val >= max;
+
+  // Step 2 for points/race
+  const step = key === "pointsPerMatch" && state.scoringMode !== "time" ? 2 : 1;
+
+  return `
+    <div class="ui-stepper" data-key="${key}" data-min="${min}" data-max="${max}">
+      <button type="button" class="stepper-btn" data-delta="-${step}" ${
+    decDisabled ? "disabled" : ""
+  } aria-label="Decrease ${key}">−</button>
+      <input type="number" class="stepper-input" value="${val}" min="${min}" max="${max}" step="${step}" aria-label="${key} value">
+      <button type="button" class="stepper-btn" data-delta="${step}" ${
+    incDisabled ? "disabled" : ""
+  } aria-label="Increase ${key}">+</button>
+    </div>
+  `;
+}
+
+/**
+ * Render a custom toggle/switch UI
+ */
+function renderCustomToggle(key, value, options = {}) {
+  const isActive = !!value;
+  const isDisabled = !!options.disabled;
+
+  return `
+    <div class="ui-toggle ${isActive ? "active" : ""} ${
+    isDisabled ? "disabled" : ""
+  }" 
+         data-key="${key}" 
+         role="switch" 
+         aria-checked="${isActive}"
+         tabindex="${isDisabled ? "-1" : "0"}">
+      <div class="toggle-track">
+        <div class="toggle-thumb"></div>
+      </div>
+    </div>
+  `;
+}
+
+function getEffectiveConfig(key) {
+  const config = { ...CONFIG_OPTIONS[key] };
+
+  if (key === "courts") {
+    const playerCount = state.players?.length || 0;
+    // 4 players per court
+    const calculatedMax = Math.floor(playerCount / 4);
+    config.max = Math.max(1, calculatedMax); // Always allow at least 1 for UI sanity
+  }
+
+  return config;
+}
+
 function renderConfigRow(key, value, options = {}) {
-  const config = CONFIG_OPTIONS[key];
+  const config = getEffectiveConfig(key);
   const isReadonly = options.readonly;
+
+  const rowLabel = options.label ?? config?.label ?? key;
 
   let controlHtml = "";
 
@@ -222,23 +339,22 @@ function renderConfigRow(key, value, options = {}) {
   } else if (config.type === "select") {
     controlHtml = renderCustomSelect(key, value, config);
   } else if (config.type === "number") {
-    controlHtml = `
-      <input type="number" class="config-input" data-key="${key}" value="${value}" 
-             min="${config.min || 1}" max="${config.max || 99}">
-    `;
+    controlHtml = renderCustomStepper(key, value, config);
+  } else if (config.type === "toggle") {
+    controlHtml = renderCustomToggle(key, value, options);
   } else {
     controlHtml = `<span class="config-value">${value}</span>`;
   }
 
   return `
     <div class="config-row" data-config-key="${key}">
-      <span class="config-label">${config?.label || key}:</span>
-      ${controlHtml}
       ${
         config?.helpId
           ? `<button class="config-help" data-action="show-help" data-help-id="${config.helpId}">?</button>`
           : ""
       }
+      <span class="config-label">${rowLabel}:</span>
+      ${controlHtml}
     </div>
   `;
 }
@@ -254,11 +370,26 @@ function updateConfigValue(key, value) {
   const els = getElements();
   if (key === "format" && els.format) els.format.value = value;
   if (key === "courts" && els.courts) els.courts.value = value;
-  if (key === "scoringMode" && els.scoringMode) els.scoringMode.value = value;
+  if (key === "scoringMode" && els.scoringMode) {
+    els.scoringMode.value = value;
+    // Set default points for the new scoring mode
+    const defaults = { time: 10, race: 14, total: 28 };
+    state.pointsPerMatch = defaults[value] || 28;
+    if (els.points) els.points.value = state.pointsPerMatch;
+  }
   if (key === "pointsPerMatch" && els.points) els.points.value = value;
   if (key === "maxRepeats" && els.maxRepeats) els.maxRepeats.value = value;
-  if (key === "pairingStrategy" && els.pairingStrategy)
+  if (key === "pairingStrategy" && els.pairingStrategy) {
     els.pairingStrategy.value = value;
+    // If strategy becomes optimal, reset strictStrategy
+    if (value === "optimal") {
+      state.strictStrategy = false;
+    }
+  }
+
+  if (key === "strictStrategy" && document.getElementById("strictStrategy")) {
+    document.getElementById("strictStrategy").checked = value;
+  }
 
   // Re-render
   renderTournamentConfig();
@@ -271,18 +402,85 @@ function attachConfigListeners(container) {
   if (container.dataset.listenersAttached) return;
   container.dataset.listenersAttached = "true";
 
-  // Input changes (number)
+  // Input changes (number or stepper-input)
   container.addEventListener("change", (e) => {
     const target = e.target;
-    if (target.classList.contains("config-input")) {
-      const key = target.dataset.key;
-      let newVal = parseInt(target.value);
-      updateConfigValue(key, newVal);
+    if (
+      target.classList.contains("config-input") ||
+      target.classList.contains("stepper-input")
+    ) {
+      const stepper = target.closest(".ui-stepper");
+      const key = target.dataset.key || stepper?.dataset.key;
+      if (!key) return;
+
+      const config = getEffectiveConfig(key);
+      const min = config?.min ?? 1;
+      const max = config?.max ?? 99;
+      let newVal = parseInt(target.value, 10);
+      if (isNaN(newVal)) newVal = min;
+
+      if (key === "courts" && newVal > max) {
+        showAlertModal(
+          "Too many courts",
+          `You need at least ${
+            newVal * 4
+          } players to use ${newVal} courts. With ${
+            state.players?.length || 0
+          } players, you can have a maximum of ${max} courts.`
+        );
+      }
+
+      // Clamp value
+      const clamped = Math.min(max, Math.max(min, newVal));
     }
   });
 
   // Custom Select Interaction
   container.addEventListener("click", (e) => {
+    // 0. Stepper Interaction
+    const stepBtn = e.target.closest(".stepper-btn");
+    if (stepBtn) {
+      const stepper = stepBtn.closest(".ui-stepper");
+      const key = stepper?.dataset.key;
+      if (!key) return;
+
+      const config = getEffectiveConfig(key);
+      const delta = parseInt(stepBtn.dataset.delta, 10) || 0;
+
+      const min = config?.min ?? 1;
+      const max = config?.max ?? 99;
+
+      const current = parseInt(state[key], 10);
+
+      // If user tries to increase above max, show alert
+      if (delta > 0 && current >= max && key === "courts") {
+        showAlertModal(
+          "Too many courts",
+          `You need at least ${(current + 1) * 4} players to use ${
+            current + 1
+          } courts.`
+        );
+        return;
+      }
+
+      const next = Math.min(
+        max,
+        Math.max(min, (Number.isFinite(current) ? current : min) + delta)
+      );
+
+      if (next !== current) updateConfigValue(key, next);
+      return;
+    }
+
+    // 0.1 Toggle Interaction
+    const toggle = e.target.closest(".ui-toggle");
+    if (toggle && !toggle.classList.contains("disabled")) {
+      const key = toggle.dataset.key;
+      const newVal = !state[key];
+      updateConfigValue(key, newVal);
+      return;
+    }
+
     // 1. Toggle Select
     const select = e.target.closest(".ui-select-wrapper");
     if (select) {
@@ -599,10 +797,13 @@ function openAddPairModal() {
     <style>
       .pair-modal-content { 
         max-width: 500px; width: 90%; 
+        min-height: 420px;
         background: var(--bg-surface); 
         border: 1px solid var(--border-color); 
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow-sm);
+        padding: 2rem;
+        display: flex; flex-direction: column;
       }
       .custom-select { position: relative; flex: 1; font-family: inherit; }
       .select-trigger { 
@@ -617,7 +818,7 @@ function openAddPairModal() {
       }
       .select-trigger.filled { color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
       .select-trigger:hover { background: var(--bg-card-hover); }
-      .select-trigger.active { border-color: #4CAF50; box-shadow: 0 0 0 2px rgba(76,175,80,0.2); }
+      .select-trigger.active { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
       .select-arrow { transition: transform 0.2s; opacity: 0.5; }
       .select-trigger.active .select-arrow { transform: rotate(180deg); opacity: 1; }
       
@@ -634,12 +835,14 @@ function openAddPairModal() {
       @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
       
       .option { 
-        padding: 10px 12px; cursor: pointer; border-radius: 8px; 
+        padding: 12px 14px; cursor: pointer; border-radius: 0; 
         color: var(--text-secondary);
         display: flex; align-items: center; font-size: 0.95rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
       }
+      .option:last-child { border-bottom: none; }
       .option:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
-      .option.selected { color: #4CAF50; background: rgba(76, 175, 80, 0.1); }
+      .option.selected { color: #3B82F6; background: rgba(59, 130, 246, 0.1); }
       .option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; text-decoration: line-through; }
       
       .add-action-btn {
@@ -647,16 +850,17 @@ function openAddPairModal() {
         font-weight: 600; cursor: pointer; transition: 0.2s;
         background: #3f3f46; color: #71717a;
       }
-      .add-action-btn.ready { background: #4CAF50; color: #fff; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); }
-      .add-action-btn.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4); }
+      .add-action-btn.ready { background: #3B82F6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+      .add-action-btn.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); }
 
       .pair-list-clean { 
         margin-top: 1rem; max-height: 300px; overflow-y: auto; padding-right: 4px;
         -webkit-overflow-scrolling: touch;
+        border-top: 1px solid rgba(255,255,255,0.1);
       }
       .pair-item-clean { 
         display: flex; justify-content: space-between; align-items: center; 
-        padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); 
+        padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); 
       }
       .pair-names { font-size: 1rem; color: #fff; font-weight: 500; }
       .pair-remove-icon { 
@@ -664,6 +868,22 @@ function openAddPairModal() {
         color: #71717a; cursor: pointer; border-radius: 50%; transition: 0.2s;
       }
       .pair-remove-icon:hover { color: #fff; background: rgba(255, 80, 80, 0.8); }
+
+      .btn-text { 
+        background: rgba(59, 130, 246, 0.1); 
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: var(--accent-light) !important; 
+        padding: 10px 24px; 
+        border-radius: 999px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.2s;
+      }
+      .btn-text:hover { 
+        background: rgba(59, 130, 246, 0.2); 
+        border-color: var(--accent);
+        color: #fff !important;
+      }
 
       /* Custom Scrollbar */
       .pair-list-clean, .select-options {
@@ -698,9 +918,9 @@ function openAddPairModal() {
         <button class="add-action-btn" id="addBtn">Add</button>
       </div>
 
-      <div class="pair-list-clean" id="pairsList"></div>
+      <div class="pair-list-clean" id="pairsList" style="flex: 1; min-height: 150px;"></div>
       
-      <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+      <div style="margin-top: auto; padding-top: 1.5rem; display: flex; justify-content: flex-end;">
         <button class="btn-text" id="closePairsModal" style="color:#a1a1aa;">Done</button>
       </div>
     </div>
@@ -750,23 +970,20 @@ function openAddPairModal() {
       const pIdStr = String(p.id);
       const isSelected = sameId(p.id, selectedId);
 
-      // Determine if disabled
-      // 1. In another fixed pair?
+      // 1. In another fixed pair? Skip entirely (hide)
       const isOccupied = occupiedIds.has(pIdStr);
+      if (isOccupied && !isSelected) return; // Hide paired players
 
       // 2. Selected in the OTHER dropdown?
-      // If we are renderSelect for sel1, check p2Val. If sel2, check p1Val.
-      // But 'renderSelect' doesn't know if it's sel1 or sel2 easily unless we pass it or check el.id
-      // We passed 'el'. Let's check ID.
       const isOther =
         (el.id === "sel1" && sameId(p.id, p2Val)) ||
         (el.id === "sel2" && sameId(p.id, p1Val));
 
-      const isDisabled = isOccupied || isOther;
+      const isDisabled = isOther;
 
       html += `<div class="option ${isSelected ? "selected" : ""} ${
         isDisabled ? "disabled" : ""
-      }" data-val="${p.id}">${p.name} ${isOccupied ? "(Paired)" : ""}</div>`;
+      }" data-val="${p.id}">${p.name}</div>`;
     });
 
     html += `</div>`;

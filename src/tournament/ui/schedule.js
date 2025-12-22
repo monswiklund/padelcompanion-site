@@ -195,6 +195,17 @@ export function renderSchedule() {
                       : `${state.pointsPerMatch} mins`
                   }
                 </span>
+                ${
+                  match.relaxedConstraint
+                    ? `<span class="constraint-badge" title="${
+                        match.relaxedConstraint === "repeats"
+                          ? "Repeat allowed (Priority: Pattern)"
+                          : match.relaxedConstraint === "pattern"
+                          ? "Pattern override (Priority: Repeats)"
+                          : "Constraint relaxed (Best effort)"
+                      }">i</span>`
+                    : ""
+                }
               </div>
               <div class="match-card">
                 <div class="match-teams">

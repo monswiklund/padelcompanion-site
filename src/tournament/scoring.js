@@ -482,77 +482,124 @@ export function generateMexicanoNextRound(leaderboard) {
 
     let selectedPairing;
 
-    // "Smart Default": Calculate scores if Optimal OR Not Strict (to check for penalties)
-    if (state.pairingStrategy === "optimal" || !state.strictStrategy) {
-      const scoredPairings = pairings.map((pairing) => {
-        let score = 0;
-        const p1Id = pairing.team1[0].id;
-        const p1PartnerId = pairing.team1[1].id;
-        const p2Id = pairing.team2[0].id;
-        const p2PartnerId = pairing.team2[1].id;
+    // Priority-based constraint system
+    // strictStrategy ON  = Pattern is HARD, Repeats is SOFT
+    // strictStrategy OFF = Repeats is HARD, Pattern is SOFT
+    const patternHard =
+      state.pairingStrategy !== "optimal" && state.strictStrategy;
+    const repeatsHard = !state.strictStrategy;
+    const maxRep = state.maxRepeats !== undefined ? state.maxRepeats : 99;
 
-        const getPenalty = (pid1, pid2) => {
-          // 1. Total repeats
-          const player = leaderboard.find((p) => p.id === pid1);
-          let penalty = 0;
-          if (player?.playedWith) {
-            penalty += player.playedWith.filter((id) => id === pid2).length;
-          }
+    // Calculate scores for all pairings
+    const scoredPairings = pairings.map((pairing) => {
+      const p1Id = pairing.team1[0].id;
+      const p1PartnerId = pairing.team1[1].id;
+      const p2Id = pairing.team2[0].id;
+      const p2PartnerId = pairing.team2[1].id;
 
-          // 2. Consecutive repeats (hard penalty)
-          const maxRep = state.maxRepeats !== undefined ? state.maxRepeats : 99;
-          if (maxRep < 99 && state.schedule && state.schedule.length > 0) {
-            let consecutive = 0;
-            for (let k = state.schedule.length - 1; k >= 0; k--) {
-              const round = state.schedule[k];
-              if (!round.completed) continue;
-              const wasPartners = round.matches.some(
-                (m) =>
-                  (m.team1[0].id === pid1 && m.team1[1]?.id === pid2) ||
-                  (m.team1[0].id === pid2 && m.team1[1]?.id === pid1) ||
-                  (m.team2[0].id === pid1 && m.team2[1]?.id === pid2) ||
-                  (m.team2[0].id === pid2 && m.team2[1]?.id === pid1)
-              );
-              if (wasPartners) consecutive++;
-              else break;
-            }
-            if (consecutive > maxRep) penalty += 1000;
-          }
-          return penalty;
-        };
+      const getRepeatCount = (pid1, pid2) => {
+        const player = leaderboard.find((p) => p.id === pid1);
+        if (!player?.playedWith) return 0;
+        return player.playedWith.filter((id) => id === pid2).length;
+      };
 
-        score += getPenalty(p1Id, p1PartnerId);
-        score += getPenalty(p2Id, p2PartnerId);
-        return { ...pairing, score };
+      const repeatPenalty =
+        getRepeatCount(p1Id, p1PartnerId) + getRepeatCount(p2Id, p2PartnerId);
+
+      // Ranking imbalance (for Tier 3 objective)
+      const team1Rank = pairing.team1[0].points + pairing.team1[1].points;
+      const team2Rank = pairing.team2[0].points + pairing.team2[1].points;
+      const rankingImbalance = Math.abs(team1Rank - team2Rank);
+
+      // Does this violate the repeat constraint?
+      const violatesRepeats = maxRep < 99 && repeatPenalty > maxRep;
+
+      // Is this the user's preferred strategy?
+      const isPreferred = pairing.name === state.pairingStrategy;
+
+      // Deterministic tie-break key (stable sort)
+      const tieBreaker =
+        p1Id * 1000000 + p1PartnerId * 10000 + p2Id * 100 + p2PartnerId;
+
+      return {
+        ...pairing,
+        repeatPenalty,
+        violatesRepeats,
+        isPreferred,
+        rankingImbalance,
+        tieBreaker,
+      };
+    });
+
+    // Sort for consistent tie-breaking (always deterministic)
+    scoredPairings.sort((a, b) => a.tieBreaker - b.tieBreaker);
+
+    // ========== 3-TIER SELECTION LOGIC ==========
+    // Tier 1: Respect BOTH constraints
+    // Tier 2: Respect HARD constraint, relax SOFT constraint
+    // Tier 3: Relax BOTH, pick "least damaging" by objective function
+
+    if (state.pairingStrategy === "optimal") {
+      // Optimal: pick lowest repeat penalty, then lowest imbalance, then tie-break
+      const sorted = [...scoredPairings].sort((a, b) => {
+        if (a.repeatPenalty !== b.repeatPenalty)
+          return a.repeatPenalty - b.repeatPenalty;
+        if (a.rankingImbalance !== b.rankingImbalance)
+          return a.rankingImbalance - b.rankingImbalance;
+        return a.tieBreaker - b.tieBreaker;
       });
+      selectedPairing = { ...sorted[0], relaxedConstraint: null };
+    } else {
+      const userChoice =
+        scoredPairings.find((p) => p.isPreferred) || scoredPairings[0];
 
-      const bestOption = [...scoredPairings].sort(
-        (a, b) => a.score - b.score
-      )[0];
-
-      if (state.pairingStrategy === "optimal") {
-        selectedPairing = bestOption;
+      // TIER 1: Both constraints satisfied?
+      if (!userChoice.violatesRepeats) {
+        selectedPairing = { ...userChoice, relaxedConstraint: null };
       } else {
-        const userChoice =
-          scoredPairings.find((p) => p.name === state.pairingStrategy) ||
-          scoredPairings[0];
-
-        // Smart Override:
-        // If !Strict AND user choice has penalty AND better option exists -> Override
-        if (
-          !state.strictStrategy &&
-          userChoice.score >= 1000 &&
-          bestOption.score < 1000
-        ) {
-          selectedPairing = bestOption;
+        // Conflict exists - apply priority rules
+        if (patternHard) {
+          // TIER 2a: Pattern is HARD, relax Repeats
+          // Use user's pattern even if it causes repeats
+          selectedPairing = { ...userChoice, relaxedConstraint: "repeats" };
         } else {
-          selectedPairing = userChoice;
+          // TIER 2b: Repeats is HARD, relax Pattern
+          // Find candidates that don't violate repeats
+          const validOptions = scoredPairings.filter((p) => !p.violatesRepeats);
+
+          if (validOptions.length > 0) {
+            // Pick best valid option (prefer user's pattern if available, else lowest imbalance)
+            const sortedValid = [...validOptions].sort((a, b) => {
+              if (a.isPreferred !== b.isPreferred)
+                return a.isPreferred ? -1 : 1;
+              if (a.rankingImbalance !== b.rankingImbalance)
+                return a.rankingImbalance - b.rankingImbalance;
+              return a.tieBreaker - b.tieBreaker;
+            });
+            selectedPairing = {
+              ...sortedValid[0],
+              relaxedConstraint: "pattern",
+            };
+          } else {
+            // TIER 3: Neither constraint can be satisfied
+            // Objective function (priority order):
+            //   1. Minimize repeatPenalty (even when forced to break)
+            //   2. Prefer user's pattern (minimize pattern deviation)
+            //   3. Minimize ranking imbalance
+            //   4. Deterministic tie-break
+            const sorted = [...scoredPairings].sort((a, b) => {
+              if (a.repeatPenalty !== b.repeatPenalty)
+                return a.repeatPenalty - b.repeatPenalty;
+              if (a.isPreferred !== b.isPreferred)
+                return a.isPreferred ? -1 : 1;
+              if (a.rankingImbalance !== b.rankingImbalance)
+                return a.rankingImbalance - b.rankingImbalance;
+              return a.tieBreaker - b.tieBreaker;
+            });
+            selectedPairing = { ...sorted[0], relaxedConstraint: "tier3" };
+          }
         }
       }
-    } else {
-      // Strict Mode / No Calc: Just pick strategy
-      selectedPairing =
-        pairings.find((p) => p.name === state.pairingStrategy) || pairings[0];
     }
 
     teams.push(selectedPairing.team1);
