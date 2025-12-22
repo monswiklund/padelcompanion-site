@@ -57,41 +57,13 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/tournament-Jaq_Uf3L.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
-    <link rel="stylesheet" crossorigin href="/assets/tournament-hgdrhtq2.css">
-    <link rel="stylesheet" crossorigin href="/assets/style-Bm54ADvD.css">
+    <script type="module" crossorigin src="/assets/tournament-CM9AdNq2.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/layout-DCA26Yf3.js">
+    <link rel="stylesheet" crossorigin href="/assets/layout-BxPkrh74.css">
+    <link rel="stylesheet" crossorigin href="/assets/tournament-CNtaB0Ec.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
-    <header class="header scrolled">
-      <div class="container header-inner">
-        <a href="/" class="logo">
-          <img src="/assets/app-icon-iRqPZMtn.jpeg" alt="Padel Companion Logo" />
-          <span>Padel Companion</span>
-        </a>
-        <div class="header-actions">
-          <nav class="nav" id="nav">
-            <a href="/">Home</a>
-            <a href="/#features">Features</a>
-            <a href="/tournament/" class="active">Tournament</a>
-            <a href="/support.html">Support</a>
-          </nav>
-          <button class="theme-toggle" id="themeToggle" title="Toggle theme">
-            <span class="theme-icon">🌙</span>
-          </button>
-          <button
-            class="btn btn-primary btn-sm"
-            id="installBtn"
-            style="display: none"
-          >
-            Install App 📲
-          </button>
-          <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-            <span class="hamburger"></span>
-          </button>
-        </div>
-      </div>
-    </header>
+    <div id="header-slot"></div>
 
     <main class="tournament-page">
       <div class="container">
@@ -612,98 +584,15 @@
     </main>
 
     <!-- Partners Section -->
-    <section class="partners section" id="partners">
-      <div class="container">
-        <div class="features-header">
-          <h2>Community & <span class="text-gradient">Partners</span></h2>
-          <p>Join us in growing the sport of padel.</p>
-        </div>
+    <!-- Partners Section -->
+    <div id="partner-slot"></div>
 
-        <div class="partners-grid">
-          <!-- Premium/Featured Partner Placeholder -->
-          <div class="card partner-card featured">
-            <div class="partner-logo-placeholder">
-              <span>Your Logo Here</span>
-            </div>
-            <div class="partner-info">
-              <h3>Become a Partner</h3>
-              <p>Showcase your brand to thousands of padel players.</p>
-              <a
-                href="mailto:wiklundlabs@gmail.com"
-                class="btn btn-primary btn-sm"
-                >Contact Us</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div id="footer-slot"></div>
 
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-brand">
-            <a href="/" class="logo">
-              <img src="/assets/app-icon-iRqPZMtn.jpeg" alt="Padel Companion Logo" />
-              <span>Padel Companion</span>
-            </a>
-            <p>
-              Your digital padel companion. Track scores, view statistics, and
-              organize tournaments with ease.
-            </p>
-          </div>
-
-          <div class="footer-links-row">
-            <div class="footer-links">
-              <h5>Legal</h5>
-              <ul>
-                <li><a href="/privacy.html">Privacy Policy</a></li>
-                <li><a href="/terms.html">Terms of Service</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-links">
-              <h5>Support</h5>
-              <ul>
-                <li><a href="/support.html">Help & FAQ</a></li>
-                <li><a href="mailto:wiklundlabs@gmail.com">Contact Us</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="footer-donate">
-            <h5
-              style="
-                color: var(--text-muted);
-                font-size: 0.875rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-weight: 600;
-                margin-bottom: var(--space-lg);
-              "
-            >
-              Donate
-            </h5>
-            <a
-              href="https://buymeacoffee.com/wiklundlabs"
-              target="_blank"
-              rel="noopener"
-              class="footer-donate-btn"
-            >
-              <img
-                src="/assets/buymeacoffee-OP4rMCNC.png"
-                alt="Buy Me A Coffee"
-                style="height: 40px !important; width: 145px !important"
-              />
-            </a>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <p>&copy; 2025 Padel Companion. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top" title="Back to top">
+      ↑
+    </button>
 
     <!-- 100% privacy-first analytics -->
     <script data-collect-dnt="true" async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
