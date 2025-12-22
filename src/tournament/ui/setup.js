@@ -156,6 +156,136 @@ export function updateSetupUI() {
       strictStrategyWrapper.style.pointerEvents = isOptimal ? "none" : "auto";
     }
   }
+
+  // Update tournament summary
+  renderTournamentSummary();
+}
+
+/**
+ * Render tournament summary bullet points
+ */
+export function renderTournamentSummary() {
+  const summaryList = document.getElementById("summaryList");
+  const summarySection = document.getElementById("tournamentSummary");
+  if (!summaryList || !summarySection) return;
+
+  // Hide summary if tournament is running
+  if (state.isLocked) {
+    summarySection.style.display = "none";
+    return;
+  }
+  summarySection.style.display = "block";
+
+  const formatLabels = {
+    americano: "Americano",
+    mexicano: "Mexicano",
+    team: "Team Americano",
+    teamMexicano: "Team Mexicano",
+  };
+
+  const isTeam = state.format === "team" || state.format === "teamMexicano";
+  const isMexicano =
+    state.format === "mexicano" || state.format === "teamMexicano";
+  const playerCount = state.players?.length || 0;
+  const playerLabel = isTeam ? "teams" : "players";
+
+  // Build summary items
+  const items = [
+    {
+      label: "Format",
+      value: formatLabels[state.format] || state.format,
+    },
+    {
+      label: isTeam ? "Teams" : "Players",
+      value: playerCount > 0 ? `${playerCount} ${playerLabel}` : "None added",
+    },
+    {
+      label: "Courts",
+      value: state.courts || 2,
+    },
+    {
+      label: "Scoring",
+      value:
+        state.scoringMode === "time"
+          ? `${state.pointsPerMatch} minutes`
+          : state.scoringMode === "race"
+          ? `First to ${state.pointsPerMatch}`
+          : `${state.pointsPerMatch} total points`,
+    },
+  ];
+
+  // Add Matchup Rules for Mexicano formats
+  if (isMexicano) {
+    // Max Partner Repeats
+    const maxRepeatsLabel =
+      state.maxRepeats === 99
+        ? "Unlimited"
+        : state.maxRepeats === 0
+        ? "No repeats"
+        : `Max ${state.maxRepeats}x`;
+    items.push({
+      label: "Repeats",
+      value: maxRepeatsLabel,
+    });
+
+    // Pairing Strategy
+    const strategyLabels = {
+      oneThree: "1&3 vs 2&4",
+      oneTwo: "1&2 vs 3&4",
+      oneFour: "1&4 vs 2&3",
+      optimal: "Optimal",
+    };
+    items.push({
+      label: "Pairing",
+      value: strategyLabels[state.pairingStrategy] || state.pairingStrategy,
+    });
+
+    // Preferred Partners (if any configured)
+    if (state.preferredPartners?.length > 0) {
+      // Get player names for each pair
+      const pairNames = state.preferredPartners
+        .map((pair) => {
+          const p1 = state.players.find((p) => p.id === pair.player1Id);
+          const p2 = state.players.find((p) => p.id === pair.player2Id);
+          if (p1 && p2) {
+            return `${p1.name} & ${p2.name}`;
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      if (pairNames.length > 0) {
+        items.push({
+          label: "Fixed Pairs",
+          value: pairNames,
+          isChips: true,
+        });
+      }
+    }
+  }
+
+  summaryList.innerHTML = items
+    .map((item) => {
+      if (item.isChips) {
+        return `
+          <li class="summary-item summary-item-chips">
+            <span class="summary-label">${item.label}:</span>
+            <div class="summary-chips">
+              ${item.value
+                .map((name) => `<span class="summary-chip">${name}</span>`)
+                .join("")}
+            </div>
+          </li>
+        `;
+      }
+      return `
+        <li class="summary-item">
+          <span class="summary-label">${item.label}:</span>
+          <span class="summary-value">${item.value}</span>
+        </li>
+      `;
+    })
+    .join("");
 }
 
 /**

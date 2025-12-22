@@ -1,7 +1,7 @@
 /* ===== Setup Card & Configuration ===== */
 
 .setup-card {
-  background: var(--bg-card);
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   padding: var(--space-xl);
@@ -14,7 +14,7 @@
 }
 
 .setup-card:hover {
-  background: var(--bg-card); /* No brighter background */
+  background: var(--bg-surface); /* No brighter background */
   border-color: var(--accent);
   box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(59, 130, 246, 0.2);
   transform: none;
@@ -141,6 +141,35 @@
 .player-actions {
   display: flex;
   gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* Enhanced player action buttons */
+.player-actions .btn {
+  min-height: 36px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Primary action button (Add Player) */
+.player-actions .btn-secondary:last-child {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(139, 92, 246, 0.15) 100%
+  );
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: var(--accent-light);
+}
+
+.player-actions .btn-secondary:last-child:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.25) 0%,
+    rgba(139, 92, 246, 0.25) 100%
+  );
+  border-color: var(--accent-light);
+  box-shadow: 0 0 16px var(--accent-glow);
 }
 
 .player-input-row {
@@ -148,6 +177,57 @@
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
   animation: slideInFromRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  align-items: center;
+}
+
+/* Input field in player input row */
+.player-input-row .form-input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+}
+
+/* Add button in input row - primary action */
+.player-input-row .btn-primary {
+  height: 42px;
+  min-width: 70px;
+  padding: 0 20px;
+}
+
+/* Cancel button styling */
+.player-input-row .btn-ghost {
+  height: 42px;
+  padding: 0 16px;
+  color: var(--text-muted);
+}
+
+.player-input-row .btn-ghost:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .player-input-row .btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .player-actions .btn-secondary:last-child {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(139, 92, 246, 0.1) 100%
+  );
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #3b82f6;
+}
+
+[data-theme="light"] .player-actions .btn-secondary:last-child:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.2) 0%,
+    rgba(139, 92, 246, 0.2) 100%
+  );
+  border-color: #3b82f6;
 }
 
 @keyframes slideInFromRight {
@@ -565,6 +645,111 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Tournament Summary Section */
+.tournament-summary {
+  max-width: 600px;
+  margin: var(--space-xl) auto;
+  padding: var(--space-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.summary-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-md) 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm) var(--space-lg);
+}
+
+@media (max-width: 480px) {
+  .summary-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.summary-item::before {
+  content: "•";
+  color: var(--accent);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.summary-label {
+  color: var(--text-muted);
+}
+
+.summary-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Fixed Pairs chips layout */
+.summary-item-chips {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-color);
+  margin-top: var(--space-xs);
+}
+
+.summary-item-chips::before {
+  display: none;
+}
+
+.summary-item-chips .summary-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.summary-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .summary-chip {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
 /* Generate Button Placement */

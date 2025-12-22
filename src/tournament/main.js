@@ -59,6 +59,7 @@ import {
   exportTournamentData,
   shareResults,
   setupCustomSelects,
+  renderTournamentSummary,
 } from "./ui/index.js";
 import { initPWA } from "../shared/pwa.js";
 
@@ -331,6 +332,7 @@ function initEventListeners(elements) {
   elements.courts.addEventListener("change", () => {
     state.courts = parseInt(elements.courts.value);
     saveState();
+    renderTournamentSummary();
     if (state.schedule.length > 0) {
       renderGameDetails();
     }
@@ -342,6 +344,7 @@ function initEventListeners(elements) {
   elements.points.addEventListener("change", () => {
     state.pointsPerMatch = parseInt(elements.points.value);
     saveState();
+    renderTournamentSummary();
     if (state.schedule.length > 0) {
       renderSchedule();
     }
@@ -351,6 +354,7 @@ function initEventListeners(elements) {
     state.scoringMode = elements.scoringMode.value;
     updateScoringLabel();
     saveState();
+    renderTournamentSummary();
     if (state.schedule.length > 0) {
       renderSchedule();
     }
@@ -412,6 +416,7 @@ function initEventListeners(elements) {
           state.maxRepeats = newValue;
           elements.maxRepeats.value = newValue;
           saveState();
+          renderTournamentSummary();
           showToast("Max Partner Repeats updated");
         },
         true // isDanger
@@ -419,6 +424,7 @@ function initEventListeners(elements) {
     } else {
       state.maxRepeats = newValue;
       saveState();
+      renderTournamentSummary();
     }
   });
 

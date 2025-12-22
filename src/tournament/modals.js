@@ -363,7 +363,25 @@ export function showCountdown() {
     const overlay = document.createElement("div");
     overlay.className = "countdown-overlay";
     overlay.innerHTML = '<div class="countdown-number">3</div>';
+    overlay.style.cursor = "pointer";
     document.body.appendChild(overlay);
+
+    let skipped = false;
+    let timeoutId = null;
+
+    // Skip countdown on click
+    const skipCountdown = () => {
+      if (skipped) return;
+      skipped = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      overlay.classList.remove("active");
+      setTimeout(() => {
+        overlay.remove();
+        resolve();
+      }, 100);
+    };
+
+    overlay.addEventListener("click", skipCountdown);
 
     // Activate overlay
     requestAnimationFrame(() => {
@@ -375,6 +393,8 @@ export function showCountdown() {
     let index = 0;
 
     const showNext = () => {
+      if (skipped) return;
+
       if (index >= sequence.length) {
         // Fade out and cleanup
         overlay.classList.remove("active");
@@ -397,11 +417,11 @@ export function showCountdown() {
       });
 
       index++;
-      setTimeout(showNext, val === "GO!" ? 600 : 800);
+      timeoutId = setTimeout(showNext, val === "GO!" ? 600 : 800);
     };
 
     // Start after brief delay
-    setTimeout(showNext, 100);
+    timeoutId = setTimeout(showNext, 100);
   });
 }
 

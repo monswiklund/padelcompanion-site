@@ -64,4 +64,5 @@ export {
   toggleToolbar,
   exportTournamentData,
   shareResults,
+  renderTournamentSummary,
 } from "./setup.js";
