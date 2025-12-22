@@ -224,35 +224,6 @@ function initScrollToTop() {
 function initEventListeners(elements) {
   // Theme toggle handled in layout.js
 
-  // Mobile Nav Toggle
-  const navToggle = document.getElementById("navToggle");
-  const nav = document.getElementById("nav");
-  if (navToggle && nav) {
-    navToggle.addEventListener("click", () => {
-      nav.classList.toggle("open");
-      navToggle.classList.toggle("active");
-    });
-
-    // Close on click outside or on link click
-    document.addEventListener("click", (e) => {
-      if (
-        nav.classList.contains("open") &&
-        !nav.contains(e.target) &&
-        !navToggle.contains(e.target)
-      ) {
-        nav.classList.remove("open");
-        navToggle.classList.remove("active");
-      }
-    });
-
-    nav.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => {
-        nav.classList.remove("open");
-        navToggle.classList.remove("active");
-      });
-    });
-  }
-
   // Undo Action
   const undoBtn = document.getElementById("undoBtn");
   if (undoBtn) {

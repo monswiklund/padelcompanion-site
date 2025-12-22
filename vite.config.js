@@ -10,7 +10,6 @@ export default defineConfig({
       devOptions: {
         enabled: true,
       },
-      includeAssets: ["assets/app-icon.jpeg", "assets/court-bg.svg"],
       manifest: {
         name: "Padel Tournament",
         short_name: "Padel Tournament",

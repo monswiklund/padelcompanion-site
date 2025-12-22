@@ -155,27 +155,21 @@ function injectPartners() {
   partnerSlot.innerHTML = `
     <section class="partners section" id="partners">
       <div class="container">
-        <div class="features-header">
-          <h2>Trusted By <span class="text-gradient">Partners</span></h2>
-          <p>Collaborating with leading brands to grow the sport of padel.</p>
-        </div>
-
-        <div class="partners-grid">
-          <!-- Premium/Featured Partner Placeholder -->
-          <div class="card partner-card featured">
-            <div class="partner-logo-placeholder">
-              <span>Your Logo Here</span>
-            </div>
-            <div class="partner-info">
-              <h3>Become a Sponsor</h3>
-              <p>Showcase your brand to thousands of padel players.</p>
-              <a
-                href="mailto:wiklundlabs@gmail.com"
-                class="btn btn-primary btn-sm"
-                >Contact Us</a
-              >
-            </div>
-          </div>
+        <div class="partners-grid" style="grid-template-columns: repeat(3, 1fr); gap: var(--space-md);">
+          <!-- Sponsor Slot 1 -->
+          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+            <span>Your Logo Here</span>
+          </a>
+          
+          <!-- Sponsor Slot 2 -->
+          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+            <span>Your Logo Here</span>
+          </a>
+          
+          <!-- Sponsor Slot 3 -->
+          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+            <span>Your Logo Here</span>
+          </a>
         </div>
       </div>
     </section>

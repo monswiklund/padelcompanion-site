@@ -1,7 +1,7 @@
 // Players Module
 // Player list rendering and input handling
 
-import { state } from "../state.js";
+import { state, saveState } from "../state.js";
 import { getElements } from "./elements.js";
 import {
   renderPreferredPartners,
@@ -39,7 +39,6 @@ export function renderPlayers() {
       >
         ${courtOptions.join("")}
       </select>
-
       <button class="player-remove" data-action="remove-player" data-id="${
         player.id
       }">×</button>
@@ -48,16 +47,14 @@ export function renderPlayers() {
     })
     .join("");
 
-  // Re-attach global handler if not exists (temporary solution for inline onchange)
+  // Re-attach global handler if not exists
   if (!window.updatePlayerCourtLock) {
     window.updatePlayerCourtLock = (id, value) => {
-      import("../state.js").then(({ state, saveState }) => {
-        const player = state.players.find((p) => p.id === id);
-        if (player) {
-          player.lockedCourt = value ? parseInt(value) : null;
-          saveState();
-        }
-      });
+      const player = state.players.find((p) => p.id === id);
+      if (player) {
+        player.lockedCourt = value ? parseInt(value) : null;
+        saveState();
+      }
     };
   }
 

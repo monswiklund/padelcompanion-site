@@ -1318,7 +1318,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-xl);
-  margin-top: var(--space-xl);
 }
 
 .partner-card {
@@ -1352,7 +1351,14 @@
   border-radius: var(--radius-lg);
   color: var(--text-muted);
   font-weight: 500;
+  text-decoration: none;
   transition: all var(--transition-base);
+}
+
+.partner-logo-placeholder:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 .partner-card:hover .partner-logo-placeholder {

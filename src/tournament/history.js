@@ -213,9 +213,9 @@ function renderRows(items) {
       <div class="empty-state-icon">🏆</div>
       <h3>No tournaments yet</h3>
       <p>Complete your first tournament to see it here!</p>
-      <a href="#" onclick="document.getElementById('format').scrollIntoView({behavior: 'smooth'}); return false;" class="btn btn-primary">
+      <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="btn btn-primary">
         Start a Tournament
-      </a>
+      </button>
     `;
     emptyState.style.display = "block";
     return;
