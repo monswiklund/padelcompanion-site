@@ -28,6 +28,11 @@ select:focus {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+select:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow), 0 0 24px rgba(59, 130, 246, 0.15);
+}
+
 /* Custom Select */
 select {
   appearance: none;
@@ -86,6 +91,7 @@ select {
 
 .custom-select-trigger:hover {
   border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow), 0 0 24px rgba(59, 130, 246, 0.15);
 }
 
 .custom-options {
