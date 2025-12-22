@@ -57,10 +57,10 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/tournament-CM9AdNq2.js"></script>
+    <script type="module" crossorigin src="/assets/tournament-D6EYeSeM.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/layout-DCA26Yf3.js">
     <link rel="stylesheet" crossorigin href="/assets/layout-BxPkrh74.css">
-    <link rel="stylesheet" crossorigin href="/assets/tournament-CNtaB0Ec.css">
+    <link rel="stylesheet" crossorigin href="/assets/tournament-bgC7JI1h.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="header-slot"></div>
@@ -398,21 +398,8 @@
                 <span id="textSizeLabel" class="range-value">100%</span>
                 </div>
               </div>
-              <div class="toolbar-actions">
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="printBtn"
-                  title="Print Schedule"
-                >
-                  Print
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <div class="schedule-header-row">
-            <h2 class="section-title">Tournament Schedule</h2>
-            <span class="status-badge" id="runningBadge" style="display: none;">Running</span>
+            </div>
           </div>
 
           <!-- Match Timer (Hidden by default, shown for Time mode) -->
@@ -446,6 +433,13 @@
               </button>
             </div>
           </div>
+
+          <div class="schedule-header-row">
+            <h2 class="section-title">Tournament Schedule</h2>
+            <span class="status-badge" id="runningBadge" style="display: none;">Running</span>
+          </div>
+          
+          <div id="gameDetails" class="game-details"></div>
 
           <div class="rounds-container" id="roundsContainer">
             <!-- Rounds will be generated here -->
@@ -502,27 +496,39 @@
               <button type="button" class="help-icon always-enabled" id="helpLeaderboard">?</button>
             </div>
             <div class="leaderboard-controls">
-              <button
-                id="togglePositionBtn"
-                class="btn btn-secondary btn-sm toggle-off"
-                onclick="togglePositionChanges()"
-                title="Toggle rank change indicators"
-              >Ranks</button>
-              <button
-                id="toggleVisibilityBtn"
-                class="btn btn-secondary btn-sm toggle-off"
-                onclick="toggleLeaderboardVisibility()"
-                title="Toggle score visibility"
-              >Scores</button>
-              <select
-                id="rankingCriteria"
-                class="form-select btn-sm"
-              >
-                <option value="points" selected>Points</option>
-                <option value="wins">Wins</option>
-                <option value="winRatio">Win %</option>
-                <option value="pointRatio">Pts %</option>
-              </select>
+              <div class="controls-left">
+                <button
+                  id="togglePositionBtn"
+                  class="btn btn-secondary btn-sm toggle-off"
+                  onclick="togglePositionChanges()"
+                  title="Toggle rank change indicators"
+                >Ranks</button>
+                <button
+                  id="toggleVisibilityBtn"
+                  class="btn btn-secondary btn-sm toggle-off"
+                  onclick="toggleLeaderboardVisibility()"
+                  title="Toggle score visibility"
+                >Scores</button>
+              </div>
+
+              <div class="controls-right">
+                <select
+                  id="rankingCriteria"
+                  class="form-select btn-sm"
+                >
+                  <option value="points" selected>Points</option>
+                  <option value="wins">Wins</option>
+                  <option value="winRatio">Win %</option>
+                  <option value="pointRatio">Pts %</option>
+                </select>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="printBtn"
+                  title="Print Schedule/Result"
+                >
+                  Print
+                </button>
+              </div>
             </div>
           </div>
           <div class="table-responsive">
