@@ -65,4 +65,10 @@ export {
   exportTournamentData,
   shareResults,
   renderTournamentSummary,
+  setRenderTournamentConfigCallback,
 } from "./setup.js";
+
+export {
+  renderTournamentConfig,
+  initTournamentConfig,
+} from "./tournamentConfig.js";

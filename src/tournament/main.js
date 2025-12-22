@@ -60,6 +60,8 @@ import {
   shareResults,
   setupCustomSelects,
   renderTournamentSummary,
+  renderTournamentConfig,
+  setRenderTournamentConfigCallback,
 } from "./ui/index.js";
 import { initPWA } from "../shared/pwa.js";
 
@@ -117,6 +119,10 @@ function init() {
   }
 
   toggleCustomCourtNames();
+
+  // Set callback to avoid circular dependency
+  setRenderTournamentConfigCallback(renderTournamentConfig);
+
   renderPlayers();
 
   // Restore active tournament if exists
@@ -151,6 +157,7 @@ function init() {
   // Initial UI Sync
   updateSetupUI();
   updateScoringLabel();
+  renderTournamentConfig();
 
   // Initialize ripple effect on buttons
   initRippleEffect();
@@ -332,7 +339,7 @@ function initEventListeners(elements) {
   elements.courts.addEventListener("change", () => {
     state.courts = parseInt(elements.courts.value);
     saveState();
-    renderTournamentSummary();
+    renderTournamentConfig();
     if (state.schedule.length > 0) {
       renderGameDetails();
     }
@@ -344,7 +351,7 @@ function initEventListeners(elements) {
   elements.points.addEventListener("change", () => {
     state.pointsPerMatch = parseInt(elements.points.value);
     saveState();
-    renderTournamentSummary();
+    renderTournamentConfig();
     if (state.schedule.length > 0) {
       renderSchedule();
     }
@@ -354,7 +361,7 @@ function initEventListeners(elements) {
     state.scoringMode = elements.scoringMode.value;
     updateScoringLabel();
     saveState();
-    renderTournamentSummary();
+    renderTournamentConfig();
     if (state.schedule.length > 0) {
       renderSchedule();
     }
@@ -416,7 +423,7 @@ function initEventListeners(elements) {
           state.maxRepeats = newValue;
           elements.maxRepeats.value = newValue;
           saveState();
-          renderTournamentSummary();
+          renderTournamentConfig();
           showToast("Max Partner Repeats updated");
         },
         true // isDanger
@@ -424,7 +431,7 @@ function initEventListeners(elements) {
     } else {
       state.maxRepeats = newValue;
       saveState();
-      renderTournamentSummary();
+      renderTournamentConfig();
     }
   });
 

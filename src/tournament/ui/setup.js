@@ -21,6 +21,12 @@ export function setRenderScheduleCallback(fn) {
   renderScheduleCallback = fn;
 }
 
+// Forward declaration for tournament config render
+let renderTournamentConfigCallback = null;
+export function setRenderTournamentConfigCallback(fn) {
+  renderTournamentConfigCallback = fn;
+}
+
 /**
  * Update setup UI based on state
  */
@@ -157,8 +163,10 @@ export function updateSetupUI() {
     }
   }
 
-  // Update tournament summary
-  renderTournamentSummary();
+  // Update tournament config (use callback to avoid circular dependency)
+  if (renderTournamentConfigCallback) {
+    renderTournamentConfigCallback();
+  }
 }
 
 /**

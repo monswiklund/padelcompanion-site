@@ -59,6 +59,22 @@
   margin-bottom: var(--space-md);
 }
 
+@keyframes highlightFlash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  30% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.highlight-flash {
+  animation: highlightFlash 1s ease-out;
+}
+
 /* Grid Layout for Setup Options */
 .setup-grid {
   display: grid;
@@ -647,7 +663,211 @@
   }
 }
 
-/* Tournament Summary Section */
+/* ===== Interactive Tournament Configuration ===== */
+.tournament-config {
+  max-width: 600px;
+  margin: var(--space-xl) auto;
+  padding: var(--space-lg);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm) var(--space-lg);
+}
+
+@media (max-width: 480px) {
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+}
+
+.config-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.config-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.config-value-clickable {
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.config-value-clickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .config-value-clickable:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.config-edit-icon {
+  font-size: 0.6rem;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+}
+
+.config-value-clickable:hover .config-edit-icon {
+  opacity: 1;
+}
+
+.config-help {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  transition: all var(--transition-fast);
+}
+
+.config-help:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+[data-theme="light"] .config-help {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Inline Editor */
+.inline-editor {
+  display: inline-flex;
+}
+
+.inline-select,
+.inline-input {
+  padding: 4px 8px;
+  background: var(--input-bg);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.inline-input {
+  width: 60px;
+  min-width: 60px;
+}
+
+.inline-select:focus,
+.inline-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* Fixed Pairs Section */
+.config-pairs-section {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  margin-top: var(--space-sm);
+  border-top: 1px solid var(--border-color);
+}
+
+.config-pairs-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.config-pairs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  flex: 1;
+}
+
+.config-pair-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .config-pair-chip {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.config-edit-link {
+  background: none;
+  border: none;
+  color: var(--accent-light);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.config-edit-link:hover {
+  color: var(--accent);
+}
+
+.config-add-pair-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  color: var(--accent-light);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.config-add-pair-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--accent-light);
+}
+
+.config-pairs-empty {
+  justify-content: center;
+}
+
+/* Tournament Summary Section (legacy) */
 .tournament-summary {
   max-width: 600px;
   margin: var(--space-xl) auto;
@@ -801,3 +1021,261 @@
       0 0 40px rgba(139, 92, 246, 0.3);
   }
 }
+
+/* Stable Config Inputs - Minimal Custom Style */
+.config-select,
+.config-input {
+  width: 100%;
+  padding: 8px 0;
+  padding-right: 24px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  /* Remove Browser Defaults */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+}
+
+/* Hover state: Show it's interactive */
+.config-select:hover,
+.config-input:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding-left: 8px; /* Add padding on hover for effect */
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Focus state: Active editing */
+.config-select:focus,
+.config-input:focus {
+  background-color: var(--bg-surface-alt);
+  border-color: var(--primary-color);
+  padding-left: 8px;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* Custom Chevron Arrow - Minimal/Dark initially */
+.config-select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0px center;
+  background-size: 16px;
+}
+
+/* Brighter arrow on interaction */
+.config-select:hover,
+.config-select:focus {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-position: right 8px center;
+}
+
+.config-grid {
+  align-items: center;
+}
+
+.config-label {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Custom UI Select Styles (Overrides) */
+/* Custom UI Select Styles (Overrides) */
+.custom-ui-select {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.config-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text-primary);
+  background: transparent;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  appearance: none;
+  background-image: none !important;
+}
+
+.config-input:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.config-input:focus {
+  background: var(--bg-surface-alt);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  outline: none;
+}
+
+/* Trigger area */
+.custom-select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  padding-right: 36px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  background-image: none !important;
+  background-color: transparent;
+}
+
+.custom-ui-select:hover .custom-select-trigger {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-ui-select.open .custom-select-trigger {
+  background: #2a2a35;
+  border-color: var(--primary-color);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  z-index: 1001;
+}
+
+/* Arrow */
+.custom-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: 0.2s;
+  pointer-events: none;
+}
+
+.custom-ui-select:hover .custom-select-arrow,
+.custom-ui-select.open .custom-select-arrow {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.custom-ui-select.open .custom-select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Options Dropdown */
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #2a2a35;
+  border: 1px solid var(--primary-color);
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 9999;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.custom-ui-select.open .custom-select-options {
+  display: block;
+  animation: slideDown 0.15s ease-out;
+}
+
+.custom-option {
+  padding: 12px;
+  cursor: pointer;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  color: #ccc;
+  transition: 0.1s;
+}
+
+.custom-option:first-child {
+  border-top: none;
+}
+.custom-option:hover {
+  background: rgba(76, 175, 80, 0.1);
+  color: #fff;
+}
+.custom-option.selected {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+/* Ensure dropdowns are not clipped */
+#tournamentConfig,
+.config-grid,
+.config-row,
+.custom-ui-select {
+  overflow: visible !important;
+}
+
+/* Cache Busted UI Select Styles (V2) */
+.ui-select-wrapper { 
+  position: relative; cursor: pointer; user-select: none; width: 100%;
+  font-family: inherit; font-size: 1rem; color: var(--text-primary);
+  background: transparent !important; background-image: none !important;
+}
+
+.ui-trigger { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 8px 12px; padding-right: 36px; min-height: 42px; 
+  border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); 
+  transition: all 0.2s; background: transparent; background-image: none !important;
+}
+
+.ui-select-wrapper:hover .ui-trigger { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2); }
+.ui-select-wrapper.open .ui-trigger { background: #2a2a35; border-color: var(--primary-color); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+/* Arrow */
+.ui-arrow { 
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%); 
+  width: 16px; height: 16px; pointer-events: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
+  background-repeat: no-repeat; background-position: center; transition: 0.2s; 
+}
+.ui-select-wrapper:hover .ui-arrow, .ui-select-wrapper.open .ui-arrow { 
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
+}
+.ui-select-wrapper.open .ui-arrow { transform: translateY(-50%) rotate(180deg); }
+
+/* Dropdown */
+.ui-options { 
+  position: absolute; top: 100%; left: 0; right: 0; 
+  background: #2a2a35; border: 1px solid var(--primary-color); border-top: none; 
+  border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; 
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+  display: none; z-index: 99999; max-height: 280px; overflow-y: auto; 
+}
+.ui-select-wrapper.open .ui-options { display: block; animation: slideDown 0.15s ease-out; }
+
+/* Option */
+.ui-option { 
+  padding: 12px; cursor: pointer; border-top: 1px solid rgba(255,255,255,0.03); color: #ccc; transition: 0.1s; 
+}
+.ui-option:first-child { border-top: none; }
+.ui-option:hover { background: rgba(76, 175, 80, 0.1); color: #fff; }
+.ui-option.selected { color: #4CAF50; font-weight: 500; }
+
+/* Ensuring visibility */
+.ui-select-wrapper, .ui-trigger, .ui-options, .ui-option { overflow: visible !important; }
