@@ -354,5 +354,56 @@ export function showInfoModal(title, htmlContent) {
   });
 }
 
+/**
+ * Show a countdown overlay (3-2-1-GO!)
+ * @returns {Promise} Resolves when countdown is complete
+ */
+export function showCountdown() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "countdown-overlay";
+    overlay.innerHTML = '<div class="countdown-number">3</div>';
+    document.body.appendChild(overlay);
+
+    // Activate overlay
+    requestAnimationFrame(() => {
+      overlay.classList.add("active");
+    });
+
+    const numberEl = overlay.querySelector(".countdown-number");
+    const sequence = ["3", "2", "1", "GO!"];
+    let index = 0;
+
+    const showNext = () => {
+      if (index >= sequence.length) {
+        // Fade out and cleanup
+        overlay.classList.remove("active");
+        setTimeout(() => {
+          overlay.remove();
+          resolve();
+        }, 300);
+        return;
+      }
+
+      const val = sequence[index];
+      numberEl.textContent = val;
+      numberEl.className =
+        "countdown-number" + (val === "GO!" ? " countdown-go" : "");
+
+      // Trigger animation reset
+      numberEl.style.animation = "none";
+      requestAnimationFrame(() => {
+        numberEl.style.animation = "";
+      });
+
+      index++;
+      setTimeout(showNext, val === "GO!" ? 600 : 800);
+    };
+
+    // Start after brief delay
+    setTimeout(showNext, 100);
+  });
+}
+
 // Global registration for onclick handlers
 window.closeFinalModal = closeFinalModal;

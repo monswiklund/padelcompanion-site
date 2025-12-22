@@ -48,6 +48,9 @@
     />
 
     <link rel="icon" type="image/jpeg" href="/assets/app-icon.jpeg" />
+    <link rel="apple-touch-icon" href="/assets/app-icon.jpeg" />
+    <meta name="apple-mobile-web-app-title" content="Padel Tournament" />
+    <meta name="theme-color" content="#0a0a0f" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -58,35 +61,7 @@
     <link rel="stylesheet" href="/tournament/tournament.css" />
   </head>
   <body>
-    <header class="header scrolled">
-      <div class="container header-inner">
-        <a href="/" class="logo">
-          <img src="/assets/app-icon.jpeg" alt="Padel Companion Logo" />
-          <span>Padel Companion</span>
-        </a>
-        <div class="header-actions">
-          <nav class="nav" id="nav">
-            <a href="/">Home</a>
-            <a href="/#features">Features</a>
-            <a href="/tournament/" class="active">Tournament</a>
-            <a href="/support.html">Support</a>
-          </nav>
-          <button class="theme-toggle" id="themeToggle" title="Toggle theme">
-            <span class="theme-icon">🌙</span>
-          </button>
-          <button
-            class="btn btn-primary btn-sm"
-            id="installBtn"
-            style="display: none"
-          >
-            Install App 📲
-          </button>
-          <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-            <span class="hamburger"></span>
-          </button>
-        </div>
-      </div>
-    </header>
+    <div id="header-slot"></div>
 
     <main class="tournament-page">
       <div class="container">
@@ -130,6 +105,49 @@
               </select>
             </div>
 
+            <!-- Court Naming -->
+            <div class="form-group court-names-group">
+              <label for="courtFormat">Court Names</label>
+              <select id="courtFormat" class="form-select">
+                <option value="court" selected>
+                  Court 1, Court 2...
+                </option>
+                <option value="custom">Custom names</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Scoring Row: Mode + Points + Courts (3 columns) -->
+          <div class="setup-grid-3">
+            <!-- Scoring Mode -->
+            <div class="form-group scoring-mode-group">
+              <div class="form-label-row">
+                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
+                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
+              </div>
+              <select
+                id="scoringMode"
+                class="form-select"
+              >
+                <option value="total" selected>Total Points</option>
+                <option value="race">Race to Points</option>
+                <option value="time">Time Based</option>
+              </select>
+            </div>
+
+            <!-- Points Value -->
+            <div class="form-group total-points-group">
+              <label id="scoringValueLabel" for="points">Points</label>
+              <input
+                type="number"
+                id="points"
+                class="form-input"
+                value="24"
+                min="1"
+                max="999"
+              />
+            </div>
+
             <!-- Courts -->
             <div class="form-group courts-group">
               <label for="courts">Courts</label>
@@ -148,58 +166,15 @@
                 style="display: none"
               ></span>
             </div>
+          </div>
 
-            <!-- Court Naming -->
-            <div class="form-group court-names-group">
-              <label for="courtFormat">Court Names</label>
-              <select id="courtFormat" class="form-select">
-                <option value="court" selected>
-                  Court 1, Court 2...
-                </option>
-                <option value="custom">Custom names</option>
-              </select>
-            </div>
-
-            <!-- Scoring Rules -->
-            <div class="form-group scoring-mode-group">
-              <div class="form-label-row">
-                <label for="scoringMode" style="margin-bottom:0">Scoring Mode</label>
-                <button type="button" class="help-icon always-enabled" id="helpScoring">?</button>
-              </div>
-              <select
-                id="scoringMode"
-                class="form-select"
-              >
-                <option value="total" selected>
-                  Total Points (Shared Pot)
-                </option>
-                <option value="race">Race to Points (First into...)</option>
-                <option value="time">Time Based (Max points in...)</option>
-              </select>
-            </div>
-
-            <div class="form-group total-points-group">
-              <label id="scoringValueLabel" for="points">Total Points</label>
-              <input
-                type="number"
-                id="points"
-                class="form-input"
-                value="24"
-                min="1"
-                max="999"
-              />
-            </div>
-
-            <!-- Custom Court Names (shown when custom selected) -->
-            <div
-              id="customCourtNamesSection"
-              class="form-group"
-              style="display: none; grid-column: 1 / -1;"
-            >
-              <label>Court Names</label>
-              <div id="customCourtNamesList" class="custom-court-names">
-                <!-- Dynamically generated inputs -->
-              </div>
+          <!-- Custom Court Names (shown when custom selected) -->
+          <div
+            id="customCourtNamesSection"
+            style="display: none;"
+          >
+            <div id="customCourtNamesList" class="custom-court-names-grid">
+              <!-- Dynamically generated inputs -->
             </div>
           </div>
 
@@ -240,16 +215,10 @@
                 <div class="form-group" id="pairingStrategyContainer">
                   <label for="pairingStrategy">Team Pairing Strategy</label>
                   <select id="pairingStrategy" class="form-select always-enabled">
-                    <option value="oneThree">
-                      1 & 3 vs 2 & 4 (Standard Mexicano)
-                    </option>
-                    <option value="oneTwo">1 & 2 vs 3 & 4 (Top vs Bottom)</option>
-                    <option value="oneFour">
-                      1 & 4 vs 2 & 3 (Cross Balance)
-                    </option>
-                    <option value="optimal" selected>
-                      Optimal (Fewest Repeats)
-                    </option>
+                    <option value="oneThree">1 & 3 vs 2 & 4</option>
+                    <option value="oneTwo">1 & 2 vs 3 & 4</option>
+                    <option value="oneFour">1 & 4 vs 2 & 3</option>
+                    <option value="optimal" selected>Optimal</option>
                   </select>
                   <div class="form-check" style="margin-top: 8px;">
                      <input type="checkbox" id="strictStrategy" class="form-checkbox always-enabled">
@@ -526,7 +495,10 @@
           style="display: none"
         >
           <div class="leaderboard-header">
-            <h3>Leaderboard</h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3>Leaderboard</h3>
+              <button type="button" class="help-icon always-enabled" id="helpLeaderboard">?</button>
+            </div>
             <div class="leaderboard-controls">
               <button
                 id="togglePositionBtn"
@@ -610,98 +582,15 @@
     </main>
 
     <!-- Partners Section -->
-    <section class="partners section" id="partners">
-      <div class="container">
-        <div class="features-header">
-          <h2>Community & <span class="text-gradient">Partners</span></h2>
-          <p>Join us in growing the sport of padel.</p>
-        </div>
+    <!-- Partners Section -->
+    <div id="partner-slot"></div>
 
-        <div class="partners-grid">
-          <!-- Premium/Featured Partner Placeholder -->
-          <div class="card partner-card featured">
-            <div class="partner-logo-placeholder">
-              <span>Your Logo Here</span>
-            </div>
-            <div class="partner-info">
-              <h3>Become a Partner</h3>
-              <p>Showcase your brand to thousands of padel players.</p>
-              <a
-                href="mailto:wiklundlabs@gmail.com"
-                class="btn btn-primary btn-sm"
-                >Contact Us</a
-              >
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div id="footer-slot"></div>
 
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-brand">
-            <a href="/" class="logo">
-              <img src="/assets/app-icon.jpeg" alt="Padel Companion Logo" />
-              <span>Padel Companion</span>
-            </a>
-            <p>
-              Your digital padel companion. Track scores, view statistics, and
-              organize tournaments with ease.
-            </p>
-          </div>
-
-          <div class="footer-links-row">
-            <div class="footer-links">
-              <h5>Legal</h5>
-              <ul>
-                <li><a href="/privacy.html">Privacy Policy</a></li>
-                <li><a href="/terms.html">Terms of Service</a></li>
-              </ul>
-            </div>
-
-            <div class="footer-links">
-              <h5>Support</h5>
-              <ul>
-                <li><a href="/support.html">Help & FAQ</a></li>
-                <li><a href="mailto:wiklundlabs@gmail.com">Contact Us</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="footer-donate">
-            <h5
-              style="
-                color: var(--text-muted);
-                font-size: 0.875rem;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                font-weight: 600;
-                margin-bottom: var(--space-lg);
-              "
-            >
-              Donate
-            </h5>
-            <a
-              href="https://buymeacoffee.com/wiklundlabs"
-              target="_blank"
-              rel="noopener"
-              class="footer-donate-btn"
-            >
-              <img
-                src="/assets/buymeacoffee.png"
-                alt="Buy Me A Coffee"
-                style="height: 40px !important; width: 145px !important"
-              />
-            </a>
-          </div>
-        </div>
-
-        <div class="footer-bottom">
-          <p>&copy; 2025 Padel Companion. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Scroll to top" title="Back to top">
+      ↑
+    </button>
 
     <script type="module" src="/src/tournament/main.js"></script>
     <!-- 100% privacy-first analytics -->

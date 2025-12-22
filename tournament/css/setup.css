@@ -1,0 +1,490 @@
+/* ===== Setup Card & Configuration ===== */
+
+.setup-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.setup-card:hover {
+  background: var(--bg-card); /* No brighter background */
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(59, 130, 246, 0.2);
+  transform: none;
+}
+
+.card-header-basic {
+  margin-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--space-sm);
+}
+
+.control-divider-horizontal {
+  height: 1px;
+  background: var(--border-color);
+  margin: var(--space-lg) 0;
+  width: 100%;
+}
+
+.card-header-basic h3,
+.card-header-advanced h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--accent-light);
+}
+
+.card-header-advanced {
+  margin-bottom: var(--space-md);
+}
+
+/* Grid Layout for Setup Options */
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+/* Removed obsolete grid-column spans since we switched to simple 2-col and 3-col grids matching HTML structure */
+
+.setup-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.setup-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 480px) {
+  .setup-grid,
+  .setup-grid-2,
+  .setup-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setup-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.setup-group label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.setup-group .helper-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Player Management Section */
+.players-section {
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-xl);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  border: 1px solid var(--border-color);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.players-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.player-count {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  font-weight: 500;
+  margin-left: var(--space-xs);
+}
+
+.player-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.player-input-row {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  animation: slideDown 0.2s ease;
+}
+
+.player-list-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+  position: relative;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Collapsed Player List (Show only top 4) */
+.player-list-wrapper:not(.expanded) {
+  max-height: 240px; /* Approx 4 items */
+  overflow: hidden;
+}
+
+/* Gradient fade at bottom when collapsed */
+.player-list-wrapper:not(.expanded)::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(transparent, var(--bg-surface));
+  pointer-events: none;
+}
+
+.player-list {
+  list-style: none;
+  columns: 2;
+  column-gap: var(--space-md);
+  margin: 0;
+  padding: var(--space-sm);
+  background: transparent;
+  border-bottom: none;
+}
+
+@media (max-width: 600px) {
+  .player-list {
+    columns: 1;
+  }
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
+  transition: background var(--transition-fast);
+  break-inside: avoid;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.player-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.player-number {
+  color: var(--text-muted);
+  font-size: 0.8em;
+  width: 24px;
+  display: inline-block;
+}
+
+.player-remove {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.player-remove:hover {
+  opacity: 1;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.expand-players-btn {
+  width: 100%;
+  background: var(--bg-surface);
+  border: none;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.expand-players-btn:hover {
+  color: var(--accent);
+  background: var(--bg-card-hover);
+}
+
+@media (max-width: 480px) {
+  .player-list {
+    grid-template-columns: 1fr; /* Single column on mobile */
+  }
+}
+
+/* Matchup / Partner Settings */
+.partners-section {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.partners-controls {
+  margin-bottom: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.partners-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.partner-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--input-bg);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.partner-select {
+  flex: 1;
+  min-width: 0; /* Allow shrink */
+}
+
+.preferred-partners-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.partner-pair-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--input-bg);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  animation: slideDown 0.2s ease;
+}
+
+.partner-pair-item .pair-separator {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+.partner-pair-item .remove-pair-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: var(--space-xs) var(--space-sm);
+  line-height: 1;
+  transition: all var(--transition-fast);
+  margin-left: auto; /* Push to right */
+  border-radius: 4px;
+}
+
+.partner-pair-item .remove-pair-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.partner-pair .pair-separator {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+.partner-pair .remove-pair-btn,
+.partner-pair-item .remove-pair-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: var(--space-xs) var(--space-sm);
+  line-height: 1;
+  transition: all var(--transition-fast);
+  margin-left: auto; /* Push to right */
+  border-radius: 4px;
+}
+
+.partner-pair .remove-pair-btn:hover,
+.partner-pair-item .remove-pair-btn:hover {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Custom Court Names Section */
+.custom-courts-section {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.4); /* Darker background */
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.court-name-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+@media (max-width: 480px) {
+  .court-name-list {
+    grid-template-columns: repeat(
+      2,
+      1fr
+    ); /* 2 cols on mobile to save vertical space */
+  }
+}
+
+.court-input-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.court-input-group label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  width: 16px;
+  text-align: center;
+}
+
+/* Compact inputs for court names to reduce box height */
+.court-input-group .form-input {
+  height: 36px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+}
+
+/* Advanced Settings (Visibility Logic) */
+.advanced-toggle-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: var(--space-md) 0;
+}
+
+.advanced-toggle-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent-light);
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.advanced-toggle-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: var(--accent-light);
+  color: var(--text-primary);
+}
+
+.advanced-toggle-btn .toggle-icon {
+  font-size: 0.8em;
+  transition: transform var(--transition-fast);
+}
+
+.advanced-toggle-btn.expanded .toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Advanced Settings Container */
+.advanced-settings-content {
+  overflow: hidden;
+  transition: max-height 0.4s ease-in-out, opacity 0.4s ease-in-out,
+    margin 0.3s ease;
+  max-height: 0;
+  opacity: 0;
+  /* Use max-height for animation, but ensure it's hidden when collapsed */
+}
+
+.advanced-settings-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+  /* display: none;  Do NOT use display none if we want animation, but user had issues. */
+}
+
+.advanced-settings-content.expanded {
+  max-height: 1500px; /* Large enough to fit content */
+  opacity: 1;
+  pointer-events: auto;
+  margin-top: var(--space-md);
+}
+
+.advanced-settings {
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 2px solid var(--border-color);
+  animation: slideDown 0.3s ease;
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-sm);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Generate Button Placement */
+#generateBtn {
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}

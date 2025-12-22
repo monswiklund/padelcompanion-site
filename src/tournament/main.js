@@ -1,3 +1,4 @@
+import { injectLayout } from "../shared/layout.js";
 import { state, loadState, saveState, undoLastAction } from "./state.js";
 import { initHistory } from "./history.js";
 import { initTheme, toggleTheme, updateThemeIcon } from "../shared/theme.js";
@@ -58,11 +59,12 @@ import {
   shareResults,
   setupCustomSelects,
 } from "./ui/index.js";
-
 import { initPWA } from "../shared/pwa.js";
 
 // ===== Initialize Application =====
 function init() {
+  injectLayout({ activeLink: "tournament" });
+
   // Initialize PWA
   initPWA("installBtn", () => {
     showInfoModal(
@@ -142,9 +144,30 @@ function init() {
   // Setup resize handler
   window.addEventListener("resize", handleResize);
 
+  // Setup scroll-to-top button
+  initScrollToTop();
+
   // Initial UI Sync
   updateSetupUI();
   updateScoringLabel();
+}
+
+// ===== Scroll to Top =====
+function initScrollToTop() {
+  const btn = document.getElementById("scrollTopBtn");
+  if (!btn) return;
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 400) {
+      btn.classList.add("visible");
+    } else {
+      btn.classList.remove("visible");
+    }
+  });
+
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 }
 
 // ===== Event Listeners =====
@@ -293,12 +316,18 @@ function initEventListeners(elements) {
   elements.points.addEventListener("change", () => {
     state.pointsPerMatch = parseInt(elements.points.value);
     saveState();
+    if (state.schedule.length > 0) {
+      renderSchedule();
+    }
   });
 
   elements.scoringMode.addEventListener("change", () => {
     state.scoringMode = elements.scoringMode.value;
     updateScoringLabel();
     saveState();
+    if (state.schedule.length > 0) {
+      renderSchedule();
+    }
   });
 
   const rankingCriteriaSelect = document.getElementById("rankingCriteria");
@@ -401,6 +430,12 @@ function initEventListeners(elements) {
           () => {
             state.pairingStrategy = newValue;
             elements.pairingStrategy.value = newValue;
+            // Reset strictStrategy when switching to optimal
+            if (newValue === "optimal") {
+              state.strictStrategy = false;
+              const strictCheckbox = document.getElementById("strictStrategy");
+              if (strictCheckbox) strictCheckbox.checked = false;
+            }
             saveState();
             updateSetupUI(); // Update visibility of Strict toggle
             showToast("Pairing Strategy updated");
@@ -408,6 +443,12 @@ function initEventListeners(elements) {
         );
       } else {
         state.pairingStrategy = newValue;
+        // Reset strictStrategy when switching to optimal
+        if (newValue === "optimal") {
+          state.strictStrategy = false;
+          const strictCheckbox = document.getElementById("strictStrategy");
+          if (strictCheckbox) strictCheckbox.checked = false;
+        }
         saveState();
         updateSetupUI(); // Update visibility of Strict toggle
       }
@@ -427,7 +468,7 @@ function initEventListeners(elements) {
         "Tournament Formats",
         `
         <ul style="padding-left: 20px; margin: 0; list-style: none;">
-          <li style="margin-bottom: 20px;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Americano</div>
             <div style="margin-bottom: 8px;">Individual scoring. You rotate partner every round based on a fixed schedule.</div>
             <div style="font-size: 0.9em; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -435,7 +476,8 @@ function initEventListeners(elements) {
                <div class="text-error"><strong>❌ Cons:</strong> Skill gaps can lead to one-sided matches.</div>
             </div>
           </li>
-          <li style="margin-bottom: 20px;">
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Mexicano</div>
             <div style="margin-bottom: 8px;">Dynamic matchmaking. After each round, similar-ranked players face off.</div>
             <div style="font-size: 0.9em; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -443,6 +485,7 @@ function initEventListeners(elements) {
                <div class="text-error"><strong>❌ Cons:</strong> Less mixing – you play with fewer people overall.</div>
             </div>
           </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
           <li>
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Team Formats</div>
             <div style="margin-bottom: 8px;">Fixed partners throughout. Enter as a duo.</div>
@@ -464,7 +507,7 @@ function initEventListeners(elements) {
         "Scoring Modes",
         `
         <ul style="padding-left: 20px; margin: 0; list-style: none;">
-          <li style="margin-bottom: 20px;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Total Points (e.g. 24)</div>
             <div style="margin-bottom: 8px;">Play all 24 points. Both teams score their actual points (e.g., 15-9).</div>
             <div style="font-size: 0.9em; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -472,7 +515,8 @@ function initEventListeners(elements) {
                <div class="text-error"><strong>❌ Cons:</strong> Closing games can feel slow if one team is far ahead.</div>
             </div>
           </li>
-          <li style="margin-bottom: 20px;">
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Race (First to X)</div>
             <div style="margin-bottom: 8px;">First to X wins (e.g., first to 21). Winner gets X, loser keeps their score.</div>
             <div style="font-size: 0.9em; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -480,6 +524,7 @@ function initEventListeners(elements) {
                <div class="text-error"><strong>❌ Cons:</strong> Game length is unpredictable.</div>
             </div>
           </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
           <li>
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Timed (X minutes)</div>
             <div style="margin-bottom: 8px;">Play for a set time. Whoever has more points when time runs out wins.</div>
@@ -503,7 +548,7 @@ function initEventListeners(elements) {
         `
         <p style="margin-bottom: 20px;">Fine-tune how players are paired in <strong>Mexicano</strong> and <strong>Team Mexicano</strong>.</p>
         <ul style="padding-left: 20px; margin: 0; list-style: none;">
-          <li style="margin-bottom: 24px;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Max Partner Repeats</div>
             <div style="margin-bottom: 8px;">Limits consecutive rounds with the same partner. Set to 0 to prevent back-to-back repeats.</div>
              <div style="font-size: 0.9em; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -511,7 +556,8 @@ function initEventListeners(elements) {
                <div class="text-error"><strong>❌ Cons:</strong> May create slightly less balanced games.</div>
             </div>
           </li>
-          <li style="margin-bottom: 24px;">
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+          <li style="margin-bottom: 16px;">
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Pairing Strategy</div>
             <div style="margin-bottom: 8px;">How to form teams from the top 4 players each round.</div>
             <ul style="padding-left: 0; margin-top: 8px; list-style: none;">
@@ -525,6 +571,7 @@ function initEventListeners(elements) {
               </li>
             </ul>
           </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
           <li>
             <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Strict Pattern</div>
             <div style="margin-bottom: 8px; font-size: 0.9em;">What happens when a fixed strategy (e.g., Standard) conflicts with Max Repeats.</div>
@@ -532,6 +579,50 @@ function initEventListeners(elements) {
                <div class="text-success"><strong>🔳 OFF (Smart):</strong> Automatically deviates from the pattern to avoid repeats.</div>
                <div class="text-error"><strong>✅ ON (Strict):</strong> Forces the pattern even if it causes repeating partners.</div>
             </div>
+          </li>
+        </ul>
+        `
+      );
+    });
+  }
+
+  /* Leaderboard Help */
+  const helpLeaderboard = document.getElementById("helpLeaderboard");
+  if (helpLeaderboard) {
+    helpLeaderboard.addEventListener("click", () => {
+      showInfoModal(
+        "Leaderboard",
+        `
+        <p style="margin-bottom: 20px;">Track player standings throughout the tournament. Rankings update after each completed round.</p>
+        <ul style="padding-left: 20px; margin: 0; list-style: none;">
+          <li style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;"># (Rank)</div>
+            <div style="font-size: 0.9em;">Current position based on the selected ranking criteria. Arrows indicate movement since last round.</div>
+          </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+          <li style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Pts (Points)</div>
+            <div style="font-size: 0.9em;">Total points scored across all matches. This is the default ranking criteria.</div>
+          </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+          <li style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">W (Wins)</div>
+            <div style="font-size: 0.9em;">Number of matches won.</div>
+          </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+          <li style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Diff (Point Difference)</div>
+            <div style="font-size: 0.9em;">Points scored minus points conceded. Positive = scoring more than you give up.</div>
+          </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+          <li style="margin-bottom: 12px;">
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">% (Win Rate)</div>
+            <div style="font-size: 0.9em;">Percentage of matches won out of total matches played.</div>
+          </li>
+          <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+          <li>
+            <div style="font-weight: 700; font-size: 1.1em; margin-bottom: 4px;">Pl (Played)</div>
+            <div style="font-size: 0.9em;">Total number of matches played. Players on bye rounds are not counted.</div>
           </li>
         </ul>
         `

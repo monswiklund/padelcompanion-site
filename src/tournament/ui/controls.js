@@ -43,13 +43,13 @@ export function updateScoringLabel() {
   if (!label || !input) return;
 
   if (mode === "total") {
-    label.textContent = "Total Points (Score A + B)";
+    label.textContent = "Points";
     input.value = 24;
   } else if (mode === "race") {
-    label.textContent = "Winning Score (First to...)";
+    label.textContent = "Target";
     input.value = 21;
   } else if (mode === "time") {
-    label.textContent = "Match Duration (Minutes)";
+    label.textContent = "Minutes";
     input.value = 12;
   }
 }

@@ -209,6 +209,14 @@ function renderRows(items) {
 
   if (items.length === 0) {
     tbody.parentElement.style.display = "none";
+    emptyState.innerHTML = `
+      <div class="empty-state-icon">🏆</div>
+      <h3>No tournaments yet</h3>
+      <p>Complete your first tournament to see it here!</p>
+      <a href="#" onclick="document.getElementById('format').scrollIntoView({behavior: 'smooth'}); return false;" class="btn btn-primary">
+        Start a Tournament
+      </a>
+    `;
     emptyState.style.display = "block";
     return;
   }

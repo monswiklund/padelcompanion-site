@@ -4,7 +4,7 @@
 import { state, saveState, pushHistory } from "../state.js";
 import { getElements } from "./elements.js";
 import { showToast } from "../../shared/utils.js";
-import { showConfirmModal, showAlertModal } from "../modals.js";
+import { showConfirmModal, showAlertModal, showCountdown } from "../modals.js";
 import { saveToHistory } from "../history.js";
 import {
   generateAmericanoSchedule,
@@ -87,6 +87,18 @@ export function updateSetupUI() {
     } else {
       advancedContent.classList.remove("expanded");
       advancedContent.classList.add("collapsed");
+    }
+  }
+
+  // Disable Strict Pattern checkbox when Optimal pairing strategy is selected
+  const strictStrategy = document.getElementById("strictStrategy");
+  const strictStrategyWrapper = strictStrategy?.closest(".form-check");
+  if (strictStrategy) {
+    const isOptimal = state.pairingStrategy === "optimal";
+    strictStrategy.disabled = isOptimal;
+    if (strictStrategyWrapper) {
+      strictStrategyWrapper.style.opacity = isOptimal ? "0.5" : "1";
+      strictStrategyWrapper.style.pointerEvents = isOptimal ? "none" : "auto";
     }
   }
 }
@@ -181,7 +193,10 @@ export function generateSchedule() {
     showToast(`Adjusted courts: ${oldCourts} → ${maxPossibleCourts}`);
   }
 
-  startGeneration();
+  // Show countdown animation before starting
+  showCountdown().then(() => {
+    startGeneration();
+  });
 }
 
 /**

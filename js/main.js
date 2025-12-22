@@ -1,34 +1,21 @@
-// Header scroll effect
-const header = document.getElementById("header");
+import { injectLayout } from "../src/shared/layout.js";
+import {
+  initTheme,
+  toggleTheme,
+  updateThemeIcon,
+} from "../src/shared/theme.js";
 
-if (header) {
-  window.addEventListener("scroll", () => {
-    if (window.scrollY > 50) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
-    }
-  });
-}
+// Determine active page
+const path = window.location.pathname;
+let activeLink = "";
+if (path === "/" || path === "/index.html") activeLink = "home";
+else if (path.includes("support")) activeLink = "support";
+else if (path.includes("tournament")) activeLink = "tournament";
 
-// Mobile nav toggle
-const navToggle = document.getElementById("navToggle");
-const nav = document.getElementById("nav");
+// Inject Layout (Header, Footer, Partners)
+injectLayout({ activeLink });
 
-if (navToggle && nav) {
-  navToggle.addEventListener("click", () => {
-    navToggle.classList.toggle("active");
-    nav.classList.toggle("open");
-  });
-
-  // Close menu when clicking a link
-  nav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      navToggle.classList.remove("active");
-      nav.classList.remove("open");
-    });
-  });
-}
+// Mobile nav and header interactions are handled by injectLayout internally now.
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
@@ -63,106 +50,8 @@ document.querySelectorAll(".card").forEach((card) => {
   observer.observe(card);
 });
 
-// ===== Stats Counter Animation (Disabled) =====
-/*
-const statsObserver = new IntersectionObserver(
-  (entries, observer) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const counter = entry.target;
-        const target = +counter.getAttribute("data-target");
-        const decimal = +counter.getAttribute("data-decimal") || 0;
-        const duration = 2000; // ms
-        const increment = target / (duration / 16); // 60fps
-
-        let current = 0;
-        const updateCounter = () => {
-          current += increment;
-          if (current < target) {
-            counter.textContent =
-              current.toFixed(decimal) + (target > 1000 ? "+" : "");
-            // Format K for large numbers if needed or keep simple
-            if (target >= 1000) {
-              // specific formatting for 10K, 5K
-              if (target === 10000) counter.innerText = "10K+";
-              else if (target === 5000) counter.innerText = "5K+";
-              else counter.innerText = Math.ceil(current);
-            } else {
-              counter.innerText = current.toFixed(decimal);
-            }
-
-            // Simple lerp for smoother finish? No, simple increment is fine.
-            // Let's stick to the original static values for K representation during animation
-            // Actually, let's make it count properly
-            if (target >= 1000) {
-              counter.innerText = Math.floor(current / 1000) + "K+";
-            } else {
-              counter.innerText = current.toFixed(decimal);
-            }
-
-            requestAnimationFrame(updateCounter);
-          } else {
-            // Final value
-            if (target === 10000) counter.innerText = "10K+";
-            else if (target === 5000) counter.innerText = "5K+";
-            else if (target === 15) counter.innerText = "15+";
-            else counter.innerText = target.toFixed(decimal);
-          }
-        };
-
-        updateCounter();
-        observer.unobserve(counter);
-      }
-    });
-  },
-  { threshold: 0.5 }
-);
-
-document.querySelectorAll(".counter").forEach((counter) => {
-  statsObserver.observe(counter);
-});
-*/
-
-// ===== Theme Toggle =====
-const themeToggle = document.getElementById("themeToggle");
-
-function initTheme() {
-  const saved = localStorage.getItem("padelcompanion-theme");
-  // Default to dark if no preference or explicitly dark
-  const isDark = !saved || saved === "dark";
-  document.documentElement.setAttribute(
-    "data-theme",
-    isDark ? "dark" : "light"
-  );
-
-  if (themeToggle) {
-    updateThemeIcon(isDark ? "dark" : "light");
-  }
-}
-
-function toggleTheme() {
-  const current = document.documentElement.getAttribute("data-theme");
-  const next = current === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("padelcompanion-theme", next);
-  updateThemeIcon(next);
-}
-
-function updateThemeIcon(theme) {
-  if (!themeToggle) return;
-  const icon = themeToggle.querySelector(".theme-icon");
-  if (icon) {
-    icon.textContent = theme === "dark" ? "🌙" : "☀️";
-  }
-}
-
-// Init theme on load
-document.addEventListener("DOMContentLoaded", initTheme);
-
-// Attach listener
-if (themeToggle) {
-  themeToggle.addEventListener("click", toggleTheme);
-}
+// ===== Theme Logic is now largely handled by layout.js, but we keep init for non-layout elements if any =====
+// The layout.js initializes the theme toggle listener.
 
 // ===== Mockup Interaction =====
 window.switchMockupTab = (tab) => {
