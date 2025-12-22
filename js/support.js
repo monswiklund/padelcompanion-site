@@ -72,11 +72,31 @@ function initContactForm() {
     const subject = document.getElementById('subject').value;
     const message = document.getElementById('message').value;
 
-    const mailtoLink = `mailto:wiklund.labs@gmail.com?subject=${encodeURIComponent(subject)} - ${encodeURIComponent(name)}&body=${encodeURIComponent(message)}%0D%0A%0D%0AFrom: ${encodeURIComponent(name)} (${encodeURIComponent(email)})`;
+    let bodyContent = `${message}\n\n`;
+    bodyContent += `--------------------------------\n`;
+    bodyContent += `Sender: ${name}\n`;
+    bodyContent += `Email: ${email}\n`;
+
+    // Add technical details for Bug Reports
+    if (subject === 'Bug Report') {
+      bodyContent += `--------------------------------\n`;
+      bodyContent += `Technical Details:\n`;
+      bodyContent += `Browser: ${navigator.userAgent}\n`;
+      bodyContent += `Screen: ${window.screen.width}x${window.screen.height}\n`;
+      bodyContent += `Page: ${window.location.pathname}\n`;
+    }
+
+    const mailtoLink = `mailto:wiklund.labs@gmail.com?subject=${encodeURIComponent(subject)} - ${encodeURIComponent(name)}&body=${encodeURIComponent(bodyContent)}`;
+
+    // Check for length limit (approx 2000 chars is a safe limit for most browsers)
+    if (mailtoLink.length > 2000) {
+      alert("Your message is too long for the default email client. Please shorten it or email us directly at wiklund.labs@gmail.com");
+      return;
+    }
 
     window.location.href = mailtoLink;
     
     // Optional: Reset form or show success message
-    form.reset();
+    // form.reset(); // Kept commented out so user doesn't lose text if mail client fails to open
   });
 }
