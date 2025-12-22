@@ -302,7 +302,7 @@ export function renderSchedule() {
               .join("")}
           </div>
         </div>
-        <button class="btn btn-primary complete-round-btn" data-action="complete-round">
+        <button class="btn btn-success complete-round-btn" data-action="complete-round">
           Complete Round ${round.number}
         </button>
         `
@@ -318,6 +318,16 @@ export function renderSchedule() {
   updateGridColumns();
   updateTextSize();
   validateRoundState();
+
+  // Scroll to current (incomplete) round
+  const currentRoundIndex = state.schedule.findIndex((r) => !r.completed);
+  const targetRoundIndex = currentRoundIndex >= 0 ? currentRoundIndex : 0;
+  const roundEl = document.getElementById(`round-${targetRoundIndex}`);
+  if (roundEl) {
+    setTimeout(() => {
+      roundEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
 }
 
 /**
@@ -588,7 +598,8 @@ export function completeRound() {
     const score2 = parseInt(score2Value) || 0;
 
     if (state.scoringMode === "total") {
-      if (score1 + score2 !== state.pointsPerMatch) {
+      const maxPoints = parseInt(state.pointsPerMatch, 10);
+      if (score1 + score2 !== maxPoints) {
         isMatchValid = false;
         score1Input?.classList.add("error");
         score2Input?.classList.add("error");
@@ -758,15 +769,6 @@ function finalizeCompleteRound(currentRound) {
       );
     }
   });
-
-  if (!allScoresValid) {
-    if (state.scoringMode === "total") {
-      showToast(`Scores must sum to ${state.pointsPerMatch}`);
-    } else {
-      showToast("Please enter valid positive scores");
-    }
-    return;
-  }
 
   // Animate the button before completing
   const completeBtn = document.querySelector(".complete-round-btn");

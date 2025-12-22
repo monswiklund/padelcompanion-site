@@ -407,31 +407,21 @@
   text-align: center;
 }
 
-[data-theme="light"] .complete-round-btn {
-  background-color: var(--accent); /* Ensure visibility */
-  color: white;
-}
-
 .complete-round-btn:disabled {
-  background-color: var(--text-muted);
+  background-color: var(--text-muted) !important;
   cursor: not-allowed;
   opacity: 0.5;
-  transform: none;
-  box-shadow: none;
-}
-
-[data-theme="light"] .complete-round-btn:disabled {
-  background-color: #94a3b8; /* Slate-400 equivalent */
-  color: rgba(255, 255, 255, 0.8);
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .complete-round-btn.btn-warning {
-  background-color: #f59e0b;
-  color: white;
+  background-color: #f59e0b !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3) !important;
 }
 
 .complete-round-btn.btn-warning:hover {
-  background-color: #d97706;
+  background-color: #d97706 !important;
 }
 
 /* Countdown Overlay */
