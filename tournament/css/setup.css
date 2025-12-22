@@ -46,6 +46,13 @@
   margin: 0;
   font-size: 1.1rem;
   color: var(--accent-light);
+  font-style: italic;
+}
+
+.card-header-basic h3::first-letter,
+.card-header-advanced h3::first-letter {
+  font-size: 1.3em;
+  color: var(--accent);
 }
 
 .card-header-advanced {
