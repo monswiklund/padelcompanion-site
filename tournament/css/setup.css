@@ -532,3 +532,19 @@
     background-position: 0% 50%;
   }
 }
+
+/* Pulse animation when ready (enough players) */
+#generateBtn:not(:disabled) {
+  animation: readyPulse 2s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(59, 130, 246, 0.6),
+      0 0 40px rgba(139, 92, 246, 0.3);
+  }
+}
