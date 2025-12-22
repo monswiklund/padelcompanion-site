@@ -157,17 +157,17 @@ function injectPartners() {
       <div class="container">
         <div class="partners-grid" style="grid-template-columns: repeat(3, 1fr); gap: var(--space-md);">
           <!-- Sponsor Slot 1 -->
-          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+          <a href="mailto:wiklund.labs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
             <span>Your Logo Here</span>
           </a>
           
           <!-- Sponsor Slot 2 -->
-          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+          <a href="mailto:wiklund.labs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
             <span>Your Logo Here</span>
           </a>
           
           <!-- Sponsor Slot 3 -->
-          <a href="mailto:wiklundlabs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
+          <a href="mailto:wiklund.labs@gmail.com" class="partner-logo-placeholder" style="height: 100px;">
             <span>Your Logo Here</span>
           </a>
         </div>

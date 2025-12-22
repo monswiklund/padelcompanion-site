@@ -72,7 +72,7 @@ function initContactForm() {
     const subject = document.getElementById('subject').value;
     const message = document.getElementById('message').value;
 
-    const mailtoLink = `mailto:wiklundlabs@gmail.com?subject=${encodeURIComponent(subject)} - ${encodeURIComponent(name)}&body=${encodeURIComponent(message)}%0D%0A%0D%0AFrom: ${encodeURIComponent(name)} (${encodeURIComponent(email)})`;
+    const mailtoLink = `mailto:wiklund.labs@gmail.com?subject=${encodeURIComponent(subject)} - ${encodeURIComponent(name)}&body=${encodeURIComponent(message)}%0D%0A%0D%0AFrom: ${encodeURIComponent(name)} (${encodeURIComponent(email)})`;
 
     window.location.href = mailtoLink;
     
