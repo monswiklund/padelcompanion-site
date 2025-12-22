@@ -18,12 +18,23 @@ export function shuffleArray(array) {
  * @param {string} message - The message to display
  * @param {number} duration - Duration in ms (default: 3000)
  */
-export function showToast(message, duration = 3000) {
+export function showToast(message, arg2, arg3) {
+  let duration = 3000;
+  let type = "default";
+
+  if (typeof arg2 === "number") {
+    duration = arg2;
+    if (typeof arg3 === "string") type = arg3;
+  } else if (typeof arg2 === "string") {
+    type = arg2;
+    if (typeof arg3 === "number") duration = arg3;
+  }
+
   const existing = document.querySelector(".toast");
   if (existing) existing.remove();
 
   const toast = document.createElement("div");
-  toast.className = "toast";
+  toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
 

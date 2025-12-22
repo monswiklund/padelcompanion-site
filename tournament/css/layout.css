@@ -231,6 +231,14 @@
   opacity: 1;
 }
 
+.toast.error {
+  border-color: var(--error);
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 /* Modals */
 .modal-overlay {
   position: fixed;
