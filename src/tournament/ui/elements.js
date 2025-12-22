@@ -57,6 +57,7 @@ export function initElements() {
     cancelImportBtn: document.getElementById("cancelImportBtn"),
     confirmImportBtn: document.getElementById("confirmImportBtn"),
     clearAllPlayersBtn: document.getElementById("clearAllPlayersBtn"),
+    runningBadge: document.getElementById("runningBadge"),
   };
   return elements;
 }

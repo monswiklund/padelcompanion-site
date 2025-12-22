@@ -104,7 +104,8 @@ function injectFooter() {
               <h5>Support</h5>
               <ul>
                 <li><a href="/support.html">Help & FAQ</a></li>
-                <li><a href="mailto:wiklundlabs@gmail.com">Contact Us</a></li>
+                <li><a href="/contact.html">Contact Us</a></li>
+                <li><a href="/delete-account.html">Delete my account</a></li>
               </ul>
             </div>
           </div>
@@ -181,6 +182,8 @@ function injectPartners() {
   `;
 }
 
+import { initTheme, toggleTheme, updateThemeIcon } from "./theme.js";
+
 function initHeaderInteractions() {
   // Mobile Nav Toggle
   const navToggle = document.getElementById("navToggle");
@@ -212,31 +215,20 @@ function initHeaderInteractions() {
   }
 
   // Theme Toggle
-  const themeToggle = document.getElementById("themeToggle");
-  if (themeToggle) {
-    // Initialize theme from storage
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    document.documentElement.setAttribute("data-theme", savedTheme);
-    updateThemeIcon(themeToggle, savedTheme);
+  const themeToggleStart = document.getElementById("themeToggle");
+  if (themeToggleStart) {
+    // Initialize theme from storage (uses consistent key from theme.js)
+    const currentTheme = initTheme();
+    updateThemeIcon(themeToggleStart, currentTheme);
 
-    themeToggle.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme");
-      const next = current === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("theme", next);
-      updateThemeIcon(themeToggle, next);
+    themeToggleStart.addEventListener("click", () => {
+      const newTheme = toggleTheme();
+      updateThemeIcon(themeToggleStart, newTheme);
 
       // Dispatch event for other components (like charts)
       window.dispatchEvent(
-        new CustomEvent("themeChanged", { detail: { theme: next } })
+        new CustomEvent("themeChanged", { detail: { theme: newTheme } })
       );
     });
-  }
-}
-
-function updateThemeIcon(btn, theme) {
-  const icon = btn.querySelector(".theme-icon");
-  if (icon) {
-    icon.textContent = theme === "light" ? "☀️" : "🌙";
   }
 }

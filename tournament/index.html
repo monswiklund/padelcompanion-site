@@ -396,21 +396,8 @@
                 <span id="textSizeLabel" class="range-value">100%</span>
                 </div>
               </div>
-              <div class="toolbar-actions">
-                <button
-                  class="btn btn-secondary btn-sm"
-                  id="printBtn"
-                  title="Print Schedule"
-                >
-                  Print
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <div class="schedule-header-row">
-            <h2 class="section-title">Tournament Schedule</h2>
-            <span class="status-badge" id="runningBadge" style="display: none;">Running</span>
+            </div>
           </div>
 
           <!-- Match Timer (Hidden by default, shown for Time mode) -->
@@ -443,6 +430,11 @@
                 +1m
               </button>
             </div>
+          </div>
+
+          <div class="schedule-header-row">
+            <h2 class="section-title">Tournament Schedule</h2>
+            <span class="status-badge" id="runningBadge" style="display: none;">Running</span>
           </div>
 
           <div class="rounds-container" id="roundsContainer">
@@ -500,27 +492,39 @@
               <button type="button" class="help-icon always-enabled" id="helpLeaderboard">?</button>
             </div>
             <div class="leaderboard-controls">
-              <button
-                id="togglePositionBtn"
-                class="btn btn-secondary btn-sm toggle-off"
-                onclick="togglePositionChanges()"
-                title="Toggle rank change indicators"
-              >Ranks</button>
-              <button
-                id="toggleVisibilityBtn"
-                class="btn btn-secondary btn-sm toggle-off"
-                onclick="toggleLeaderboardVisibility()"
-                title="Toggle score visibility"
-              >Scores</button>
-              <select
-                id="rankingCriteria"
-                class="form-select btn-sm"
-              >
-                <option value="points" selected>Points</option>
-                <option value="wins">Wins</option>
-                <option value="winRatio">Win %</option>
-                <option value="pointRatio">Pts %</option>
-              </select>
+              <div class="controls-left">
+                <button
+                  id="togglePositionBtn"
+                  class="btn btn-secondary btn-sm toggle-off"
+                  onclick="togglePositionChanges()"
+                  title="Toggle rank change indicators"
+                >Ranks</button>
+                <button
+                  id="toggleVisibilityBtn"
+                  class="btn btn-secondary btn-sm toggle-off"
+                  onclick="toggleLeaderboardVisibility()"
+                  title="Toggle score visibility"
+                >Scores</button>
+              </div>
+
+              <div class="controls-right">
+                <select
+                  id="rankingCriteria"
+                  class="form-select btn-sm"
+                >
+                  <option value="points" selected>Points</option>
+                  <option value="wins">Wins</option>
+                  <option value="winRatio">Win %</option>
+                  <option value="pointRatio">Pts %</option>
+                </select>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  id="printBtn"
+                  title="Print Schedule/Result"
+                >
+                  Print
+                </button>
+              </div>
             </div>
           </div>
           <div class="table-responsive">

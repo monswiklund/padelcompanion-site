@@ -18,13 +18,64 @@
   gap: var(--space-sm);
 }
 
-.leaderboard-actions {
+.leaderboard-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-md);
   gap: var(--space-sm);
   flex-wrap: wrap;
+}
+
+.controls-left,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.leaderboard-controls .form-select {
+  width: auto !important;
+  min-width: 120px;
+}
+
+/* Button Styles */
+.leaderboard-controls .btn {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-color) !important;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-controls .btn:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.leaderboard-controls .btn.toggle-on,
+.leaderboard-controls .btn:active {
+  background-color: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.leaderboard-controls .btn.toggle-on:hover {
+  background-color: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] .leaderboard-actions .btn {
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .leaderboard-actions .btn.toggle-on {
+  background-color: var(--accent);
+  color: white;
 }
 
 .leaderboard-table {

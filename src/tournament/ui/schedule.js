@@ -54,10 +54,21 @@ function initTimer() {
           els.timerPauseBtn.style.display = "inline-block";
           els.matchTimerContainer.classList.add("running");
           els.matchTimerContainer.classList.remove("completed");
+
+          if (els.runningBadge) {
+            els.runningBadge.style.display = "inline-flex";
+            els.runningBadge.classList.add("running");
+          }
         } else if (status === "paused" || status === "idle") {
           els.timerStartBtn.style.display = "inline-block";
           els.timerPauseBtn.style.display = "none";
           els.matchTimerContainer.classList.remove("running");
+
+          if (els.runningBadge) {
+            els.runningBadge.style.display = "none";
+            els.runningBadge.classList.remove("running");
+          }
+
           if (status === "idle")
             els.matchTimerContainer.classList.remove("completed");
           document.title = "Tournament Generator - Padel Companion";
@@ -65,6 +76,12 @@ function initTimer() {
           els.matchTimerContainer.classList.remove("running");
           els.matchTimerContainer.classList.add("completed");
           document.title = "TIME UP!";
+
+          // Flash screen green
+          document.body.classList.add("timer-finished-flash");
+          setTimeout(() => {
+            document.body.classList.remove("timer-finished-flash");
+          }, 1000);
         }
       },
     });
@@ -288,6 +305,7 @@ export function renderSchedule() {
   updateSliderMax();
   updateGridColumns();
   updateTextSize();
+  validateRoundState();
 }
 
 // Register callback for setup.js
@@ -297,36 +315,128 @@ setRenderScheduleCallback(renderSchedule);
  * Auto-fill score for total points mode
  */
 export function autoFillScore(roundIndex, matchIndex, team, value) {
+  // Always validate the round state, regardless of whether autofill logic runs
+  // We use setTimeout to allow the value to settle in the DOM if needed,
+  // though typically 'value' param is passed. validateRoundState checks DOM.
+  setTimeout(validateRoundState, 0);
+
   let parsed = parseInt(value);
   if (isNaN(parsed) || parsed < 0) return;
-
-  if (state.scoringMode !== "total") return;
 
   const maxPoints = parseInt(state.pointsPerMatch);
   if (isNaN(maxPoints) || maxPoints <= 0) return;
 
-  if (parsed > maxPoints) {
-    parsed = maxPoints;
-    const currentInput = document.getElementById(
-      `score-${roundIndex}-${matchIndex}-${team}`
+  if (state.scoringMode === "total") {
+    if (parsed > maxPoints) {
+      parsed = maxPoints;
+      const currentInput = document.getElementById(
+        `score-${roundIndex}-${matchIndex}-${team}`
+      );
+      if (currentInput) currentInput.value = parsed;
+    }
+
+    const otherTeam = team === 1 || team === "1" ? 2 : 1;
+    const otherScore = maxPoints - parsed;
+    const otherInput = document.getElementById(
+      `score-${roundIndex}-${matchIndex}-${otherTeam}`
     );
-    if (currentInput) currentInput.value = parsed;
+
+    if (otherInput && otherScore >= 0) {
+      otherInput.value = otherScore;
+    }
+  } else if (state.scoringMode === "race") {
+    // Race Mode: If one team scores < Max, other MUST be Max.
+    // If one team is Max, other can be anything < Max.
+
+    // If entered score is LESS than target, assume they lost
+    // Therefore, the OTHER team must have won (reached target)
+    if (parsed < maxPoints) {
+      const otherTeam = team === 1 || team === "1" ? 2 : 1;
+      const otherInput = document.getElementById(
+        `score-${roundIndex}-${matchIndex}-${otherTeam}`
+      );
+
+      if (otherInput) {
+        otherInput.value = maxPoints;
+      }
+    } else if (parsed === maxPoints) {
+      // If entered score IS target, set other to 0 (if empty)
+      const otherTeam = team === 1 || team === "1" ? 2 : 1;
+      const otherInput = document.getElementById(
+        `score-${roundIndex}-${matchIndex}-${otherTeam}`
+      );
+
+      if (otherInput && otherInput.value === "") {
+        otherInput.value = 0;
+      }
+    }
   }
 
-  const otherTeam = team === 1 || team === "1" ? 2 : 1;
-  const otherScore = maxPoints - parsed;
-  const otherInput = document.getElementById(
-    `score-${roundIndex}-${matchIndex}-${otherTeam}`
-  );
+  // Clear errors if valid inputs exist
+  if (score1Input?.value !== "" && score2Input?.value !== "") {
+    score1Input?.classList.remove("error");
+    score2Input?.classList.remove("error");
+  }
+}
 
-  if (otherInput && otherScore >= 0) {
-    otherInput.value = otherScore;
+/**
+ * Validate current round scores and toggle button
+ */
+export function validateRoundState() {
+  const currentRoundIndex = state.schedule.findIndex((r) => !r.completed);
+  if (currentRoundIndex === -1) return;
 
-    const currentInput = document.getElementById(
-      `score-${roundIndex}-${matchIndex}-${team}`
+  const currentRound = state.schedule[currentRoundIndex];
+  const btn = document.querySelector(".complete-round-btn");
+  if (!btn) return;
+
+  let isValid = true;
+  const maxPoints = parseInt(state.pointsPerMatch);
+
+  for (let i = 0; i < currentRound.matches.length; i++) {
+    const s1Input = document.getElementById(
+      `score-${currentRoundIndex}-${i}-1`
     );
-    if (currentInput) currentInput.classList.remove("error");
-    otherInput.classList.remove("error");
+    const s2Input = document.getElementById(
+      `score-${currentRoundIndex}-${i}-2`
+    );
+
+    if (!s1Input || !s2Input) continue;
+
+    const s1Val = s1Input.value;
+    const s2Val = s2Input.value;
+
+    if (s1Val === "" || s2Val === "") {
+      isValid = false;
+      break;
+    }
+
+    const s1 = parseInt(s1Val);
+    const s2 = parseInt(s2Val);
+
+    if (state.scoringMode === "total") {
+      if (s1 + s2 !== maxPoints) {
+        isValid = false;
+        break;
+      }
+    } else {
+      // For Race/Time, just ensure non-negative
+      if (s1 < 0 || s2 < 0) {
+        isValid = false;
+        break;
+      }
+    }
+  }
+
+  // Never disable completely, just warn
+  btn.disabled = false;
+
+  if (!isValid) {
+    btn.classList.add("btn-warning");
+    btn.textContent = "Complete Anyway";
+  } else {
+    btn.classList.remove("btn-warning");
+    btn.textContent = `Complete Round ${currentRound.number}`;
   }
 }
 
@@ -447,16 +557,66 @@ export function completeRound() {
   if (!allScoresValid) {
     const courtsList =
       invalidCourts.length > 0 ? ` on ${invalidCourts.join(", ")}` : "";
-    if (state.scoringMode === "total") {
-      showToast(
-        `Scores must sum to ${state.pointsPerMatch}${courtsList}`,
-        "error"
-      );
-    } else {
-      showToast(`Please enter scores${courtsList}`, "error");
-    }
+
+    showConfirmModal(
+      "Incomplete/Invalid Scores",
+      `Some matches have missing or invalid scores${courtsList}. Do you want to complete the round anyway?`,
+      "Yes, Complete Anyway",
+      () => {
+        finalizeCompleteRound(currentRound);
+      },
+      true // isDanger
+    );
     return;
   }
+
+  // Special Validation for "Race" Mode
+  // Warn if neither team reached the target score
+  if (state.scoringMode === "race") {
+    const incompleteRaceCourts = [];
+    const targetScore = state.pointsPerMatch;
+
+    currentRound.matches.forEach((match, matchIndex) => {
+      const score1Input = document.getElementById(
+        `score-${currentRoundIndex}-${matchIndex}-1`
+      );
+      const score2Input = document.getElementById(
+        `score-${currentRoundIndex}-${matchIndex}-2`
+      );
+      const s1 = parseInt(score1Input?.value) || 0;
+      const s2 = parseInt(score2Input?.value) || 0;
+
+      if (s1 < targetScore && s2 < targetScore) {
+        incompleteRaceCourts.push(getCourtName(match.court));
+      }
+    });
+
+    if (incompleteRaceCourts.length > 0) {
+      const courtsStr = incompleteRaceCourts.join(", ");
+
+      // We must defer the rest of the function execution
+      showConfirmModal(
+        "Low Scores Detected",
+        `On ${courtsStr}, neither team reached the target of ${targetScore}. Is this correct?`,
+        "Yes, Complete Round",
+        () => {
+          finalizeCompleteRound(currentRound);
+        },
+        true // isDanger
+      );
+      return; // Stop here, wait for confirm
+    }
+  }
+
+  // If no warnings, proceed directly
+  finalizeCompleteRound(currentRound);
+}
+
+/**
+ * The actual logic to complete the round, extracted for callback usage
+ */
+function finalizeCompleteRound(currentRound) {
+  const currentRoundIndex = state.schedule.findIndex((r) => r === currentRound);
 
   // 2. Snapshot current ranks before updating stats
   // This ensures 'rank change' shows the diff from THIS round

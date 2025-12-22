@@ -1,7 +1,7 @@
 import { injectLayout } from "../shared/layout.js";
 import { state, loadState, saveState, undoLastAction } from "./state.js";
 import { initHistory } from "./history.js";
-import { initTheme, toggleTheme, updateThemeIcon } from "../shared/theme.js";
+import { initTheme } from "../shared/theme.js";
 import { showToast } from "../shared/utils.js";
 import {
   addPlayer,
@@ -88,8 +88,7 @@ function init() {
   // Initialize DOM elements
   const elements = initElements();
 
-  // Update theme icon
-  updateThemeIcon(elements.themeToggle, theme);
+  // Update theme icon - Handled in layout.js now
 
   // Load saved state
   const hasState = loadState();
@@ -222,11 +221,7 @@ function initScrollToTop() {
 
 // ===== Event Listeners =====
 function initEventListeners(elements) {
-  // Theme toggle
-  elements.themeToggle.addEventListener("click", () => {
-    const newTheme = toggleTheme();
-    updateThemeIcon(elements.themeToggle, newTheme);
-  });
+  // Theme toggle handled in layout.js
 
   // Mobile Nav Toggle
   const navToggle = document.getElementById("navToggle");
@@ -814,17 +809,40 @@ function initEventDelegation() {
       updatePreferredPair(pairId, which, parseInt(target.value));
       renderPreferredPartners();
     }
+
+    // Handle Race Mode autofill on change (blur)
+    if (action === "autofill-score" && state.scoringMode === "race") {
+      const roundIndex = parseInt(target.dataset.round);
+      const matchIndex = parseInt(target.dataset.match);
+      const team = parseInt(target.dataset.team);
+      const value = target.value;
+      autoFillScore(roundIndex, matchIndex, team, value);
+    }
   });
 
-  // Input event delegation for score autofill
+  // Global input listener to limit score inputs to 2 digits
   document.addEventListener("input", (e) => {
-    const target = e.target.closest("[data-action='autofill-score']");
+    if (e.target.classList.contains("score-input")) {
+      if (e.target.value.length > 2) {
+        e.target.value = e.target.value.slice(0, 2);
+      }
+    }
+  });
+
+  // Input event delegation for smart scoring (Total Points only)
+  document.addEventListener("input", (e) => {
+    const target = e.target.closest('[data-action="autofill-score"]');
     if (!target) return;
+
+    // Skip Race mode on input (wait for blur)
+    if (state.scoringMode === "race") return;
 
     const roundIndex = parseInt(target.dataset.round);
     const matchIndex = parseInt(target.dataset.match);
     const team = parseInt(target.dataset.team);
-    autoFillScore(roundIndex, matchIndex, team, target.value);
+    const value = target.value;
+
+    autoFillScore(roundIndex, matchIndex, team, value);
   });
 }
 
