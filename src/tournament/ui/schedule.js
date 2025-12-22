@@ -143,6 +143,7 @@ export function renderSchedule() {
   const els = getElements();
 
   initTimer();
+  renderGameDetails();
 
   const lastRoundIndex = state.schedule.length - 1;
 
@@ -306,6 +307,53 @@ export function renderSchedule() {
   updateGridColumns();
   updateTextSize();
   validateRoundState();
+}
+
+/**
+ * Render Game Details (Format, Scoring, etc)
+ */
+/**
+ * Render Game Details (Format, Scoring, etc)
+ */
+export function renderGameDetails() {
+  const container = document.getElementById("gameDetails");
+  if (!container) return;
+
+  const formatLabels = {
+    americano: "Americano",
+    mexicano: "Mexicano",
+    team: "Team Americano",
+    teamMexicano: "Team Mexicano",
+  };
+
+  const scoringLabels = {
+    total: "Total Points",
+    race: "Race to Points",
+    time: "Time Based",
+  };
+
+  const details = [
+    { label: formatLabels[state.format] || "Tournament", icon: "🏆" },
+    { label: `${state.courts} Courts`, icon: "🎾" },
+    { label: scoringLabels[state.scoringMode], icon: "⚡" },
+    {
+      label:
+        state.scoringMode === "time"
+          ? `${state.pointsPerMatch} Mins`
+          : `${state.pointsPerMatch} Pts`,
+      icon: "🎯",
+    },
+  ];
+
+  container.innerHTML = details
+    .map(
+      (d) => `
+    <div class="game-detail-item">
+      <span>${d.label}</span>
+    </div>
+  `
+    )
+    .join("");
 }
 
 // Register callback for setup.js

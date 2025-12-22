@@ -34,6 +34,7 @@ export {
   toggleManualBye,
   completeRound,
   editRound,
+  renderGameDetails,
 } from "./schedule.js";
 
 export {

@@ -50,5 +50,5 @@ export function showToast(message, arg2, arg3) {
  * @returns {number} A unique timestamp-based ID
  */
 export function createId() {
-  return Date.now() + Math.random();
+  return Math.floor(Date.now() + Math.random() * 1000000);
 }

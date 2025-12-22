@@ -8,7 +8,7 @@
   margin-bottom: var(--space-2xl);
   box-shadow: var(--shadow-sm);
   transition: box-shadow var(--transition-base);
-  max-width: 800px;
+  max-width: 900px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -189,19 +189,13 @@
 
 .player-list {
   list-style: none;
-  columns: 2;
-  column-gap: var(--space-md);
   margin: 0;
   padding: var(--space-sm);
   background: transparent;
   border-bottom: none;
 }
 
-@media (max-width: 600px) {
-  .player-list {
-    columns: 1;
-  }
-}
+/* Responsive adjustments for setup grid */
 
 .player-item {
   display: flex;
@@ -216,6 +210,14 @@
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-primary);
+  gap: 12px;
+}
+
+.player-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-item:hover {
@@ -266,6 +268,65 @@
 .expand-players-btn:hover {
   color: var(--accent);
   background: var(--bg-card-hover);
+}
+
+.court-lock-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  padding: 2px 24px 2px 8px; /* Extra padding right for arrow */
+  border-radius: 12px;
+  height: 24px;
+  width: auto; /* Fix width issues */
+  margin-right: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: center;
+  /* Add custom arrow for clean look since we removed default appearance */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  min-width: 70px; /* Ensure space for text */
+}
+
+/* Custom Select overrides for Player List */
+.player-item .custom-select-wrapper {
+  width: auto;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.player-item .custom-select-trigger {
+  padding: 4px 20px 4px 10px;
+  font-size: 0.8rem;
+  min-height: 28px;
+  border-radius: 14px;
+}
+
+.player-item .custom-select-trigger span {
+  margin-right: 2px;
+}
+
+.player-item .custom-select-trigger::after {
+  width: 12px;
+  height: 12px;
+  right: 6px;
+}
+
+.court-lock-select:hover,
+.court-lock-select:focus {
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.court-lock-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
 @media (max-width: 480px) {
@@ -387,7 +448,7 @@
   border: 1px solid var(--border-color);
 }
 
-.court-name-list {
+.custom-court-names-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-sm);
@@ -395,7 +456,7 @@
 }
 
 @media (max-width: 480px) {
-  .court-name-list {
+  .custom-court-names-grid {
     grid-template-columns: repeat(
       2,
       1fr
@@ -403,13 +464,13 @@
   }
 }
 
-.court-input-group {
+.custom-court-name-row {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
 }
 
-.court-input-group label {
+.custom-court-name-row label {
   font-size: 0.8rem;
   color: var(--text-muted);
   width: 16px;
@@ -417,7 +478,7 @@
 }
 
 /* Compact inputs for court names to reduce box height */
-.court-input-group .form-input {
+.custom-court-name-row .form-input {
   height: 36px;
   padding: 4px 10px;
   font-size: 0.9rem;

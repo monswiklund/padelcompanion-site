@@ -25,6 +25,7 @@ import {
   getElements,
   renderPlayers,
   renderSchedule,
+  renderGameDetails,
   renderLeaderboard,
   renderPreferredPartners,
   showPlayerInput,
@@ -351,11 +352,20 @@ function initEventListeners(elements) {
     state.format = elements.format.value;
     updateSetupUI();
     saveState();
+    if (state.schedule.length > 0) {
+      renderGameDetails();
+    }
   });
 
   elements.courts.addEventListener("change", () => {
     state.courts = parseInt(elements.courts.value);
     saveState();
+    if (state.schedule.length > 0) {
+      renderGameDetails();
+    }
+    if (state.courtFormat === "custom") {
+      renderCustomCourtNames();
+    }
   });
 
   elements.points.addEventListener("change", () => {
@@ -399,11 +409,18 @@ function initEventListeners(elements) {
 
     let val = parseInt(rawVal) || 1;
     val = Math.max(1, Math.min(MAX_COURTS, val));
+
+    // If locked, do not update state actively
+    if (state.isLocked) return;
+
     elements.courts.value = val;
     state.courts = val;
     saveState();
     if (state.courtFormat === "custom") {
       renderCustomCourtNames();
+    }
+    if (state.schedule.length > 0) {
+      renderGameDetails();
     }
   });
 
@@ -425,7 +442,8 @@ function initEventListeners(elements) {
           elements.maxRepeats.value = newValue;
           saveState();
           showToast("Max Partner Repeats updated");
-        }
+        },
+        true // isDanger
       );
     } else {
       state.maxRepeats = newValue;
@@ -450,7 +468,8 @@ function initEventListeners(elements) {
             strictStrategy.checked = newValue;
             saveState();
             showToast("Strict Mode updated");
-          }
+          },
+          true // isDanger
         );
       } else {
         state.strictStrategy = newValue;
@@ -484,7 +503,8 @@ function initEventListeners(elements) {
             saveState();
             updateSetupUI(); // Update visibility of Strict toggle
             showToast("Pairing Strategy updated");
-          }
+          },
+          true // isDanger
         );
       } else {
         state.pairingStrategy = newValue;
@@ -503,6 +523,8 @@ function initEventListeners(elements) {
   elements.addPartnerPairBtn.addEventListener("click", () => {
     addPreferredPair();
     renderPreferredPartners();
+    updateSetupUI();
+    setupCustomSelects();
   });
 
   // Contextual Help
@@ -731,7 +753,7 @@ function initEventDelegation() {
     if (!target) return;
 
     const action = target.dataset.action;
-    const id = target.dataset.id ? parseInt(target.dataset.id) : null;
+    const id = target.dataset.id ? Number(target.dataset.id) : null;
     const roundIndex = target.dataset.round
       ? parseInt(target.dataset.round)
       : null;
@@ -750,6 +772,8 @@ function initEventDelegation() {
         if (id !== null) {
           removePreferredPair(id);
           renderPreferredPartners();
+          updateSetupUI();
+          setupCustomSelects();
         }
         break;
       case "toggle-bye":
@@ -800,14 +824,14 @@ function initEventDelegation() {
     if (!target) return;
 
     const action = target.dataset.action;
-    const pairId = target.dataset.pairId
-      ? parseInt(target.dataset.pairId)
-      : null;
+    const pairId = target.dataset.pairId ? Number(target.dataset.pairId) : null;
     const which = target.dataset.which ? parseInt(target.dataset.which) : null;
 
     if (action === "update-partner" && pairId !== null && which !== null) {
-      updatePreferredPair(pairId, which, parseInt(target.value));
+      updatePreferredPair(pairId, which, Number(target.value));
       renderPreferredPartners();
+      updateSetupUI();
+      setupCustomSelects();
     }
 
     // Handle Race Mode autofill on change (blur)

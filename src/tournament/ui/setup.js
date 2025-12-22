@@ -13,6 +13,7 @@ import {
   generateTeamMexicanoFirstRound,
 } from "../scoring.js";
 import { renderLeaderboard } from "./leaderboard.js";
+import { updateAddPartnerPairButton } from "./partners.js";
 
 // Forward declaration - will be imported from schedule.js to avoid circular dep
 let renderScheduleCallback = null;
@@ -49,17 +50,71 @@ export function updateSetupUI() {
   const setupCard = document.querySelector(".setup-card");
   if (!setupCard) return;
 
-  // Disable form inputs when locked
-  const inputs = setupCard.querySelectorAll("input, select, button");
-  inputs.forEach((input) => {
-    if (state.isLocked && !input.classList.contains("always-enabled")) {
-      input.disabled = true;
-      input.classList.add("locked");
-    } else {
+  // Disable Core Setup inputs when locked
+  const coreContainers = [
+    setupCard.querySelector(".setup-grid"),
+    setupCard.querySelector(".setup-grid-3"),
+    document.getElementById("customCourtNamesSection"),
+  ];
+
+  coreContainers.forEach((container) => {
+    if (!container) return;
+    const inputs = container.querySelectorAll("input, select, button");
+    inputs.forEach((input) => {
+      // Skip always-enabled elements
+      if (input.classList.contains("always-enabled")) return;
+
+      if (state.isLocked) {
+        input.disabled = true;
+        input.classList.add("locked");
+
+        // Handle Custom Selects
+        if (input.tagName === "SELECT") {
+          const wrapper = input.closest(".custom-select-wrapper");
+          if (wrapper) {
+            const customSelect = wrapper.querySelector(".custom-select");
+            if (customSelect) customSelect.classList.add("disabled");
+          }
+        }
+      } else {
+        input.disabled = false;
+        input.classList.remove("locked");
+
+        // Handle Custom Selects
+        if (input.tagName === "SELECT") {
+          const wrapper = input.closest(".custom-select-wrapper");
+          if (wrapper) {
+            const customSelect = wrapper.querySelector(".custom-select");
+            if (customSelect) customSelect.classList.remove("disabled");
+          }
+        }
+      }
+    });
+  });
+
+  // Ensure Matchup Rules are NOT disabled
+  const matchupContainer = document.getElementById("advancedSettingsContent");
+  if (matchupContainer) {
+    const matchupInputs = matchupContainer.querySelectorAll(
+      "input, select, button"
+    );
+    matchupInputs.forEach((input) => {
+      // Re-enable everything in matchup section
       input.disabled = false;
       input.classList.remove("locked");
-    }
-  });
+
+      if (input.tagName === "SELECT") {
+        const wrapper = input.closest(".custom-select-wrapper");
+        if (wrapper) {
+          const customSelect = wrapper.querySelector(".custom-select");
+          if (customSelect) customSelect.classList.remove("disabled");
+        }
+      }
+    });
+
+    // Handle the "Add Fixed Pair" button state specifically based on availability
+    updateAddPartnerPairButton();
+  }
 
   // Update generate button text
   const runningBadge = document.getElementById("runningBadge");

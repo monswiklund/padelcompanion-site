@@ -8,6 +8,7 @@ import {
   updateAddPartnerPairButton,
 } from "./partners.js";
 import { validateCourts } from "./courts.js";
+import { setupCustomSelects } from "./customSelect.js";
 
 /**
  * Render the player list
@@ -16,19 +17,49 @@ export function renderPlayers() {
   const els = getElements();
 
   els.playerList.innerHTML = state.players
-    .map(
-      (player, index) => `
+    .map((player, index) => {
+      const courtOptions = ['<option value="">Auto</option>'];
+      for (let i = 1; i <= state.courts; i++) {
+        const selected = player.lockedCourt === i ? "selected" : "";
+        courtOptions.push(
+          `<option value="${i}" ${selected}>Court ${i}</option>`
+        );
+      }
+
+      return `
     <li class="player-item" data-id="${player.id}">
-      <span><span class="player-number">${index + 1}.</span> ${
-        player.name
-      }</span>
+      <span class="player-number">${index + 1}.</span>
+      <span class="player-name">${player.name}</span>
+      
+      <select 
+        class="court-lock-select form-select btn-sm" 
+        onchange="window.updatePlayerCourtLock(${player.id}, this.value)"
+        onclick="event.stopPropagation()"
+        title="Lock to specific court"
+      >
+        ${courtOptions.join("")}
+      </select>
+
       <button class="player-remove" data-action="remove-player" data-id="${
         player.id
       }">×</button>
     </li>
-  `
-    )
+  `;
+    })
     .join("");
+
+  // Re-attach global handler if not exists (temporary solution for inline onchange)
+  if (!window.updatePlayerCourtLock) {
+    window.updatePlayerCourtLock = (id, value) => {
+      import("../state.js").then(({ state, saveState }) => {
+        const player = state.players.find((p) => p.id === id);
+        if (player) {
+          player.lockedCourt = value ? parseInt(value) : null;
+          saveState();
+        }
+      });
+    };
+  }
 
   els.playerCount.textContent = `(${state.players.length})`;
   els.generateBtn.disabled = state.players.length < 4;
@@ -47,6 +78,7 @@ export function renderPlayers() {
   updateAddPartnerPairButton();
   updatePlayerToggleBtn();
   validateCourts();
+  setupCustomSelects();
 }
 
 /**

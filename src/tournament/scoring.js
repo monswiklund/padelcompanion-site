@@ -280,15 +280,75 @@ export function generateMexicanoFirstRound() {
 
   // Match Teams Randomly
   shuffleArray(teams);
-  const matches = [];
 
-  for (let i = 0; i < teams.length - 1 && matches.length < courts; i += 2) {
-    matches.push({
-      court: matches.length + 1,
-      team1: teams[i],
-      team2: teams[i + 1],
-    });
+  // Create matches with Court Locking Logic
+  const matches = [];
+  const assignedCourts = new Set();
+
+  // 1. Identify Locked Matches
+  const teamsWithLocks = [];
+  const normalTeams = [];
+
+  for (let i = 0; i < teams.length - 1; i += 2) {
+    const t1 = teams[i];
+    const t2 = teams[i + 1];
+
+    // Check if any player has a lock
+    const lock = [...t1, ...t2].find((p) => p.lockedCourt);
+    if (lock) {
+      teamsWithLocks.push({
+        team1: t1,
+        team2: t2,
+        lockedCourt: lock.lockedCourt,
+      });
+    } else {
+      normalTeams.push({ team1: t1, team2: t2 });
+    }
   }
+
+  // 2. Assign Locked Matches
+  teamsWithLocks.forEach((match) => {
+    if (matches.length >= courts) return; // Full
+
+    let court = match.lockedCourt;
+    // If court taken or invalid, fallback to next free
+    if (assignedCourts.has(court) || court > courts) {
+      court = null;
+    }
+
+    if (court) {
+      assignedCourts.add(court);
+      matches.push({
+        court: court,
+        team1: match.team1,
+        team2: match.team2,
+      });
+    } else {
+      // Treat as normal if lock fails
+      normalTeams.push({ team1: match.team1, team2: match.team2 });
+    }
+  });
+
+  // 3. Assign Remaining Matches to Free Courts
+  normalTeams.forEach((match) => {
+    if (matches.length >= courts) return;
+
+    // Find first free court
+    let court = 1;
+    while (assignedCourts.has(court)) court++;
+
+    if (court <= courts) {
+      assignedCourts.add(court);
+      matches.push({
+        court: court,
+        team1: match.team1,
+        team2: match.team2,
+      });
+    }
+  });
+
+  // Sort matches by court for clean display
+  matches.sort((a, b) => a.court - b.court);
 
   // Extra byes if odd teams
   if (teams.length % 2 !== 0 && matches.length < teams.length / 2) {
@@ -515,19 +575,65 @@ export function generateMexicanoNextRound(leaderboard) {
 
   const matches = [];
   const pInMatch = new Set();
+  const assignedCourts = new Set();
 
-  for (let j = 0; j < teamObjs.length - 1 && matches.length < courts; j += 2) {
+  const teamsWithLocks = [];
+  const normalTeams = [];
+
+  // Group into potential matches first
+  for (let j = 0; j < teamObjs.length - 1; j += 2) {
     const t1 = teamObjs[j];
     const t2 = teamObjs[j + 1];
 
-    matches.push({
-      court: matches.length + 1,
-      team1: t1.players,
-      team2: t2.players,
-    });
-    t1.players.forEach((p) => pInMatch.add(p.id));
-    t2.players.forEach((p) => pInMatch.add(p.id));
+    const lock = [...t1.players, ...t2.players].find((p) => p.lockedCourt);
+    if (lock) {
+      teamsWithLocks.push({ t1, t2, lockedCourt: lock.lockedCourt });
+    } else {
+      normalTeams.push({ t1, t2 });
+    }
   }
+
+  // Assign Locked
+  teamsWithLocks.forEach((m) => {
+    if (matches.length >= courts) return;
+
+    let court = m.lockedCourt;
+    if (assignedCourts.has(court) || court > courts) court = null;
+
+    if (court) {
+      assignedCourts.add(court);
+      matches.push({
+        court: court,
+        team1: m.t1.players,
+        team2: m.t2.players,
+      });
+      m.t1.players.forEach((p) => pInMatch.add(p.id));
+      m.t2.players.forEach((p) => pInMatch.add(p.id));
+    } else {
+      normalTeams.push({ t1: m.t1, t2: m.t2 });
+    }
+  });
+
+  // Assign Normal
+  normalTeams.forEach((m) => {
+    if (matches.length >= courts) return;
+
+    let court = 1;
+    while (assignedCourts.has(court)) court++;
+
+    if (court <= courts) {
+      assignedCourts.add(court);
+      matches.push({
+        court: court,
+        team1: m.t1.players,
+        team2: m.t2.players,
+      });
+      m.t1.players.forEach((p) => pInMatch.add(p.id));
+      m.t2.players.forEach((p) => pInMatch.add(p.id));
+    }
+  });
+
+  matches.sort((a, b) => a.court - b.court);
 
   // Update Byes
   teamObjs.forEach((t) => {
