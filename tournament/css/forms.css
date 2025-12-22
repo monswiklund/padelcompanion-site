@@ -438,6 +438,36 @@ input:disabled + .slider {
 
 .btn-outline {
   background: transparent;
+
+  /* Size Variants */
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+  }
+
+  /* Style Variants */
+  .btn-dashed {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px dashed var(--primary-color, #3b82f6);
+    color: var(--primary-color, #3b82f6);
+  }
+
+  .btn-dashed:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: var(--primary-hover, #2563eb);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    box-shadow: none;
+    padding: 8px 12px;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
   border: 1px solid var(--border-color);
   color: var(--text-primary);
 }

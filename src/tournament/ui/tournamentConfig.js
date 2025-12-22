@@ -215,14 +215,14 @@ export function renderTournamentConfig() {
               .map((name) => `<span class="config-pair-chip">${name}</span>`)
               .join("")}
           </div>
-          <button class="config-edit-link" data-action="edit-pairs">Edit</button>
+          <button class="btn btn-ghost btn-sm" data-action="edit-pairs">Edit</button>
         </div>
       `;
     }
   } else if (isMexicano) {
     html += `
       <div class="config-pairs-section config-pairs-empty">
-        <button class="config-add-pair-btn" data-action="add-pair">+ Add Fixed Pair</button>
+        <button class="btn btn-dashed btn-sm" data-action="add-pair">+ Add Fixed Pair</button>
       </div>
     `;
   }

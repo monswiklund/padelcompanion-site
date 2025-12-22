@@ -837,42 +837,6 @@
   border-color: rgba(0, 0, 0, 0.12);
 }
 
-.config-edit-link {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: var(--accent-light);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  transition: all var(--transition-fast);
-}
-
-.config-edit-link:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.config-add-pair-btn {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px dashed rgba(59, 130, 246, 0.4);
-  color: var(--accent-light);
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.config-add-pair-btn:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: var(--accent-light);
-}
-
 .config-pairs-empty {
   justify-content: center;
 }
