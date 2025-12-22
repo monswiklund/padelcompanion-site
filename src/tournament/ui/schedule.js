@@ -393,6 +393,8 @@ export function completeRound() {
 
   // 1. Validate all scores first
   let allScoresValid = true;
+  const invalidCourts = [];
+
   currentRound.matches.forEach((match, matchIndex) => {
     const score1Input = document.getElementById(
       `score-${currentRoundIndex}-${matchIndex}-1`
@@ -401,35 +403,57 @@ export function completeRound() {
       `score-${currentRoundIndex}-${matchIndex}-2`
     );
 
-    const score1 = parseInt(score1Input?.value) || 0;
-    const score2 = parseInt(score2Input?.value) || 0;
+    const score1Value = score1Input?.value;
+    const score2Value = score2Input?.value;
+
+    let isMatchValid = true;
+
+    // Check for empty inputs
+    if (score1Value === "" || score2Value === "") {
+      isMatchValid = false;
+      if (score1Value === "") score1Input?.classList.add("error");
+      if (score2Value === "") score2Input?.classList.add("error");
+    }
+
+    const score1 = parseInt(score1Value) || 0;
+    const score2 = parseInt(score2Value) || 0;
 
     if (state.scoringMode === "total") {
       if (score1 + score2 !== state.pointsPerMatch) {
-        allScoresValid = false;
+        isMatchValid = false;
         score1Input?.classList.add("error");
         score2Input?.classList.add("error");
-      } else {
+      } else if (score1Value !== "" && score2Value !== "") {
         score1Input?.classList.remove("error");
         score2Input?.classList.remove("error");
       }
     } else {
       if (score1 < 0 || score2 < 0) {
-        allScoresValid = false;
+        isMatchValid = false;
         score1Input?.classList.add("error");
         score2Input?.classList.add("error");
-      } else {
+      } else if (score1Value !== "" && score2Value !== "") {
         score1Input?.classList.remove("error");
         score2Input?.classList.remove("error");
       }
     }
+
+    if (!isMatchValid) {
+      allScoresValid = false;
+      invalidCourts.push(getCourtName(match.court));
+    }
   });
 
   if (!allScoresValid) {
+    const courtsList =
+      invalidCourts.length > 0 ? ` on ${invalidCourts.join(", ")}` : "";
     if (state.scoringMode === "total") {
-      showToast(`Scores must sum to ${state.pointsPerMatch}`);
+      showToast(
+        `Scores must sum to ${state.pointsPerMatch}${courtsList}`,
+        "error"
+      );
     } else {
-      showToast("Please enter valid positive scores");
+      showToast(`Please enter scores${courtsList}`, "error");
     }
     return;
   }
