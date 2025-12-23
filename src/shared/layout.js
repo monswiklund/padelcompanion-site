@@ -1,3 +1,5 @@
+import { initTheme, toggleTheme, updateThemeIcon } from "./theme.js";
+
 /**
  * Shared Layout Components
  * Injects consistent Header and Footer across all pages
@@ -175,8 +177,6 @@ function injectPartners() {
     </section>
   `;
 }
-
-import { initTheme, toggleTheme, updateThemeIcon } from "./theme.js";
 
 function initHeaderInteractions() {
   // Mobile Nav Toggle

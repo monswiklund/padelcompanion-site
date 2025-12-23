@@ -1,0 +1,93 @@
+@layer tokens {
+  :root {
+    /* Colors - Dark mode default */
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #111118;
+    --bg-card: #1a1a24;
+    --bg-card-hover: #22222e;
+    --bg-tertiary: #2a2a36;
+
+    --text-primary: #ffffff;
+    --text-secondary: #e5e7eb;
+    --text-muted: #d1d5db;
+
+    --accent: #3b82f6;
+    --accent-rgb: 59, 130, 246;
+    --accent-light: #60a5fa;
+    --accent-glow: rgba(59, 130, 246, 0.4);
+
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --error: #ef4444;
+
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: #22222e;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #0ea5e9 100%);
+    --gradient-hero: radial-gradient(
+        at 0% 0%,
+        rgba(59, 130, 246, 0.15) 0px,
+        transparent 50%
+      ),
+      radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(
+        at 100% 100%,
+        rgba(236, 72, 153, 0.15) 0px,
+        transparent 50%
+      ),
+      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      #0a0a0f;
+
+    /* Typography */
+    --font-display: "Outfit", sans-serif;
+    --font-body: "Inter", sans-serif;
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    --space-4xl: 6rem;
+    --mobile-side-margin: 1rem;
+
+    /* Borders */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
+
+    /* Effects */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 60px var(--accent-glow);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+    --transition-normal: 300ms ease;
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --bg-tertiary: #e2e8f0;
+    --text-primary: #020617;
+    --text-secondary: #0f172a;
+    --text-muted: #334155;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --input-bg: #f1f5f9;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+    --gradient-hero: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+}

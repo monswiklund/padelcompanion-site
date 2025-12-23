@@ -1,0 +1,11 @@
+@layer tokens, base, components, pages, utilities;
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./components.css";
+
+/* pages */
+@import "./pages-home.css";
+@import "./pages-tournament.css";
+@import "./pages-support.css";
+@import "./pages-legal.css";

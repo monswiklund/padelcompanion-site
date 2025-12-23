@@ -158,7 +158,7 @@ export function renderTournamentConfig() {
 
   if (isMexicano) {
     // Mexicano layout: Format → Spacer → Scoring → Points → Repeats → Courts → Pairing → Prioritize Pattern
-    html += `<div class="config-row-spacer"></div>`;
+    html += `<div class="config-spacer"></div>`;
     html += renderConfigRow("scoringMode", state.scoringMode);
     html += renderConfigRow("pointsPerMatch", state.pointsPerMatch, {
       label: getPointsLabel(),

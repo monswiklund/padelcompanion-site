@@ -1,3 +1,4 @@
+@layer pages {
 /* Legal Pages (Privacy, Terms) */
 
 .legal-page {
@@ -70,4 +71,5 @@
 .legal-content strong {
   color: var(--text-primary);
   font-weight: 600;
+}
 }
