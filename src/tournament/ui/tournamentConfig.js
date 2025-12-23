@@ -2,13 +2,10 @@
 // Interactive configuration panel for tournament settings
 
 import { state, saveState } from "../state.js";
-import { createId } from "../../shared/utils.js";
+import { createId, showToast } from "../../shared/utils.js";
 import { showInfoModal, showConfirmModal, showAlertModal } from "../modals.js";
 import { getElements } from "./elements.js";
-import {
-  removePreferredPair,
-  getAvailablePlayersForPairing,
-} from "../players.js";
+import { removePreferredPair } from "../players.js";
 
 /**
  * Configuration options for each setting
@@ -544,6 +541,30 @@ function attachConfigListeners(container) {
     }
 
     if (action === "edit-pairs" || action === "add-pair") {
+      // Validation for adding new pairs
+      if (action === "add-pair") {
+        try {
+          // Inline check to avoid circular dependency import issues
+          const pairedPlayerIds = new Set();
+          if (state.preferredPartners) {
+            state.preferredPartners.forEach((pair) => {
+              pairedPlayerIds.add(String(pair.player1Id));
+              pairedPlayerIds.add(String(pair.player2Id));
+            });
+          }
+          const availableCount = state.players.filter(
+            (p) => !pairedPlayerIds.has(String(p.id))
+          ).length;
+
+          if (availableCount < 2) {
+            showToast("Not enough available players to form a pair", "error");
+            return;
+          }
+        } catch (err) {
+          console.error("Validation error:", err);
+          // Fallback: open anyway if check fails
+        }
+      }
       openAddPairModal();
     }
   });
@@ -786,6 +807,7 @@ function openAddPairModal() {
   state.preferredPartners ||= [];
   const container = document.createElement("div");
   container.className = "modal-overlay active";
+  container.style.display = "flex";
 
   // Helpers for type-safe comparisons
   const sameId = (a, b) => String(a) === String(b);
@@ -802,10 +824,10 @@ function openAddPairModal() {
       .pair-modal-content { 
         max-width: 500px; width: 90%; 
         min-height: 420px;
-        background: var(--bg-surface); 
+        background: var(--bg-card); 
         border: 1px solid var(--border-color); 
         border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-sm);
+        box-shadow: var(--shadow-xl);
         padding: 2rem;
         display: flex; flex-direction: column;
       }
@@ -815,68 +837,68 @@ function openAddPairModal() {
         padding: 12px 14px; 
         background: var(--input-bg); 
         border: 1px solid var(--border-color); 
-        border-radius: 10px; cursor: pointer; 
+        border-radius: var(--radius-md); cursor: pointer; 
         color: var(--text-muted); 
         transition: all 0.2s;
         font-size: 0.95rem; user-select: none;
       }
-      .select-trigger.filled { color: var(--text-primary); border-color: rgba(255,255,255,0.2); }
-      .select-trigger:hover { background: var(--bg-card-hover); }
-      .select-trigger.active { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+      .select-trigger.filled { color: var(--text-primary); border-color: var(--border-color); }
+      .select-trigger:hover { background: var(--bg-card-hover); border-color: var(--text-secondary); }
+      .select-trigger.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
       .select-arrow { transition: transform 0.2s; opacity: 0.5; }
       .select-trigger.active .select-arrow { transform: rotate(180deg); opacity: 1; }
       
       .select-options {
         position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-        background: var(--bg-surface); 
+        background: var(--bg-card); 
         border: 1px solid var(--border-color); 
-        border-radius: 12px;
+        border-radius: var(--radius-md);
         max-height: 240px; overflow-y: auto; z-index: 100; display: none;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 4px;
+        box-shadow: var(--shadow-lg); padding: 4px;
         -webkit-overflow-scrolling: touch;
       }
       .select-options.open { display: block; animation: slideDown 0.15s ease-out; }
       @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
       
       .option { 
-        padding: 12px 14px; cursor: pointer; border-radius: 0; 
+        padding: 12px 14px; cursor: pointer; border-radius: var(--radius-sm); 
         color: var(--text-secondary);
         display: flex; align-items: center; font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        border-bottom: 1px solid transparent;
       }
-      .option:last-child { border-bottom: none; }
-      .option:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
-      .option.selected { color: #3B82F6; background: rgba(59, 130, 246, 0.1); }
+      .option:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+      .option.selected { color: var(--accent); background: rgba(59, 130, 246, 0.1); }
       .option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; text-decoration: line-through; }
       
       .add-action-btn {
-        padding: 0 20px; height: 44px; border-radius: 10px; border: none;
+        padding: 0 20px; height: 44px; border-radius: var(--radius-md); border: none;
         font-weight: 600; cursor: pointer; transition: 0.2s;
-        background: #3f3f46; color: #71717a;
+        background: var(--bg-secondary); color: var(--text-muted);
+        border: 1px solid var(--border-color);
       }
-      .add-action-btn.ready { background: #3B82F6; color: #fff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-      .add-action-btn.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); }
+      .add-action-btn.ready { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+      .add-action-btn.ready:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); filter: brightness(1.1); }
 
       .pair-list-clean { 
         margin-top: 1rem; max-height: 300px; overflow-y: auto; padding-right: 4px;
         -webkit-overflow-scrolling: touch;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        border-top: 1px solid var(--border-color);
       }
       .pair-item-clean { 
         display: flex; justify-content: space-between; align-items: center; 
-        padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.1); 
+        padding: 16px 0; border-bottom: 1px solid var(--border-color); 
       }
-      .pair-names { font-size: 1rem; color: #fff; font-weight: 500; }
+      .pair-names { font-size: 1rem; color: var(--text-primary); font-weight: 500; }
       .pair-remove-icon { 
         width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-        color: #71717a; cursor: pointer; border-radius: 50%; transition: 0.2s;
+        color: var(--text-muted); cursor: pointer; border-radius: 50%; transition: 0.2s;
       }
-      .pair-remove-icon:hover { color: #fff; background: rgba(255, 80, 80, 0.8); }
+      .pair-remove-icon:hover { color: #fff; background: var(--error); }
 
       .btn-text { 
         background: rgba(59, 130, 246, 0.1); 
         border: 1px solid rgba(59, 130, 246, 0.3);
-        color: var(--accent-light) !important; 
+        color: var(--accent) !important; 
         padding: 10px 24px; 
         border-radius: 999px; 
         font-weight: 600; 
@@ -892,18 +914,18 @@ function openAddPairModal() {
       /* Custom Scrollbar */
       .pair-list-clean, .select-options {
         scrollbar-width: thin;
-        scrollbar-color: rgba(255,255,255,0.25) transparent;
+        scrollbar-color: var(--text-muted) transparent;
       }
       .pair-list-clean::-webkit-scrollbar,
-      .select-options::-webkit-scrollbar { width: 10px; }
+      .select-options::-webkit-scrollbar { width: 6px; }
       .pair-list-clean::-webkit-scrollbar-thumb,
       .select-options::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.18);
+        background: var(--border-color);
         border-radius: 999px;
       }
       .pair-list-clean::-webkit-scrollbar-thumb:hover,
       .select-options::-webkit-scrollbar-thumb:hover {
-        background: rgba(255,255,255,0.28);
+        background: var(--text-muted);
       }
     </style>
   `;
@@ -912,12 +934,12 @@ function openAddPairModal() {
   container.innerHTML = `
     ${styles}
     <div class="modal-content pair-modal-content">
-      <h3 style="margin-bottom: 0.5rem; font-size: 1.5rem;">Manage Fixed Pairs</h3>
-      <p style="color: #a1a1aa; margin-bottom: 2rem;">Select two players to pair together consistently.</p>
+      <h3 style="margin-bottom: 0.5rem; font-size: 1.5rem; color: var(--text-primary);">Manage Fixed Pairs</h3>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select two players to pair together consistently.</p>
       
       <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 2rem;">
         <div class="custom-select" id="sel1"></div>
-        <span style="color: #71717a; font-weight: bold;">&</span>
+        <span style="color: var(--text-muted); font-weight: bold;">&</span>
         <div class="custom-select" id="sel2"></div>
         <button class="add-action-btn" id="addBtn">Add</button>
       </div>
@@ -925,7 +947,7 @@ function openAddPairModal() {
       <div class="pair-list-clean" id="pairsList" style="flex: 1; min-height: 150px;"></div>
       
       <div style="margin-top: auto; padding-top: 1.5rem; display: flex; justify-content: flex-end;">
-        <button class="btn-text" id="closePairsModal" style="color:#a1a1aa;">Done</button>
+        <button class="btn-text" id="closePairsModal" style="color:var(--text-muted);">Done</button>
       </div>
     </div>
   `;

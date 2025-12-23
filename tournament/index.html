@@ -341,7 +341,7 @@
             <button
               class="expand-players-btn"
               id="expandPlayersBtn"
-              onclick="togglePlayerList()"
+              data-action="toggle-player-list"
             >
               Show Less ▲
             </button>
@@ -462,7 +462,7 @@
           <div class="actions-grid">
             <button
               class="btn btn-secondary action-btn"
-              onclick="promptAddLatePlayer()"
+              data-action="add-late-player"
               title="Add a player who arrived late"
             >
               <span class="action-text">Add Late Player</span>
@@ -484,7 +484,7 @@
             </button>
             <button
               class="btn btn-danger action-btn"
-              onclick="endTournament()"
+              data-action="end-tournament"
               title="End Tournament - Finalize results"
             >
               <span class="action-text">End Tournament</span>
@@ -508,13 +508,13 @@
                 <button
                   id="togglePositionBtn"
                   class="btn btn-secondary btn-sm toggle-off"
-                  onclick="togglePositionChanges()"
+                  data-action="toggle-position"
                   title="Toggle rank change indicators"
                 >Ranks</button>
                 <button
                   id="toggleVisibilityBtn"
                   class="btn btn-secondary btn-sm toggle-off"
-                  onclick="toggleLeaderboardVisibility()"
+                  data-action="toggle-visibility"
                   title="Toggle score visibility"
                 >Scores</button>
               </div>

@@ -131,7 +131,8 @@ export function updateSetupUI() {
     els.generateBtn.style.display = "block";
     if (runningBadge) runningBadge.style.display = "none";
     els.generateBtn.textContent = "Generate Schedule";
-    els.generateBtn.disabled = state.players.length < 4;
+    // Always enable to allow validation feedback on click
+    els.generateBtn.disabled = false;
   }
 
   // Toggle Advanced Settings visibility based on Format
@@ -153,14 +154,16 @@ export function updateSetupUI() {
 
   // Disable Strict Pattern checkbox when Optimal pairing strategy is selected
   const strictStrategy = document.getElementById("strictStrategy");
-  const strictStrategyWrapper = strictStrategy?.closest(".form-check");
+  // const strictStrategyWrapper = strictStrategy?.closest(".form-check");
   if (strictStrategy) {
-    const isOptimal = state.pairingStrategy === "optimal";
-    strictStrategy.disabled = isOptimal;
-    if (strictStrategyWrapper) {
-      strictStrategyWrapper.style.opacity = isOptimal ? "0.5" : "1";
-      strictStrategyWrapper.style.pointerEvents = isOptimal ? "none" : "auto";
-    }
+    // const isOptimal = state.pairingStrategy === "optimal";
+    // strictStrategy.disabled = isOptimal;
+    // if (strictStrategyWrapper) {
+    //   strictStrategyWrapper.style.opacity = isOptimal ? "0.5" : "1";
+    //   strictStrategyWrapper.style.pointerEvents = isOptimal ? "none" : "auto";
+    // }
+    // Always enable to allow click feedback
+    strictStrategy.disabled = false;
   }
 
   // Update tournament config (use callback to avoid circular dependency)
@@ -301,6 +304,19 @@ export function renderTournamentSummary() {
  */
 export function generateSchedule() {
   const els = getElements();
+
+  // Validation: Check minimum players
+  const format = els.format.value;
+  const isTeam = format === "team" || format === "teamMexicano";
+  const minPlayers = isTeam ? 2 : 4;
+
+  if (state.players.length < minPlayers) {
+    showToast(
+      `Not enough ${isTeam ? "teams" : "players"} (min ${minPlayers})`,
+      "error"
+    );
+    return;
+  }
 
   state.format = els.format.value;
   state.courts = parseInt(els.courts.value);
@@ -444,6 +460,8 @@ export function endTournament(showFinalStandingsCallback) {
       if (showFinalStandingsCallback) {
         showFinalStandingsCallback(sorted);
       }
+
+      renderLeaderboard();
 
       saveState();
     },

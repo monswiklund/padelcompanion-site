@@ -15,7 +15,7 @@ export function updateAddPartnerPairButton() {
     pairedPlayerIds.add(pair.player2Id);
   });
   const available = state.players.filter((p) => !pairedPlayerIds.has(p.id));
-  els.addPartnerPairBtn.disabled = available.length < 2;
+  els.addPartnerPairBtn.disabled = false;
 }
 
 /**

@@ -204,8 +204,8 @@ export function showFinalStandings(standings) {
           .join("")}
       </div>
       <div class="modal-actions-row" style="margin-top: 20px; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-secondary" onclick="window.shareResults()">Share</button>
-        <button class="btn btn-secondary" onclick="window.exportTournamentData()">Download CSV</button>
+        <button class="btn btn-secondary" data-action="share-results">Share</button>
+        <button class="btn btn-secondary" data-action="export-data">Download CSV</button>
         <button class="btn btn-primary" onclick="window.closeFinalModal()">Close</button>
       </div>
     </div>

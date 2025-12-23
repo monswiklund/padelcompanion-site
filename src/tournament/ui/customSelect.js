@@ -29,8 +29,15 @@ export function setupCustomSelects() {
     if (select.classList.contains("btn-sm")) {
       trigger.classList.add("btn-sm");
     }
+    const selectedOption =
+      select.selectedIndex >= 0
+        ? select.options[select.selectedIndex]
+        : select.options.length > 0
+        ? select.options[0]
+        : null;
+
     trigger.innerHTML = `<span>${
-      select.options[select.selectedIndex].text
+      selectedOption ? selectedOption.text : "Select..."
     }</span>`;
 
     const optionsDiv = document.createElement("div");

@@ -438,6 +438,16 @@ function initEventListeners(elements) {
   const strictStrategy = document.getElementById("strictStrategy");
   if (strictStrategy) {
     strictStrategy.addEventListener("change", (e) => {
+      // Feedback: Not available with Optimal strategy
+      if (state.pairingStrategy === "optimal") {
+        e.target.checked = false;
+        showToast(
+          "Strict Pattern is not available with Optimal pairing",
+          "info"
+        );
+        return;
+      }
+
       const newValue = e.target.checked;
       const oldValue = state.strictStrategy;
 
@@ -505,10 +515,17 @@ function initEventListeners(elements) {
   }
 
   elements.addPartnerPairBtn.addEventListener("click", () => {
+    const available = getAvailablePlayersForPairing();
+    if (available.length < 2) {
+      showToast("Not enough available players to form a pair", "error");
+      return;
+    }
+
     addPreferredPair();
     renderPreferredPartners();
     updateSetupUI();
     setupCustomSelects();
+    showToast("Fixed pair added", "success");
   });
 
   // Contextual Help
