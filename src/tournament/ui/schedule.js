@@ -168,8 +168,10 @@ export function renderSchedule() {
           Round ${round.number} ${isCompleted ? "(done)" : ""}
         </span>
         ${
-          isCollapsed
-            ? `<span class="round-summary">${roundSummary}</span>`
+          isCompleted
+            ? `<span class="round-summary" style="${
+                isCollapsed ? "" : "display: none"
+              }">${roundSummary}</span>`
             : ""
         }
         ${
@@ -354,15 +356,14 @@ export function renderGameDetails() {
   };
 
   const details = [
-    { label: formatLabels[state.format] || "Tournament", icon: "🏆" },
-    { label: `${state.courts} Courts`, icon: "🎾" },
-    { label: scoringLabels[state.scoringMode], icon: "⚡" },
+    { label: formatLabels[state.format] || "Tournament" },
+    { label: `${state.courts} Courts` },
+    { label: scoringLabels[state.scoringMode] },
     {
       label:
         state.scoringMode === "time"
           ? `${state.pointsPerMatch} Mins`
           : `${state.pointsPerMatch} Pts`,
-      icon: "🎯",
     },
   ];
 
@@ -370,7 +371,7 @@ export function renderGameDetails() {
     .map(
       (d) => `
     <div class="game-detail-item">
-      <span>${d.label}</span>
+      <span class="detail-label">${d.label}</span>
     </div>
   `
     )
@@ -502,9 +503,11 @@ export function validateRoundState() {
 
   if (!isValid) {
     btn.classList.add("btn-warning");
+    btn.classList.remove("btn-success");
     btn.textContent = "Complete Anyway";
   } else {
     btn.classList.remove("btn-warning");
+    btn.classList.add("btn-success");
     btn.textContent = `Complete Round ${currentRound.number}`;
   }
 }

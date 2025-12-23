@@ -60,6 +60,10 @@ export function setupCustomSelects() {
         // Close
         customSelect.classList.remove("open");
         optionsDiv.classList.remove("show");
+        optionsDiv.style.position = "";
+        optionsDiv.style.top = "";
+        optionsDiv.style.left = "";
+        optionsDiv.style.width = "";
       });
 
       optionsDiv.appendChild(optionEl);
@@ -73,16 +77,50 @@ export function setupCustomSelects() {
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
 
+      const isOpen = customSelect.classList.contains("open");
+
       // Close other open selects
       document.querySelectorAll(".custom-select.open").forEach((el) => {
         if (el !== customSelect) {
           el.classList.remove("open");
           el.querySelector(".custom-options").classList.remove("show");
+          // Reset fixed positioning for others
+          const otherOpts = el.querySelector(".custom-options");
+          otherOpts.style.position = "";
+          otherOpts.style.top = "";
+          otherOpts.style.left = "";
+          otherOpts.style.width = "";
+          otherOpts.style.margin = "";
         }
       });
 
-      customSelect.classList.toggle("open");
-      optionsDiv.classList.toggle("show");
+      if (isOpen) {
+        // Closing current
+        customSelect.classList.remove("open");
+        optionsDiv.classList.remove("show");
+        // Reset styles after transition?
+        // Better to reset immediately to avoid layout jumps if transitioned
+        // But transition relies on it being there.
+        // Let's just unset properties.
+        optionsDiv.style.position = "";
+        optionsDiv.style.top = "";
+        optionsDiv.style.left = "";
+        optionsDiv.style.width = "";
+        optionsDiv.style.margin = "";
+      } else {
+        // Opening current
+        customSelect.classList.add("open");
+        optionsDiv.classList.add("show");
+
+        // Calculate fixed position
+        const rect = customSelect.getBoundingClientRect();
+        optionsDiv.style.position = "fixed";
+        optionsDiv.style.top = `${rect.bottom + 4}px`; // Add small gap manually
+        optionsDiv.style.left = `${rect.left}px`;
+        optionsDiv.style.width = `${rect.width}px`;
+        optionsDiv.style.zIndex = "9999";
+        optionsDiv.style.margin = "0"; // Prevent double spacing from CSS
+      }
     });
 
     // Hide original select visually but keep it for logic
@@ -92,10 +130,29 @@ export function setupCustomSelects() {
   // Global click outside to close
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".custom-select")) {
-      document.querySelectorAll(".custom-select.open").forEach((el) => {
-        el.classList.remove("open");
-        el.querySelector(".custom-options").classList.remove("show");
-      });
+      closeAllSelects();
     }
   });
+
+  // Close on scroll (prevent floating)
+  document.addEventListener(
+    "scroll",
+    () => {
+      closeAllSelects();
+    },
+    true
+  ); // Capture phase to catch scroll on any element
+
+  function closeAllSelects() {
+    document.querySelectorAll(".custom-select.open").forEach((el) => {
+      el.classList.remove("open");
+      const opts = el.querySelector(".custom-options");
+      opts.classList.remove("show");
+      opts.style.position = "";
+      opts.style.top = "";
+      opts.style.left = "";
+      opts.style.width = "";
+      opts.style.margin = "";
+    });
+  }
 }

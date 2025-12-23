@@ -10,6 +10,183 @@
     min-height: 100vh;
   }
 
+  /* Game Details - Premium Design */
+  .tournament-page .game-details {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Center items */
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    /* Remove heavy container background */
+    background: transparent;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+  }
+
+  .tournament-page .game-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    /* Glassy pill look */
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+  }
+
+  .tournament-page .game-detail-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Schedule/Rounds */
+  .tournament-page .schedule-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 120px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .tournament-page .rounds-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  /* Resting Players / Byes */
+  .tournament-page .waiting-players {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-card); /* Darker background */
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .tournament-page .waiting-label {
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    background: var(--bg-surface);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+  }
+  .tournament-page .waiting-names {
+    color: var(--text-muted);
+  }
+
+  /* Score Input Row */
+  .tournament-page .score-input-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    width: 100%;
+  }
+
+  /* Manual Bye Selector */
+  .tournament-page .bye-selector {
+    margin: var(--space-md) 0;
+    padding: var(--space-md);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+  .tournament-page .bye-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+  .tournament-page .bye-selector-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .tournament-page .bye-hint {
+    color: var(--text-muted);
+  }
+  .tournament-page .bye-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tournament-page .bye-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tournament-page .bye-chip:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+  .tournament-page .bye-chip.selected {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px var(--accent-glow);
+  }
+  .tournament-page .bye-count {
+    opacity: 0.7;
+    font-size: 0.8em;
+  }
+
+  /* Tournament Controls */
+  .tournament-page .tournament-actions {
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--border-color);
+  }
+  .tournament-page .actions-header h3 {
+    margin-bottom: var(--space-md);
+    font-size: 1.25rem;
+  }
+  .tournament-page .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+  .tournament-page .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 48px;
+    font-weight: 500;
+  }
+
+  .tournament-page .complete-round-btn {
+    display: flex;
+    margin: var(--space-lg) auto 0;
+    width: fit-content;
+    min-width: 200px;
+    justify-content: center;
+  }
+
   /* ===== Layout Overrides ===== */
   .tournament-page .container {
     max-width: 1200px;
@@ -294,16 +471,23 @@
   }
 
   .tournament-page .player-list-wrapper {
-    max-height: 400px;
-    overflow-y: auto;
-    transition: max-height 0.3s ease;
+    /* Default state (which seems to be expanded in code context? No, logic toggles it) */
+    /* Actually, let's set base styles correctly */
     position: relative;
     border-top: 1px solid var(--border-color);
+    transition: max-height 0.3s ease;
   }
 
+  /* Collapsed State (Show Less / Default) */
   .tournament-page .player-list-wrapper:not(.expanded) {
     max-height: 240px;
     overflow: hidden;
+  }
+
+  /* Expanded State (Show All) */
+  .tournament-page .player-list-wrapper.expanded {
+    max-height: none; /* Let it grow to fit content */
+    overflow: visible; /* No scrollbar inside */
   }
   .tournament-page .player-list-wrapper:not(.expanded)::after {
     content: "";
@@ -312,7 +496,10 @@
     left: 0;
     right: 0;
     height: 60px;
-    background: linear-gradient(transparent, var(--bg-surface));
+    background: linear-gradient(
+      transparent,
+      var(--bg-card)
+    ); /* Fade to card bg not surface */
     pointer-events: none;
   }
 
@@ -330,10 +517,19 @@
     border-bottom: 1px solid var(--border-color);
     transition: background var(--transition-fast);
     gap: 12px;
+
+    /* Prevent split across columns */
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
+
   .tournament-page .player-item:hover {
     background: var(--bg-card-hover);
   }
+
+  /* Fix border for 2-column layout - maybe just bottom border is fine?
+     Actually, let's make it look like separate cards or just lines.
+     The border-bottom works fine in columns. */
 
   .tournament-page .player-number {
     color: var(--text-muted);
@@ -347,6 +543,31 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 500;
+  }
+
+  /* Constrain the "Auto" court dropdown */
+  .tournament-page .court-lock-select {
+    width: auto !important;
+    max-width: 100px !important;
+    padding: 2px 8px;
+    height: 28px;
+    font-size: 0.85rem;
+    flex-shrink: 0; /* Ensure it doesn't shrink either */
+  }
+
+  /* Fix for generated Custom Select structure */
+  .tournament-page .player-item .custom-select-wrapper,
+  .tournament-page .player-item .custom-select {
+    width: auto !important;
+    max-width: 100px !important;
+    flex-shrink: 0;
+    margin-left: auto; /* Ensure it stays to the right */
+  }
+
+  .tournament-page .player-item .custom-select-trigger {
+    padding: 4px 8px; /* Tighter padding */
+    height: 32px; /* Match button height */
+    font-size: 0.85rem;
   }
 
   .tournament-page .player-remove {
@@ -368,7 +589,7 @@
 
   .tournament-page .expand-players-btn {
     width: 100%;
-    background: var(--bg-surface);
+    background: var(--bg-card); /* Match card background */
     border: none;
     border-top: 1px solid var(--border-color);
     color: var(--text-secondary);
@@ -490,8 +711,8 @@
   }
 
   .tournament-page .sticky-wrapper {
-    position: sticky;
-    top: 70px;
+    /* No longer sticky */
+    position: relative;
     z-index: 90;
     margin-bottom: var(--space-md);
   }
@@ -505,11 +726,31 @@
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: fit-content;
-    max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+    gap: var(--space-md);
+    /* Wider and not centered box */
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  /* Ensure controls don't wrap and cause stacking */
+  .tournament-page .schedule-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .tournament-page .control-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    white-space: nowrap;
+    flex: 1; /* Make them grow to fill space */
+  }
+  .tournament-page .control-divider {
+    height: 24px;
+    width: 1px;
+    background: var(--border-color);
   }
 
   /* Match Timer */
@@ -569,6 +810,14 @@
     animation: roundHighlight 1.5s ease;
   }
 
+  .tournament-page .round.collapsed .round-content {
+    display: none;
+  }
+
+  .tournament-page .round.collapsed {
+    padding-bottom: var(--space-sm);
+  }
+
   .tournament-page .round-header {
     font-size: 1.05rem;
     font-weight: 700;
@@ -602,7 +851,7 @@
   }
 
   .tournament-page .court-label {
-    font-size: 0.6rem;
+    font-size: calc(0.6rem * var(--text-scale, 1));
     font-weight: 700;
     text-transform: uppercase;
     color: white;
@@ -626,7 +875,7 @@
     align-items: center;
     gap: 2px;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: calc(0.75rem * var(--text-scale, 1));
     color: white;
     background: rgba(15, 23, 42, 0.9);
     padding: var(--space-sm) var(--space-md);
@@ -643,13 +892,21 @@
     padding: var(--space-sm);
   }
   .tournament-page .score-input {
-    width: 60px;
+    width: 80px; /* Increased from 60px */
     padding: 8px 4px;
     text-align: center;
-    font-size: 1rem;
+    font-size: calc(1rem * var(--text-scale, 1));
     font-weight: 700;
     border: 2px solid var(--border-color);
     border-radius: var(--radius-sm);
+    /* Hide native spin buttons */
+    -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;
+  }
+  .tournament-page .score-input::-webkit-outer-spin-button,
+  .tournament-page .score-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .tournament-page .status-badge {
@@ -689,16 +946,94 @@
     flex-wrap: wrap;
     margin-bottom: var(--space-md);
   }
-  .tournament-page .leaderboard-controls .btn {
+  .tournament-page .leaderboard-controls .btn,
+  #togglePositionBtn,
+  #toggleVisibilityBtn {
     background-color: rgba(255, 255, 255, 0.08);
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     font-weight: 500;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 80px !important;
+    max-width: 80px !important;
+    min-width: 80px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 32px !important;
+    text-align: center;
+    position: relative;
   }
-  .tournament-page .leaderboard-controls .btn.toggle-on {
-    background-color: var(--accent);
-    color: white;
-    border-color: var(--accent);
+  .tournament-page .controls-left {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .tournament-page .controls-right {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  /* Constrain custom-select in leaderboard controls */
+  .tournament-page .leaderboard-controls .custom-select-wrapper {
+    width: auto;
+    min-width: auto;
+  }
+  .tournament-page .leaderboard-controls .btn.toggle-on,
+  #togglePositionBtn.toggle-on,
+  #toggleVisibilityBtn.toggle-on {
+    background-color: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
+  }
+
+  /* Active/Hover/Focus states - fixed size, no outline */
+  .tournament-page .leaderboard-controls .btn:active,
+  .tournament-page .leaderboard-controls .btn:hover,
+  .tournament-page .leaderboard-controls .btn:focus,
+  .tournament-page .leaderboard-controls .btn:focus-visible,
+  #togglePositionBtn:active,
+  #togglePositionBtn:hover,
+  #togglePositionBtn:focus,
+  #togglePositionBtn:focus-visible,
+  #toggleVisibilityBtn:active,
+  #toggleVisibilityBtn:hover,
+  #toggleVisibilityBtn:focus,
+  #toggleVisibilityBtn:focus-visible {
+    width: 80px !important;
+    max-width: 80px !important;
+    min-width: 80px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 12px !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  #togglePositionBtn.toggle-on:active,
+  #togglePositionBtn.toggle-on:hover,
+  #toggleVisibilityBtn.toggle-on:active,
+  #toggleVisibilityBtn.toggle-on:hover {
+    background-color: var(--accent-light) !important;
+    color: white !important;
+  }
+
+  #togglePositionBtn.toggle-off:active,
+  #togglePositionBtn.toggle-off:hover,
+  #toggleVisibilityBtn.toggle-off:active,
+  #toggleVisibilityBtn.toggle-off:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--text-primary) !important;
   }
 
   .tournament-page .leaderboard-table {
