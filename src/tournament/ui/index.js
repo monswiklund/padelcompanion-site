@@ -15,8 +15,6 @@ export {
 
 export {
   renderPlayers,
-  showPlayerInput,
-  hidePlayerInput,
   togglePlayerList,
   showImportModal,
   hideImportModal,

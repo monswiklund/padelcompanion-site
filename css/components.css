@@ -1215,4 +1215,53 @@
       text-align: center;
     }
   }
+
+  /* ===== Countdown Overlay ===== */
+  .countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .countdown-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .countdown-number {
+    font-family: var(--font-display);
+    font-size: 8rem;
+    font-weight: 800;
+    color: white;
+    animation: countdownPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    text-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .countdown-number.countdown-go {
+    color: var(--accent);
+    font-size: 10rem;
+  }
+
+  @keyframes countdownPop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.5);
+    }
+  }
 }

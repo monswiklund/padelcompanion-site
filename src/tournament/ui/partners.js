@@ -35,55 +35,68 @@ export function renderPreferredPartners() {
     return ids;
   };
 
-  els.preferredPartnersList.innerHTML = state.preferredPartners
-    .map((pair) => {
-      const pairedElsewhere = getAllPairedIds(pair.id);
-      const available = state.players.filter(
-        (p) =>
-          p.id === pair.player1Id ||
-          p.id === pair.player2Id ||
-          !pairedElsewhere.has(p.id)
-      );
+  if (state.preferredPartners.length === 0) {
+    els.preferredPartnersList.innerHTML = "";
+    return;
+  }
 
-      const availableFor1 = available.filter(
-        (p) => p.id !== pair.player2Id || p.id === pair.player1Id
-      );
-      const availableFor2 = available.filter(
-        (p) => p.id !== pair.player1Id || p.id === pair.player2Id
-      );
+  els.preferredPartnersList.innerHTML = `
+    <ul class="pairs-bullet-list">
+      ${state.preferredPartners
+        .map((pair) => {
+          const pairedElsewhere = getAllPairedIds(pair.id);
+          const available = state.players.filter(
+            (p) =>
+              p.id === pair.player1Id ||
+              p.id === pair.player2Id ||
+              !pairedElsewhere.has(p.id)
+          );
 
-      return `
-        <div class="partner-pair" data-pair-id="${pair.id}">
-          <select class="form-select" data-action="update-partner" data-pair-id="${
-            pair.id
-          }" data-which="1">
-            ${availableFor1
-              .map(
-                (p) =>
-                  `<option value="${p.id}" ${
-                    p.id === pair.player1Id ? "selected" : ""
-                  }>${p.name}</option>`
-              )
-              .join("")}
-          </select>
-          <span class="pair-separator">&</span>
-          <select class="form-select" data-action="update-partner" data-pair-id="${
-            pair.id
-          }" data-which="2">
-            ${availableFor2
-              .map(
-                (p) =>
-                  `<option value="${p.id}" ${
-                    p.id === pair.player2Id ? "selected" : ""
-                  }>${p.name}</option>`
-              )
-              .join("")}
-          </select>
-          <button class="remove-pair-btn" data-action="remove-pair" data-id="${
-            pair.id
-          }">Remove</button>
-        </div>
-      `;
-    })
-    .join("");
+          const availableFor1 = available.filter(
+            (p) => p.id !== pair.player2Id || p.id === pair.player1Id
+          );
+          const availableFor2 = available.filter(
+            (p) => p.id !== pair.player1Id || p.id === pair.player2Id
+          );
+
+          return `
+            <li class="partner-pair-item" data-pair-id="${pair.id}">
+              <div class="pair-inputs">
+                <select class="form-select btn-sm compact-select" data-action="update-partner" data-pair-id="${
+                  pair.id
+                }" data-which="1">
+                  ${availableFor1
+                    .map(
+                      (p) =>
+                        `<option value="${p.id}" ${
+                          p.id === pair.player1Id ? "selected" : ""
+                        }>${p.name}</option>`
+                    )
+                    .join("")}
+                </select>
+                <span class="pair-separator">&</span>
+                <select class="form-select btn-sm compact-select" data-action="update-partner" data-pair-id="${
+                  pair.id
+                }" data-which="2">
+                  ${availableFor2
+                    .map(
+                      (p) =>
+                        `<option value="${p.id}" ${
+                          p.id === pair.player2Id ? "selected" : ""
+                        }>${p.name}</option>`
+                    )
+                    .join("")}
+                </select>
+              </div>
+              <button class="remove-pair-btn" data-action="remove-pair" data-id="${
+                pair.id
+              }">
+                <span class="remove-icon">×</span>
+              </button>
+            </li>
+          `;
+        })
+        .join("")}
+    </ul>
+  `;
 }

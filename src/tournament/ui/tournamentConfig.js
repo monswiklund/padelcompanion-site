@@ -206,13 +206,13 @@ export function renderTournamentConfig() {
     if (pairNames.length > 0) {
       html += `
         <div class="config-pairs-section">
-          <span class="config-pairs-label">Fixed Pairs:</span>
-          <div class="config-pairs-list">
-            ${pairNames
-              .map((name) => `<span class="config-pair-chip">${name}</span>`)
-              .join("")}
+          <div class="config-pairs-header">
+            <span class="config-pairs-label">Fixed Pairs:</span>
+            <button class="btn btn-ghost btn-sm" data-action="edit-pairs">Edit</button>
           </div>
-          <button class="btn btn-ghost btn-sm" data-action="edit-pairs">Edit</button>
+          <ul class="config-pairs-bullet-list">
+            ${pairNames.map((name) => `<li>${name}</li>`).join("")}
+          </ul>
         </div>
       `;
     }
@@ -400,11 +400,16 @@ function updateConfigValue(key, value) {
 }
 
 function attachConfigListeners(container) {
-  if (container.dataset.listenersAttached) return;
+  if (container.dataset.listenersAttached) {
+    console.log("Tournament Config: Listeners already attached");
+    return;
+  }
   container.dataset.listenersAttached = "true";
+  console.log("Tournament Config: Attaching listeners to", container);
 
   // Input changes (number or stepper-input)
   container.addEventListener("change", (e) => {
+    console.log("Tournament Config: Change event", e.target);
     const target = e.target;
     if (
       target.classList.contains("config-input") ||
@@ -438,6 +443,7 @@ function attachConfigListeners(container) {
 
   // Custom Select Interaction
   container.addEventListener("click", (e) => {
+    console.log("Tournament Config: Click event", e.target);
     // 0. Stepper Interaction
     const stepBtn = e.target.closest(".stepper-btn");
     if (stepBtn) {

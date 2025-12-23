@@ -5,6 +5,8 @@ import {
   updateThemeIcon,
 } from "../src/shared/theme.js";
 
+console.log('Padel Companion Site: Main script loaded');
+
 // Determine active page
 const path = window.location.pathname;
 let activeLink = "";

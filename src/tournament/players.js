@@ -40,6 +40,11 @@ export function addPlayer(name) {
     played: 0,
   });
 
+  // Auto-increment courts every 4 players
+  if (state.players.length % 4 === 0) {
+    state.courts = state.players.length / 4;
+  }
+
   saveState();
   return true;
 }
@@ -126,6 +131,13 @@ export function importPlayers(text) {
       played: 0,
     });
     addedCount++;
+  }
+
+  // Auto-increment courts based on total players after import
+  // But let's only do it if it increases the court count to avoid surprising reductions
+  const suggestedCourts = Math.floor(state.players.length / 4);
+  if (suggestedCourts > state.courts) {
+    state.courts = suggestedCourts;
   }
 
   saveState();

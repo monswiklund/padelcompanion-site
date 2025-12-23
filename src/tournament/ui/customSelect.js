@@ -29,6 +29,10 @@ export function setupCustomSelects() {
     if (select.classList.contains("btn-sm")) {
       trigger.classList.add("btn-sm");
     }
+    if (select.classList.contains("compact-select")) {
+      wrapper.classList.add("compact-select");
+      trigger.classList.add("compact-select");
+    }
     const selectedOption =
       select.selectedIndex >= 0
         ? select.options[select.selectedIndex]

@@ -9,6 +9,7 @@ import {
 } from "./partners.js";
 import { validateCourts } from "./courts.js";
 import { setupCustomSelects } from "./customSelect.js";
+import { renderTournamentConfig } from "./tournamentConfig.js";
 
 /**
  * Render the player list
@@ -62,8 +63,25 @@ export function renderPlayers() {
   els.generateBtn.disabled = state.players.length < 4;
 
   if (state.players.length >= 4) {
-    els.playersHint.textContent = `${state.players.length} players ready`;
-    els.playersHint.style.color = "var(--success)";
+    const isMultipleOf4 = state.players.length % 4 === 0;
+    const capacity = state.courts * 4;
+    const exceedsCapacity = state.players.length > capacity;
+
+    if (!isMultipleOf4 || exceedsCapacity) {
+      const reason = exceedsCapacity
+        ? `exceeds capacity for ${state.courts} court${
+            state.courts > 1 ? "s" : ""
+          }`
+        : `uneven number for ${state.courts} court${
+            state.courts > 1 ? "s" : ""
+          }`;
+
+      els.playersHint.textContent = `${state.players.length} players ready! Since it ${reason}, a queue system will be applied.`;
+      els.playersHint.style.color = "var(--warning)";
+    } else {
+      els.playersHint.textContent = `${state.players.length} players ready`;
+      els.playersHint.style.color = "var(--success)";
+    }
   } else {
     els.playersHint.textContent = `Add at least ${
       4 - state.players.length
@@ -76,26 +94,7 @@ export function renderPlayers() {
   updatePlayerToggleBtn();
   validateCourts();
   setupCustomSelects();
-}
-
-/**
- * Show the player input row
- */
-export function showPlayerInput() {
-  const els = getElements();
-  els.playerInputRow.style.display = "flex";
-  els.addPlayerBtn.style.display = "none";
-  els.playerNameInput.focus();
-}
-
-/**
- * Hide the player input row
- */
-export function hidePlayerInput() {
-  const els = getElements();
-  els.playerInputRow.style.display = "none";
-  els.addPlayerBtn.style.display = "block";
-  els.playerNameInput.value = "";
+  renderTournamentConfig();
 }
 
 /**
