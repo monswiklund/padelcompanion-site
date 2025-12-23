@@ -72,6 +72,46 @@
     --transition-base: 250ms ease;
     --transition-slow: 400ms ease;
     --transition-normal: 300ms ease;
+
+    /* Z-Index Scale */
+    --z-dropdown: 100;
+    --z-sticky: 200;
+    --z-header: 500;
+    --z-cookie: 900;
+    --z-modal: 1000;
+    --z-toast: 10000;
+
+    /* Controls */
+    --control-height: 48px;
+    --control-height-sm: 32px;
+    --control-padding: 12px 16px;
+
+    /* Focus */
+    --focus-ring: 0 0 0 3px var(--accent-glow);
+    --focus-ring-lg: 0 0 0 4px var(--accent-glow);
+
+    /* Icon Sizes */
+    --icon-xs: 12px;
+    --icon-sm: 16px;
+    --icon-md: 20px;
+    --icon-lg: 24px;
+
+    /* Table */
+    --table-row-padding: 12px 16px;
+
+    /* Dense Mode */
+    --dense-control-height: 36px;
+    --dense-control-padding: 8px 12px;
+    --dense-table-row-padding: 8px 12px;
+
+    /* Responsive Scaling (<600px) */
+    @media (max-width: 600px) {
+      --control-height: 42px;
+      --control-padding: 10px 12px;
+      --space-xl: 1.5rem;
+      --space-2xl: 2rem;
+      --space-mobile-tight: 0.5rem;
+    }
   }
 
   [data-theme="light"] {

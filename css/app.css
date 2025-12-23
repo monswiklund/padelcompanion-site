@@ -9,3 +9,6 @@
 @import "./pages-tournament.css";
 @import "./pages-support.css";
 @import "./pages-legal.css";
+
+/* utilities (global overrides, accessibility) */
+@import "./utilities.css";

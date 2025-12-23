@@ -133,7 +133,7 @@
 
   /* Helper Classes */
   .tournament-page .hidden {
-    display: none !important;
+    display: none;
   }
   .tournament-page .fade-in {
     animation: fadeIn 0.3s ease-in-out;
@@ -643,7 +643,7 @@
     padding: var(--space-sm);
   }
   .tournament-page .score-input {
-    width: 60px !important;
+    width: 60px;
     padding: 8px 4px;
     text-align: center;
     font-size: 1rem;
@@ -673,7 +673,7 @@
   /* ===== Leaderboard ===== */
   .tournament-page .leaderboard-section {
     width: 95%;
-    max-width: 600px !important;
+    max-width: 600px;
     margin: var(--space-2xl) auto 0;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -888,7 +888,55 @@
     border-bottom: none;
   }
 
-  @media (max-width: 600px) {
+  /* Intermediate: 2 columns but stack labels to prevent overlap */
+  @media (max-width: 700px) {
+    .tournament-page .config-row {
+      flex-direction: column;
+      align-items: flex-start; /* Force Left Align */
+      gap: 6px; /* Tighter gap */
+    }
+
+    .tournament-page .ui-select-wrapper,
+    .tournament-page .ui-toggle,
+    .tournament-page .config-label {
+      width: 80%;
+      text-align: left;
+    }
+
+    .tournament-page .ui-stepper {
+      width: 100%;
+      max-width: 90px; /* Constrain width */
+    }
+
+    /* Ensure label container (with ? icon) is also flex-start */
+    /* Ensure label container (with ? icon) is now flex-start with proper gap */
+    .tournament-page .config-label-container {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 0; /* Gap handles spacing */
+      gap: 6px; /* Restore gap between text and icon */
+    }
+
+    /* Reverting margin-left: auto - icon stays next to label */
+    .tournament-page .config-help {
+      margin-left: 0;
+    }
+
+    .tournament-page .ui-trigger {
+      justify-content: space-between;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Specific fix for 'Prioritize Pattern' toggle row to match others */
+    .tournament-page .config-row.toggle-row {
+      align-items: flex-start;
+    }
+  }
+
+  /* Mobile: 1 column, back to side-by-side labels if desired, or keep stacked */
+  @media (max-width: 450px) {
     .tournament-page .config-grid {
       grid-template-columns: 1fr;
     }
@@ -908,13 +956,16 @@
     margin: var(--space-sm) 0;
   }
 
-  .tournament-page .config-label {
-    font-weight: 500;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
+  .tournament-page .config-label-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
   }
 
+  /* Help icon styles - specific size and alignment */
   .tournament-page .config-help {
+    /* Reverted: margin-left: auto; */
     width: 20px;
     height: 20px;
     border-radius: 50%;

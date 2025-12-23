@@ -347,13 +347,17 @@ function renderConfigRow(key, value, options = {}) {
   }
 
   return `
-    <div class="config-row" data-config-key="${key}">
-      ${
-        config?.helpId
-          ? `<button class="config-help" data-action="show-help" data-help-id="${config.helpId}">?</button>`
-          : ""
-      }
-      <span class="config-label">${rowLabel}:</span>
+    <div class="config-row ${
+      config?.type === "toggle" ? "toggle-row" : ""
+    }" data-config-key="${key}">
+      <div class="config-label-container">
+        <span class="config-label">${rowLabel}:</span>
+        ${
+          config?.helpId
+            ? `<button class="config-help" data-action="show-help" data-help-id="${config.helpId}">?</button>`
+            : ""
+        }
+      </div>
       ${controlHtml}
     </div>
   `;

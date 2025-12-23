@@ -1,0 +1,71 @@
+@layer utilities {
+  /* ===== Accessibility: Reduced Motion ===== */
+  /* These rules override ALL animations/transitions for users who prefer reduced motion.
+     Using !important is intentional and justified - this is a global accessibility policy
+     that must win over any component or page-level animation styles. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ===== Utility Classes ===== */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ===== Dense Mode ===== */
+  /* Opt-in utility for compact UIs like leaderboards, data tables, filters.
+     Overrides CSS custom properties so components automatically adapt. */
+  .is-dense {
+    --control-height: var(--dense-control-height);
+    --control-padding: var(--dense-control-padding);
+    --table-row-padding: var(--dense-table-row-padding);
+  }
+
+  /* Dense mode font size reduction for controls */
+  .is-dense .btn,
+  .is-dense input,
+  .is-dense select,
+  .is-dense .form-input,
+  .is-dense .form-select {
+    font-size: 0.875rem;
+  }
+
+  /* Dense tables use token */
+  .is-dense th,
+  .is-dense td {
+    padding: var(--table-row-padding);
+  }
+
+  /* Dropdown options keep touch-friendly height even in dense mode */
+  .is-dense .ui-option,
+  .is-dense .custom-option {
+    min-height: 44px;
+  }
+}
