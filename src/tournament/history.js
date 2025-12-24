@@ -23,6 +23,8 @@ export function saveToHistory() {
     // Summary fields for UI
     summary: {
       date: new Date().toISOString(),
+      name: currentState.tournamentName || "",
+      notes: currentState.tournamentNotes || "",
       format: currentState.format,
       winner: currentState.leaderboard[0]?.name || "Unknown",
       playerCount: currentState.players.length,
@@ -194,7 +196,7 @@ export function hideHistory() {
   // Deprecated
 }
 
-function renderHistoryList() {
+export function renderHistoryList() {
   historyData = getHistory();
   renderRows(historyData);
 }
@@ -231,23 +233,39 @@ function renderRows(items) {
   tbody.innerHTML = items
     .map((item) => {
       const dateStr = item.summary ? item.summary.date : item.date;
-      const format = item.summary
+
+      // Capitalize format name
+      const rawFormat = item.summary
         ? item.summary.format
         : item.format || "Unknown";
-      const winner = item.summary
-        ? item.summary.winner
-        : item.players?.[0]?.name || "Unknown";
+      const format = rawFormat.charAt(0).toUpperCase() + rawFormat.slice(1);
+
+      // Get winner from sorted leaderboard if available
+      let winner = "Unknown";
+      if (item.data?.leaderboard?.length > 0) {
+        const sorted = [...item.data.leaderboard].sort(
+          (a, b) => b.points - a.points
+        );
+        winner = sorted[0]?.name || "Unknown";
+      } else if (item.summary?.winner) {
+        winner = item.summary.winner;
+      }
+
       const playerCount = item.summary
         ? item.summary.playerCount
         : item.players?.length || 0;
 
+      const roundCount =
+        item.summary?.roundCount || item.data?.schedule?.length || 0;
+
+      // Consistent date format
       const dateObj = new Date(dateStr);
-      const dateDisplay = dateObj.toLocaleDateString(undefined, {
-        month: "short",
+      const dateDisplay = dateObj.toLocaleDateString("en-GB", {
         day: "numeric",
+        month: "short",
         year: "numeric",
       });
-      const timeDisplay = dateObj.toLocaleTimeString(undefined, {
+      const timeDisplay = dateObj.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
       });
@@ -272,8 +290,10 @@ function renderRows(items) {
           </div>
         </td>
         <td>${playerCount}</td>
+        <td>${roundCount}</td>
         <td class="text-right">
-           <div class="action-buttons">
+           <!-- Desktop: Show all buttons -->
+           <div class="action-buttons desktop-only">
               <button 
                 onclick="downloadHistoryItem('${item.id}')" 
                 class="btn btn-sm btn-ghost"
@@ -290,12 +310,36 @@ function renderRows(items) {
                 Load
               </button>
               <button 
+                onclick="duplicateTournament('${item.id}')" 
+                class="btn btn-sm btn-ghost"
+                ${!canLoad ? "disabled" : ""}
+                title="Copy settings to new tournament"
+              >
+                Duplicate
+              </button>
+              <button 
                 onclick="deleteHistoryItem('${item.id}')" 
-                class="btn btn-sm btn-ghost text-error"
+                class="btn btn-sm btn-danger"
                 title="Delete permanently"
               >
-                <i class="fas fa-trash"></i>
+                🗑️
               </button>
+           </div>
+           <!-- Mobile: Dropdown menu -->
+           <div class="action-menu mobile-only">
+              <button class="btn btn-sm btn-ghost action-menu-trigger" onclick="toggleActionMenu(this)">⋮</button>
+              <div class="action-menu-dropdown">
+                <button onclick="loadTournament('${item.id}')" ${
+        !canLoad ? "disabled" : ""
+      }>Load</button>
+                <button onclick="duplicateTournament('${item.id}')" ${
+        !canLoad ? "disabled" : ""
+      }>Duplicate</button>
+                <button onclick="downloadHistoryItem('${item.id}')">CSV</button>
+                <button class="text-danger" onclick="deleteHistoryItem('${
+                  item.id
+                }')">Delete</button>
+              </div>
            </div>
         </td>
       </tr>
@@ -311,6 +355,88 @@ export function downloadHistoryItem(id) {
     window.exportTournamentData(item.data);
   }
 }
+
+/**
+ * Duplicate tournament settings for a new tournament
+ * @param {string} id
+ */
+export function duplicateTournament(id) {
+  const history = getHistory();
+  const item = history.find((i) => i.id === id);
+
+  if (!item || !item.data) {
+    showToast("Tournament details not found", "error");
+    return;
+  }
+
+  showConfirmModal(
+    "Duplicate this tournament?",
+    "This will copy settings and players but reset all scores.",
+    "Duplicate",
+    () => {
+      try {
+        // Create a fresh state from the tournament data but reset scores
+        const data = item.data;
+        const freshState = {
+          ...data,
+          leaderboard: [],
+          schedule: [],
+          currentRound: 0,
+          allRounds: null,
+          isLocked: false,
+          hideLeaderboard: true,
+          manualByes: [],
+        };
+
+        restoreState(freshState);
+
+        // Refresh UI
+        renderSchedule();
+        renderLeaderboard();
+
+        saveState();
+        showToast("Tournament duplicated - ready to start!");
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        console.error("Failed to duplicate tournament", e);
+        showToast("Error duplicating tournament", "error");
+      }
+    },
+    false
+  );
+}
+
+/**
+ * Toggle action menu dropdown on mobile
+ */
+export function toggleActionMenu(trigger) {
+  const menu = trigger.nextElementSibling;
+  const isOpen = menu.classList.contains("open");
+
+  // Close all other open menus
+  document.querySelectorAll(".action-menu-dropdown.open").forEach((m) => {
+    m.classList.remove("open");
+  });
+
+  if (!isOpen) {
+    menu.classList.add("open");
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".action-menu")) {
+    document.querySelectorAll(".action-menu-dropdown.open").forEach((m) => {
+      m.classList.remove("open");
+    });
+  }
+});
+
+// Bind functions to window
+window.duplicateTournament = duplicateTournament;
+window.toggleActionMenu = toggleActionMenu;
 
 // Bind close button
 document.addEventListener("DOMContentLoaded", () => {

@@ -5,7 +5,7 @@ import { state, saveState, pushHistory } from "../state.js";
 import { getElements } from "./elements.js";
 import { showToast } from "../../shared/utils.js";
 import { showConfirmModal, showAlertModal, showCountdown } from "../modals.js";
-import { saveToHistory } from "../history.js";
+import { saveToHistory, renderHistoryList } from "../history.js";
 import {
   generateAmericanoSchedule,
   generateTeamSchedule,
@@ -455,6 +455,7 @@ export function endTournament(showFinalStandingsCallback) {
       const sorted = [...state.leaderboard].sort((a, b) => b.points - a.points);
 
       saveToHistory();
+      renderHistoryList();
       showToast("Tournament saved to history");
 
       if (showFinalStandingsCallback) {

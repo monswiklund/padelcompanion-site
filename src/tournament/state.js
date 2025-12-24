@@ -19,6 +19,8 @@ export const state = {
   gridColumns: 0, // 0 = auto, 1-6 = fixed columns
   textSize: 100, // Text size percentage (50-150)
   isLocked: false, // Lock settings after tournament starts
+  tournamentName: "", // Custom tournament name
+  tournamentNotes: "", // Optional notes
   schedule: [],
   currentRound: 0,
   leaderboard: [],
@@ -81,6 +83,8 @@ export function saveState() {
       maxRepeats: state.maxRepeats,
       pairingStrategy: state.pairingStrategy,
       preferredPartners: state.preferredPartners,
+      tournamentName: state.tournamentName,
+      tournamentNotes: state.tournamentNotes,
       // Active tournament state
       schedule: state.schedule,
       currentRound: state.currentRound,
@@ -130,6 +134,8 @@ export function loadState() {
     state.preferredPartners = Array.isArray(data.preferredPartners)
       ? data.preferredPartners.slice(0, 100)
       : [];
+    state.tournamentName = data.tournamentName || "";
+    state.tournamentNotes = data.tournamentNotes || "";
 
     // Load active tournament state
     state.schedule = Array.isArray(data.schedule) ? data.schedule : [];
