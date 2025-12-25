@@ -2,6 +2,7 @@ import { injectLayout } from "../shared/layout.js";
 import { state, loadState, saveState, undoLastAction } from "./state.js";
 import { initHistory } from "./history.js";
 import { initTheme } from "../shared/theme.js";
+import { registerRoute, initRouter, getCurrentRoute } from "./router.js";
 import { showToast } from "../shared/utils.js";
 import {
   addPlayer,
@@ -62,6 +63,11 @@ import {
   setRenderTournamentConfigCallback,
 } from "./ui/index.js";
 import { initPWA } from "../shared/pwa.js";
+
+// Page modules for routing
+import { generatorPage } from "./pages/generator.js";
+import { bracketPage } from "./pages/bracket.js";
+import { winnersCourtPage } from "./pages/winnersCourt.js";
 
 // ===== Initialize Application =====
 function init() {
@@ -163,6 +169,24 @@ function init() {
 
   // Initialize scroll animations
   initScrollAnimations();
+
+  // ===== Router Setup =====
+  // Register page routes
+  registerRoute("", generatorPage); // Default
+  registerRoute("generator", generatorPage); // Explicit generator
+  registerRoute("bracket", bracketPage); // Bracket view
+  registerRoute("winners-court", winnersCourtPage); // Finals/podium
+
+  // Add page navigation tabs
+  injectPageNavigation();
+
+  // Initialize router (will mount appropriate page based on hash)
+  // For Phase 1, generator page just logs - existing UI remains active
+  initRouter();
+  console.log(
+    "[Tournament] Router initialized. Current route:",
+    getCurrentRoute()
+  );
 }
 
 // ===== Ripple Effect =====
@@ -183,6 +207,107 @@ function initRippleEffect() {
     btn.appendChild(ripple);
     setTimeout(() => ripple.remove(), 600);
   });
+}
+
+// ===== Page Navigation Tabs =====
+function injectPageNavigation() {
+  const container = document.querySelector(".tournament-page .container");
+  const toolHeader = container?.querySelector(".tool-header");
+
+  if (!toolHeader) {
+    console.warn("[Router] Could not find .tool-header to inject navigation");
+    return;
+  }
+
+  // Create navigation tabs
+  const nav = document.createElement("nav");
+  nav.className = "page-nav";
+  nav.innerHTML = `
+    <div class="page-nav-tabs">
+      <a href="#/generator" class="page-nav-tab" data-route="generator">
+        <span class="tab-icon">🎯</span>
+        <span class="tab-label">Generator</span>
+      </a>
+      <a href="#/bracket" class="page-nav-tab" data-route="bracket">
+        <span class="tab-icon">🏆</span>
+        <span class="tab-label">Bracket</span>
+      </a>
+      <a href="#/winners-court" class="page-nav-tab" data-route="winners-court">
+        <span class="tab-icon">🥇</span>
+        <span class="tab-label">Winners</span>
+      </a>
+    </div>
+  `;
+
+  // Insert after header
+  toolHeader.after(nav);
+
+  // Add page container for routed content (bracket/winners pages)
+  // Generator uses existing HTML, other pages render into this
+  let pageContainer = document.getElementById("pageContainer");
+  if (!pageContainer) {
+    pageContainer = document.createElement("div");
+    pageContainer.id = "pageContainer";
+    pageContainer.className = "page-container";
+    pageContainer.style.display = "none"; // Hidden by default, shown for non-generator pages
+
+    // Insert after navigation
+    nav.after(pageContainer);
+  }
+
+  // Update active tab on route change
+  function updateActiveTab() {
+    const { route } = getCurrentRoute();
+    const currentRoute = route || "generator";
+
+    nav.querySelectorAll(".page-nav-tab").forEach((tab) => {
+      if (tab.dataset.route === currentRoute) {
+        tab.classList.add("active");
+      } else {
+        tab.classList.remove("active");
+      }
+    });
+
+    // Toggle visibility: generator uses existing HTML, others use pageContainer
+    const existingContent = document.querySelector(
+      ".players-section, .tournament-config, .schedule-section, .leaderboard-section"
+    );
+    const playersSection = document.querySelector(".players-section");
+    const tournamentConfig = document.getElementById("tournamentConfig");
+    const generateBtn = document.getElementById("generateBtn");
+    const scheduleSection = document.getElementById("scheduleSection");
+    const leaderboardSection = document.getElementById("leaderboardSection");
+    const tournamentActions = document.getElementById(
+      "tournamentActionsSection"
+    );
+    const historySection = document.getElementById("historySectionPage");
+
+    if (currentRoute === "generator" || currentRoute === "") {
+      // Show generator content
+      if (playersSection) playersSection.style.display = "";
+      if (tournamentConfig) tournamentConfig.style.display = "";
+      if (generateBtn) generateBtn.style.display = "";
+      if (historySection) historySection.style.display = "";
+      // Schedule/leaderboard visibility depends on tournament state
+      pageContainer.style.display = "none";
+    } else {
+      // Hide generator content, show pageContainer
+      if (playersSection) playersSection.style.display = "none";
+      if (tournamentConfig) tournamentConfig.style.display = "none";
+      if (generateBtn) generateBtn.style.display = "none";
+      if (scheduleSection) scheduleSection.style.display = "none";
+      if (leaderboardSection) leaderboardSection.style.display = "none";
+      if (tournamentActions) tournamentActions.style.display = "none";
+      if (historySection) historySection.style.display = "none";
+      pageContainer.style.display = "block";
+    }
+  }
+
+  // Initial update
+  updateActiveTab();
+
+  // Listen for route changes
+  window.addEventListener("hashchange", updateActiveTab);
 }
 
 // ===== Scroll Animations =====

@@ -38,9 +38,25 @@ function injectHeader(activeLink = "") {
             <a href="/#features" class="${
               isFeatures ? "active" : ""
             }">Features</a>
-            <a href="/tournament/" class="${
-              isTournament ? "active" : ""
-            }">Tournament</a>
+            <div class="nav-dropdown">
+              <a href="/tournament/" class="nav-dropdown-trigger ${
+                isTournament ? "active" : ""
+              }">
+                Tournament
+                <span class="dropdown-arrow">▾</span>
+              </a>
+              <div class="nav-dropdown-menu">
+                <a href="/tournament/#/generator" class="nav-dropdown-item">
+                  Generator
+                </a>
+                <a href="/tournament/#/bracket" class="nav-dropdown-item">
+                  Bracket
+                </a>
+                <a href="/tournament/#/winners-court" class="nav-dropdown-item">
+                  Winners
+                </a>
+              </div>
+            </div>
             <a href="/support.html" class="${
               isSupport ? "active" : ""
             }">Support</a>

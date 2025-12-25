@@ -1,7 +1,13 @@
 // Tournament Generator - State Management
 // Central state object with reactive updates
 
+// Current state version - increment when schema changes
+const STATE_VERSION = 1;
+
 export const state = {
+  version: STATE_VERSION,
+
+  // ===== Existing Americano/Mexicano fields =====
   players: [],
   format: "americano",
   courts: 2,
@@ -26,6 +32,24 @@ export const state = {
   leaderboard: [],
   allRounds: null,
   maxCourts: 2,
+
+  // ===== Bracket Tournament (namespaced) =====
+  tournament: {
+    format: "single", // 'single' | 'double'
+    teams: [],
+    matches: [],
+    standings: [],
+    meta: { name: "", notes: "", createdAt: null },
+  },
+
+  // ===== Winners Court Mode =====
+  winnersCourt: null, // { players, courts, courtCount, twist, round }
+
+  // ===== UI State =====
+  ui: {
+    currentRoute: "",
+    selectedMatchId: null,
+  },
 };
 
 // Undo History
@@ -71,6 +95,8 @@ export function saveState() {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
+      // Version for migrations
+      version: state.version,
       // Settings
       players: state.players,
       format: state.format,
@@ -95,6 +121,12 @@ export function saveState() {
       manualByes: state.manualByes,
       gridColumns: state.gridColumns,
       textSize: state.textSize,
+      // Bracket tournament (v1+)
+      tournament: state.tournament,
+      // UI state (v1+)
+      ui: state.ui,
+      // Winners Court (v1+)
+      winnersCourt: state.winnersCourt,
     })
   );
 }
@@ -108,7 +140,10 @@ export function loadState() {
   if (!saved) return false;
 
   try {
-    const data = JSON.parse(saved);
+    let data = JSON.parse(saved);
+
+    // Migrate old state versions
+    data = migrateState(data);
 
     // Load settings with validation
     state.players = Array.isArray(data.players)
@@ -149,11 +184,68 @@ export function loadState() {
     state.gridColumns = Math.max(0, Math.min(10, data.gridColumns || 0));
     state.textSize = Math.max(50, Math.min(200, data.textSize || 100));
 
+    // Load bracket tournament state (v1+)
+    if (data.tournament) {
+      state.tournament = {
+        format: data.tournament.format || "single",
+        teams: data.tournament.teams || [],
+        matches: data.tournament.matches || [],
+        standings: data.tournament.standings || [],
+        meta: data.tournament.meta || { name: "", notes: "", createdAt: null },
+      };
+    }
+
+    // Load UI state (v1+)
+    if (data.ui) {
+      state.ui = {
+        currentRoute: data.ui.currentRoute || "",
+        selectedMatchId: data.ui.selectedMatchId || null,
+      };
+    }
+
+    // Load Winners Court state
+    state.winnersCourt = data.winnersCourt || null;
+
     return true;
   } catch (e) {
     console.error("Failed to load tournament state:", e);
     return false;
   }
+}
+
+/**
+ * Migrate state from older versions.
+ * @param {Object} data - Saved state data
+ * @returns {Object} Migrated state data
+ */
+function migrateState(data) {
+  const savedVersion = data.version || 0;
+
+  if (savedVersion < STATE_VERSION) {
+    console.log(`[State] Migrating from v${savedVersion} to v${STATE_VERSION}`);
+
+    // v0 -> v1: Add tournament and ui namespaces
+    if (savedVersion < 1) {
+      data.tournament = data.tournament || {
+        format: "single",
+        teams: [],
+        matches: [],
+        standings: [],
+        meta: { name: "", notes: "", createdAt: null },
+      };
+      data.ui = data.ui || {
+        currentRoute: "",
+        selectedMatchId: null,
+      };
+    }
+
+    // Future migrations go here:
+    // if (savedVersion < 2) { ... }
+
+    data.version = STATE_VERSION;
+  }
+
+  return data;
 }
 
 /**

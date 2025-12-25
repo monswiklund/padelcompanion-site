@@ -10,6 +10,10 @@ let elements = null;
  */
 export function initElements() {
   elements = {
+    // Page sections for routing
+    playersSection: document.querySelector(".players-section"),
+    tournamentConfig: document.getElementById("tournamentConfig"),
+    // Form inputs
     format: document.getElementById("format"),
     courts: document.getElementById("courts"),
     scoringMode: document.getElementById("scoringMode"),

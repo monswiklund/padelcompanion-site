@@ -122,7 +122,8 @@ export function showInputModal(
   title,
   placeholder,
   onConfirm,
-  description = ""
+  description = "",
+  inputType = "text" // 'text' or 'textarea'
 ) {
   // Remove existing modal
   const existing = document.querySelector(".input-modal");
@@ -136,6 +137,11 @@ export function showInputModal(
     ? `<p class="modal-hint" style="margin-bottom: var(--space-md); text-align: left;">${description}</p>`
     : "";
 
+  const inputHtml =
+    inputType === "textarea"
+      ? `<textarea id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%; min-height: 120px; resize: vertical;"></textarea>`
+      : `<input type="text" id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%;">`;
+
   modal.innerHTML = `
     <div class="modal" style="max-width: 400px; text-align: center;">
       <div class="modal-header">
@@ -144,7 +150,7 @@ export function showInputModal(
       <div class="modal-body">
         ${descriptionHtml}
         <div class="form-group">
-          <input type="text" id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%;">
+          ${inputHtml}
         </div>
       </div>
       <div class="modal-footer" style="justify-content: center; gap: 10px;">

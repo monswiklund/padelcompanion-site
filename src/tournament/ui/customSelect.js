@@ -145,10 +145,14 @@ export function setupCustomSelects() {
     }
   });
 
-  // Close on scroll (prevent floating)
+  // Close on scroll (prevent floating) - but NOT if scrolling inside the dropdown
   document.addEventListener(
     "scroll",
-    () => {
+    (e) => {
+      // Don't close if scrolling inside the dropdown options
+      if (e.target.closest && e.target.closest(".custom-options")) {
+        return;
+      }
       closeAllSelects();
     },
     true

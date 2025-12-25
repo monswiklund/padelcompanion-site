@@ -1,0 +1,89 @@
+/**
+ * Tournament Router
+ * Hash-based client-side router with page lifecycle management.
+ * Prevents listener leaks via mount/unmount pattern.
+ */
+
+let currentPage = null;
+const routes = {};
+
+/**
+ * Register a route with a page module.
+ * @param {string} path - Route path (e.g., 'bracket', 'generator')
+ * @param {Object} page - Page module with mount/unmount methods
+ */
+export function registerRoute(path, page) {
+  routes[path] = page;
+}
+
+/**
+ * Initialize the router.
+ * Call this after all routes are registered.
+ */
+export function initRouter() {
+  window.addEventListener("hashchange", handleRoute);
+  handleRoute(); // Handle initial route
+}
+
+/**
+ * Navigate to a route programmatically.
+ * @param {string} path - Route path
+ */
+export function navigate(path) {
+  location.hash = `#/${path}`;
+}
+
+/**
+ * Get current route info.
+ * @returns {{ route: string, params: URLSearchParams }}
+ */
+export function getCurrentRoute() {
+  const { route, params } = parseHash();
+  return { route, params };
+}
+
+/**
+ * Parse hash into route and query params.
+ * Handles: #/bracket, #/bracket/, #/bracket?id=123
+ */
+function parseHash() {
+  const raw = location.hash.slice(2) || ""; // Remove '#/'
+  const [routePart, queryPart] = raw.split("?");
+  const route = routePart.replace(/\/$/, ""); // Normalize trailing slash
+  const params = new URLSearchParams(queryPart || "");
+  return { route, params };
+}
+
+/**
+ * Handle route changes.
+ */
+function handleRoute() {
+  const { route, params } = parseHash();
+  const page = routes[route] || routes[""] || routes["generator"];
+
+  if (!page) {
+    console.warn(`[Router] No page found for route: ${route}`);
+    return;
+  }
+
+  // Unmount previous page to prevent listener leaks
+  if (currentPage?.unmount) {
+    try {
+      currentPage.unmount();
+    } catch (e) {
+      console.error("[Router] Error unmounting page:", e);
+    }
+  }
+
+  currentPage = page;
+
+  // Mount new page
+  const container = document.getElementById("pageContainer");
+  if (container && currentPage.mount) {
+    try {
+      currentPage.mount(container, params);
+    } catch (e) {
+      console.error("[Router] Error mounting page:", e);
+    }
+  }
+}
