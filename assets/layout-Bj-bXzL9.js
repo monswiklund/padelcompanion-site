@@ -1,4 +1,4 @@
-(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))s(o);new MutationObserver(o=>{for(const n of o)if(n.type==="childList")for(const r of n.addedNodes)r.tagName==="LINK"&&r.rel==="modulepreload"&&s(r)}).observe(document,{childList:!0,subtree:!0});function a(o){const n={};return o.integrity&&(n.integrity=o.integrity),o.referrerPolicy&&(n.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?n.credentials="include":o.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function s(o){if(o.ep)return;o.ep=!0;const n=a(o);fetch(o.href,n)}})();const l="padelcompanion-theme";function c(){const e=localStorage.getItem(l),t=!e||e==="dark";return document.documentElement.setAttribute("data-theme",t?"dark":"light"),t?"dark":"light"}function d(){const t=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";return document.documentElement.setAttribute("data-theme",t),localStorage.setItem(l,t),t}function i(e,t){if(!e)return;const a=e.querySelector(".theme-icon");a&&(a.textContent=t==="dark"?"🌙":"☀️")}function f(e={}){m(e.activeLink),u(),p()}function m(e=""){let t=document.getElementById("header-slot");t||(t=document.createElement("div"),t.id="header-slot",document.body.insertBefore(t,document.body.firstChild));const a=e==="home",s=e==="features",o=e==="tournament",n=e==="support";t.innerHTML=`
+(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const o of document.querySelectorAll('link[rel="modulepreload"]'))r(o);new MutationObserver(o=>{for(const n of o)if(n.type==="childList")for(const s of n.addedNodes)s.tagName==="LINK"&&s.rel==="modulepreload"&&r(s)}).observe(document,{childList:!0,subtree:!0});function a(o){const n={};return o.integrity&&(n.integrity=o.integrity),o.referrerPolicy&&(n.referrerPolicy=o.referrerPolicy),o.crossOrigin==="use-credentials"?n.credentials="include":o.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function r(o){if(o.ep)return;o.ep=!0;const n=a(o);fetch(o.href,n)}})();const l="padelcompanion-theme";function c(){const e=localStorage.getItem(l),t=!e||e==="dark";return document.documentElement.setAttribute("data-theme",t?"dark":"light"),t?"dark":"light"}function d(){const t=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";return document.documentElement.setAttribute("data-theme",t),localStorage.setItem(l,t),t}function i(e,t){if(!e)return;const a=e.querySelector(".theme-icon");a&&(a.textContent=t==="dark"?"🌙":"☀️")}function f(e={}){m(e.activeLink),u(),p()}function m(e=""){let t=document.getElementById("header-slot");t||(t=document.createElement("div"),t.id="header-slot",document.body.insertBefore(t,document.body.firstChild));const a=e==="home",r=e==="features",o=e==="tournament",n=e==="support";t.innerHTML=`
     <header class="header scrolled">
       <div class="container header-inner">
         <a href="/" class="logo">
@@ -8,8 +8,24 @@
         <div class="header-actions">
           <nav class="nav" id="nav">
             <a href="/" class="${a?"active":""}">Home</a>
-            <a href="/#features" class="${s?"active":""}">Features</a>
-            <a href="/tournament/" class="${o?"active":""}">Tournament</a>
+            <a href="/#features" class="${r?"active":""}">Features</a>
+            <div class="nav-dropdown">
+              <a href="/tournament/" class="nav-dropdown-trigger ${o?"active":""}">
+                Tournament
+                <span class="dropdown-arrow">▾</span>
+              </a>
+              <div class="nav-dropdown-menu">
+                <a href="/tournament/#/generator" class="nav-dropdown-item">
+                  Generator
+                </a>
+                <a href="/tournament/#/bracket" class="nav-dropdown-item">
+                  Bracket
+                </a>
+                <a href="/tournament/#/winners-court" class="nav-dropdown-item">
+                  Winners
+                </a>
+              </div>
+            </div>
             <a href="/support.html" class="${n?"active":""}">Support</a>
           </nav>
           <button class="theme-toggle" id="themeToggle" title="Toggle theme">
@@ -110,4 +126,4 @@
         </div>
       </div>
     </section>
-  `)}function g(){const e=document.getElementById("navToggle"),t=document.getElementById("nav");e&&t&&(e.addEventListener("click",()=>{t.classList.toggle("open"),e.classList.toggle("active")}),document.addEventListener("click",s=>{t.classList.contains("open")&&!t.contains(s.target)&&!e.contains(s.target)&&(t.classList.remove("open"),e.classList.remove("active"))}),t.querySelectorAll("a").forEach(s=>{s.addEventListener("click",()=>{t.classList.remove("open"),e.classList.remove("active")})}));const a=document.getElementById("themeToggle");if(a){const s=c();i(a,s),a.addEventListener("click",()=>{const o=d();i(a,o),window.dispatchEvent(new CustomEvent("themeChanged",{detail:{theme:o}}))})}}export{c as a,f as i};
+  `)}function g(){const e=document.getElementById("navToggle"),t=document.getElementById("nav");e&&t&&(e.addEventListener("click",()=>{t.classList.toggle("open"),e.classList.toggle("active")}),document.addEventListener("click",r=>{t.classList.contains("open")&&!t.contains(r.target)&&!e.contains(r.target)&&(t.classList.remove("open"),e.classList.remove("active"))}),t.querySelectorAll("a").forEach(r=>{r.addEventListener("click",()=>{t.classList.remove("open"),e.classList.remove("active")})}));const a=document.getElementById("themeToggle");if(a){const r=c();i(a,r),a.addEventListener("click",()=>{const o=d();i(a,o),window.dispatchEvent(new CustomEvent("themeChanged",{detail:{theme:o}}))})}}export{c as a,f as i};
