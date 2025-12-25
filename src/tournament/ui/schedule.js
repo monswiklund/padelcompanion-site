@@ -158,14 +158,19 @@ export function renderSchedule() {
         : "";
 
       return `
-    <div class="round ${isCompleted ? "completed" : ""} ${
+    <div class="round ${isCompleted ? "completed" : "ongoing"} ${
         isCollapsed ? "collapsed" : ""
       }" 
          id="round-${roundIndex}" 
          data-round="${roundIndex}">
       <div class="round-header" data-action="toggle-round" data-round="${roundIndex}">
         <span class="round-title">
-          Round ${round.number} ${isCompleted ? "(done)" : ""}
+          Round ${round.number}
+          ${
+            isCompleted
+              ? `<span class="round-status completed">✓ Completed</span>`
+              : `<span class="round-status ongoing">● Ongoing</span>`
+          }
         </span>
         ${
           isCompleted
@@ -628,12 +633,24 @@ export function completeRound() {
   });
 
   if (!allScoresValid) {
-    const courtsList =
-      invalidCourts.length > 0 ? ` on ${invalidCourts.join(", ")}` : "";
+    let messageContent = "Some matches have missing or invalid scores.";
+
+    if (invalidCourts.length > 0) {
+      const courtsList = invalidCourts
+        .map((court) => `<li>${court}</li>`)
+        .join("");
+      messageContent = `
+        <p style="margin-bottom: var(--space-md);">The following matches need scores:</p>
+        <ul style="text-align: left; margin: 0 0 var(--space-md) var(--space-lg); list-style: disc;">
+          ${courtsList}
+        </ul>
+        <p>Do you want to complete the round anyway?</p>
+      `;
+    }
 
     showConfirmModal(
       "Incomplete/Invalid Scores",
-      `Some matches have missing or invalid scores${courtsList}. Do you want to complete the round anyway?`,
+      messageContent,
       "Yes, Complete Anyway",
       () => {
         finalizeCompleteRound(currentRound);

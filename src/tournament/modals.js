@@ -116,8 +116,14 @@ export function showConfirmModal(
  * @param {string} title - Modal title
  * @param {string} placeholder - Input placeholder
  * @param {Function} onConfirm - Callback with input value
+ * @param {string} [description] - Optional description text to display above the input
  */
-export function showInputModal(title, placeholder, onConfirm) {
+export function showInputModal(
+  title,
+  placeholder,
+  onConfirm,
+  description = ""
+) {
   // Remove existing modal
   const existing = document.querySelector(".input-modal");
   if (existing) existing.remove();
@@ -126,12 +132,17 @@ export function showInputModal(title, placeholder, onConfirm) {
   modal.className = "modal-overlay input-modal";
   modal.style.display = "flex";
 
+  const descriptionHtml = description
+    ? `<p class="modal-hint" style="margin-bottom: var(--space-md); text-align: left;">${description}</p>`
+    : "";
+
   modal.innerHTML = `
     <div class="modal" style="max-width: 400px; text-align: center;">
       <div class="modal-header">
         <h3>${title}</h3>
       </div>
       <div class="modal-body">
+        ${descriptionHtml}
         <div class="form-group">
           <input type="text" id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%;">
         </div>

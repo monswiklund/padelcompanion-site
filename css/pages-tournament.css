@@ -53,7 +53,7 @@
   .tournament-page .schedule-section {
     max-width: 1000px;
     margin: 0 auto;
-    padding-bottom: 120px;
+    padding-bottom: var(--space-xl);
     position: relative;
     z-index: 10;
   }
@@ -103,7 +103,7 @@
 
   /* Manual Bye Selector */
   .tournament-page .bye-selector {
-    margin: var(--space-md) 0;
+    margin: var(--space-lg) 0;
     padding: var(--space-md);
     background: var(--bg-surface);
     border-radius: var(--radius-md);
@@ -157,8 +157,9 @@
 
   /* Tournament Controls */
   .tournament-page .tournament-actions {
-    margin-top: var(--space-2xl);
-    padding-top: var(--space-xl);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    padding-top: var(--space-lg);
     border-top: 1px solid var(--border-color);
   }
   .tournament-page .actions-header {
@@ -372,7 +373,7 @@
   .tournament-page #generateBtn {
     display: block;
     max-width: 800px;
-    margin: var(--space-lg) auto 0;
+    margin: var(--space-lg) auto var(--space-2xl);
   }
 
   .tournament-page .setup-card:hover {
@@ -444,7 +445,7 @@
 
   /* Players Section */
   .tournament-page .players-section {
-    margin-top: var(--space-xl);
+    margin-top: var(--space-2xl);
     margin-bottom: var(--space-xl);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -639,7 +640,15 @@
     background: var(--bg-card-hover);
   }
 
-  /* Partners & Custom Courts */
+  .tournament-page .players-hint {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: var(--space-sm) 0;
+    margin-top: var(--space-sm);
+    text-align: center;
+  }
+
   .tournament-page .partners-section {
     margin-top: var(--space-xl);
     padding-top: var(--space-lg);
@@ -821,7 +830,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-sm) var(--space-md);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-xl);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(8px);
     display: flex;
@@ -930,6 +939,59 @@
     cursor: pointer;
   }
 
+  /* Round Status Badges */
+  .tournament-page .round-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    margin-left: var(--space-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .tournament-page .round-status.completed {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+
+  .tournament-page .round-status.ongoing {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-light);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    animation: pulse-ongoing 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ongoing {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  /* Ongoing Round - Accent left border */
+  .tournament-page .round.ongoing {
+    border-left: 3px solid var(--accent);
+  }
+
+  /* Completed Round - Green left border + muted */
+  .tournament-page .round.completed {
+    border-left: 3px solid var(--success);
+    opacity: 0.85;
+  }
+
+  .tournament-page .round.completed:hover {
+    opacity: 1;
+  }
+
+  .tournament-page .round.completed .round-header {
+    color: var(--success);
+  }
+
   .tournament-page .matches-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1032,7 +1094,7 @@
   .tournament-page .leaderboard-section {
     width: 95%;
     max-width: 600px;
-    margin: var(--space-2xl) auto 0;
+    margin: 0 auto var(--space-3xl);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-xl);
@@ -1410,7 +1472,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-lg);
-    margin-bottom: var(--space-md);
+    margin-bottom: var(--space-xl);
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;

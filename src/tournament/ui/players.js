@@ -114,13 +114,25 @@ export function togglePlayerList() {
 }
 
 /**
- * Update the player toggle button text
+ * Update the player toggle button text and visibility
  */
 function updatePlayerToggleBtn() {
   const btn = document.getElementById("expandPlayersBtn");
   const wrapper = document.getElementById("playerListWrapper");
-  if (btn && !wrapper?.classList.contains("expanded")) {
-    btn.innerHTML = `Show All Players (${state.players.length}) ▼`;
+  if (!btn) return;
+
+  // Hide button if there are too few players to need expansion
+  // The collapsed height fits about 5-6 players, so hide if <= 5
+  const MIN_PLAYERS_FOR_EXPAND = 6;
+  if (state.players.length < MIN_PLAYERS_FOR_EXPAND) {
+    btn.style.display = "none";
+    // Make sure wrapper is expanded when button is hidden so all players show
+    if (wrapper) wrapper.classList.add("expanded");
+  } else {
+    btn.style.display = "block";
+    if (!wrapper?.classList.contains("expanded")) {
+      btn.innerHTML = `Show All Players (${state.players.length}) ▼`;
+    }
   }
 }
 

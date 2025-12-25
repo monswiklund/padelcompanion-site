@@ -610,13 +610,52 @@
         });
       }
 
-      // Beta Form Logic
+      // Beta Form Logic with Custom Validation
       const betaForm = document.getElementById("betaForm");
       if (betaForm) {
+        // Remove existing error message if any
+        const removeError = () => {
+          const existingError =
+            betaForm.parentElement.querySelector(".form-error");
+          if (existingError) existingError.remove();
+        };
+
+        // Show custom error message
+        const showError = (message) => {
+          removeError();
+          const errorDiv = document.createElement("div");
+          errorDiv.className = "form-error";
+          errorDiv.textContent = message;
+          betaForm.insertAdjacentElement("afterend", errorDiv);
+          // Auto-remove after 4 seconds
+          setTimeout(removeError, 4000);
+        };
+
+        // Custom validation
         betaForm.addEventListener("submit", (e) => {
           e.preventDefault();
-          const email = document.getElementById("betaEmail").value;
+          removeError();
+
+          const email = document.getElementById("betaEmail").value.trim();
           const platform = document.getElementById("betaPlatform").value;
+
+          // Validate email
+          if (!email) {
+            showError("Please enter your email address");
+            return;
+          }
+
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            showError("Please enter a valid email address");
+            return;
+          }
+
+          // Validate platform selection
+          if (!platform) {
+            showError("Please select a platform (iOS or Android)");
+            return;
+          }
 
           const subject = encodeURIComponent("Beta Testing Signup");
           const body = encodeURIComponent(
@@ -634,6 +673,9 @@
             betaForm.reset();
           }, 2000);
         });
+
+        // Remove novalidate to allow browser validation as fallback
+        // but our custom validation runs first due to preventDefault
       }
     </script>
 

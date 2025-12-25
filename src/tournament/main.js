@@ -895,6 +895,10 @@ function initEventDelegation() {
 // Call in init
 function promptAddLatePlayer() {
   const isTeam = state.format === "team" || state.format === "teamMexicano";
+  const entityName = isTeam ? "team" : "player";
+
+  const description = `The new ${entityName} will join with 0 points and be included starting from the next round. Their ranking will adjust based on future match results.`;
+
   showInputModal(
     isTeam ? "Add Late Team" : "Add Late Player",
     isTeam ? "Enter new team name:" : "Enter new player name:",
@@ -920,7 +924,8 @@ function promptAddLatePlayer() {
         renderLeaderboard();
         showToast(`Added ${name.trim()} to tournament`);
       }
-    }
+    },
+    description
   );
 }
 
