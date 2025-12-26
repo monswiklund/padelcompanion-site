@@ -18,7 +18,7 @@ import { showInfoModal } from "./modals.js";
 
 // Page modules for routing
 import { generatorPage } from "./pages/generator.js";
-import { bracketPage } from "./pages/bracket.js";
+import { bracketPage } from "./pages/bracket/index.js";
 import { winnersCourtPage } from "./pages/winnersCourt.js";
 
 // ===== Initialize Application =====
