@@ -8,6 +8,7 @@ import { state, saveState } from "../state.js";
 import { navigate } from "../router.js";
 import {
   initBracketTournament,
+  initDualBracketTournament,
   clearBracket,
   updateMatchResult,
   getBracketRounds,
@@ -19,6 +20,11 @@ import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
 import { showToast } from "../../shared/utils.js";
 import { getHistoryTemplate } from "../ui/historyTemplate.js";
 import { initHistory, renderHistory } from "../history.js";
+import {
+  SIDE_CONFIGS,
+  renderDualBracketPreview as renderDualPreview,
+  renderMultiBracketPreview as renderMultiPreview,
+} from "../ui/bracketComponents.js";
 
 // Track attached listeners for cleanup
 const listeners = [];
@@ -61,7 +67,11 @@ function loadTeams() {
   try {
     const saved = localStorage.getItem("bracket_teams");
     if (saved) {
-      tempTeams = JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Convert old string format to new object format
+      tempTeams = parsed.map((t) =>
+        typeof t === "string" ? { name: t, side: null } : t
+      );
     }
   } catch (e) {
     console.error("Failed to load bracket teams", e);
@@ -92,6 +102,13 @@ function getTeamsHint() {
       byeCount > 1 ? "s" : ""
     } will be assigned</span>`;
   }
+}
+
+/**
+ * Get team name (handles both string and object formats)
+ */
+function getTeamName(team) {
+  return typeof team === "string" ? team : team.name;
 }
 
 /**
@@ -141,10 +158,13 @@ export const bracketPage = {
         </div>
         
         <div class="players-section" style="max-width: 500px; margin: 0 auto;">
-          <div class="section-header">
-            <h3>${getModeLabel()} <span id="bracketTeamCount">(${
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3>${getModeLabel()} <span id="bracketTeamCount">(${
       tempTeams.length
     })</span></h3>
+              <button class="help-icon" id="bracketHelpBtn" style="width: 24px; height: 24px; font-size: 0.9rem; font-weight: bold;">?</button>
+            </div>
             <div class="player-actions">
               <button class="btn btn-sm btn-secondary" id="importTeamsBtn">Import...</button>
               <button class="btn btn-sm btn-danger" id="clearAllTeamsBtn">Clear All</button>
@@ -206,8 +226,28 @@ export const bracketPage = {
               savedDualMode ? "checked" : ""
             } />
             <span class="slider round"></span>
-            <span>Dual Brackets (A vs B)</span>
+            <span>Multi-Brackets</span>
           </label>
+          <div id="bracketCountLabel" style="display: ${
+            savedDualMode ? "flex" : "none"
+          }; align-items: center; gap: 8px;">
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Brackets:</span>
+            <select id="bracketCount" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+              ${[2, 3, 4, 5, 6]
+                .map(
+                  (n) =>
+                    `<option value="${n}" ${
+                      parseInt(localStorage.getItem("bracket_count") || "2") ===
+                      n
+                        ? "selected"
+                        : ""
+                    }>${n} (${String.fromCharCode(65)}...${String.fromCharCode(
+                      64 + n
+                    )})</option>`
+                )
+                .join("")}
+            </select>
+          </div>
           <label class="wc-toggle" id="sharedFinalLabel" style="display: ${
             savedDualMode ? "flex" : "none"
           }; align-items: center; gap: 8px; cursor: pointer;">
@@ -217,7 +257,7 @@ export const bracketPage = {
                 : ""
             } />
             <span class="slider round"></span>
-            <span>Shared Grand Final 🏆</span>
+            <span>Grand Final 🏆</span>
           </label>
           <div id="sideAssignLabel" style="display: ${
             savedDualMode ? "flex" : "none"
@@ -239,7 +279,7 @@ export const bracketPage = {
                 localStorage.getItem("bracket_side_assign") === "half"
                   ? "selected"
                   : ""
-              }>First Half A / Second B</option>
+              }>Split by Pool</option>
             </select>
             <button type="button" id="assignHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
           </div>
@@ -265,19 +305,43 @@ export const bracketPage = {
   },
 
   /**
-   * Render team list items
+   * Render team list items with A/B side toggle
    */
   renderTeamItems() {
     return tempTeams
-      .map(
-        (team, i) => `
-        <li class="player-item" data-index="${i}">
-          <span class="player-number">${i + 1}.</span>
-          <span class="player-name">${team}</span>
-          <button class="player-remove" data-index="${i}">×</button>
-        </li>
-      `
-      )
+      .map((team, i) => {
+        const name = getTeamName(team);
+        const side = team.side || null;
+
+        return `
+          <li class="player-item slide-in-up" data-index="${i}" style="animation-duration: 0.3s;">
+            <span class="player-number">${i + 1}.</span>
+            <span class="player-name text-truncate" title="${name}" style="text-align: left; flex: 1;">${name}</span>
+            
+            <label class="side-toggle" data-index="${i}" style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.75rem; margin: 0 8px;">
+              <span style="color: ${
+                side !== "B" ? "var(--accent)" : "var(--text-muted)"
+              }; font-weight: ${side !== "B" ? "600" : "400"};">A</span>
+              <div class="toggle-track" style="width: 28px; height: 16px; background: ${
+                side === "B"
+                  ? "var(--warning)"
+                  : side === "A"
+                  ? "var(--accent)"
+                  : "var(--bg-tertiary)"
+              }; border-radius: 8px; position: relative; border: 1px solid var(--border-color);">
+                <div class="toggle-thumb" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; left: ${
+                  side === "B" ? "14px" : side === "A" ? "2px" : "8px"
+                }; transition: left 0.2s;"></div>
+              </div>
+              <span style="color: ${
+                side === "B" ? "var(--warning)" : "var(--text-muted)"
+              }; font-weight: ${side === "B" ? "600" : "400"};">B</span>
+            </label>
+            
+            <button class="player-remove" data-index="${i}">×</button>
+          </li>
+        `;
+      })
       .join("");
   },
 
@@ -289,18 +353,33 @@ export const bracketPage = {
     const previewContent = container.querySelector("#bracketPreviewContent");
     const dualModeToggle = container.querySelector("#bracketDualMode");
     const sharedFinalToggle = container.querySelector("#bracketSharedFinal");
+    const bracketCountSelect = container.querySelector("#bracketCount");
 
     if (!previewEl || !previewContent) return;
 
     if (tempTeams.length >= 2) {
       previewEl.style.display = "block";
-      const isDualMode = dualModeToggle?.checked || false;
+      const isMultiMode = dualModeToggle?.checked || false;
       const sharedFinal = sharedFinalToggle?.checked ?? true;
-      previewContent.innerHTML = this.renderBracketPreview(
-        tempTeams,
-        isDualMode,
-        sharedFinal
-      );
+      const bracketCount = isMultiMode
+        ? parseInt(bracketCountSelect?.value || "2")
+        : 1;
+
+      if (isMultiMode && bracketCount > 1) {
+        // Use multi-bracket preview
+        previewContent.innerHTML = renderMultiPreview(
+          tempTeams.length,
+          bracketCount,
+          sharedFinal
+        );
+      } else {
+        // Single bracket preview
+        previewContent.innerHTML = this.renderBracketPreview(
+          tempTeams,
+          false,
+          true
+        );
+      }
     } else {
       previewEl.style.display = "none";
     }
@@ -335,8 +414,12 @@ export const bracketPage = {
 
       if (!name) return;
 
-      // Check for duplicate
-      if (tempTeams.some((t) => t.toLowerCase() === name.toLowerCase())) {
+      // Check for duplicate (using getTeamName for object comparison)
+      if (
+        tempTeams.some(
+          (t) => getTeamName(t).toLowerCase() === name.toLowerCase()
+        )
+      ) {
         showToast("Team already exists!", "error");
         return;
       }
@@ -346,7 +429,7 @@ export const bracketPage = {
         return;
       }
 
-      tempTeams.push(name);
+      tempTeams.push({ name, side: null });
       saveTeams();
       teamInput.value = "";
       this.renderEmptyState(container);
@@ -371,11 +454,15 @@ export const bracketPage = {
             lines.forEach((line) => {
               const name = line.trim();
               if (!name) return;
-              if (tempTeams.some((t) => t.toLowerCase() === name.toLowerCase()))
+              if (
+                tempTeams.some(
+                  (t) => getTeamName(t).toLowerCase() === name.toLowerCase()
+                )
+              )
                 return;
               if (tempTeams.length >= 32) return;
 
-              tempTeams.push(name);
+              tempTeams.push({ name, side: null });
               added++;
             });
 
@@ -406,16 +493,38 @@ export const bracketPage = {
       );
     });
 
-    // Remove team (event delegation)
+    // Remove team and toggle side (event delegation)
     const teamsList = container.querySelector("#bracketTeamsList");
     if (teamsList) {
       addListener(teamsList, "click", (e) => {
+        // Remove button
         if (e.target.classList.contains("player-remove")) {
           const index = parseInt(e.target.dataset.index);
           const removed = tempTeams.splice(index, 1)[0];
           saveTeams();
           this.renderEmptyState(container);
-          showToast(`${removed} removed`);
+          showToast(`${getTeamName(removed)} removed`);
+          return;
+        }
+
+        // Side toggle
+        const sideToggle = e.target.closest(".side-toggle");
+        if (sideToggle) {
+          const index = parseInt(sideToggle.dataset.index);
+          const team = tempTeams[index];
+
+          // Cycle through: null -> A -> B -> null
+          if (team.side === null) {
+            team.side = "A";
+          } else if (team.side === "A") {
+            team.side = "B";
+          } else {
+            team.side = null;
+          }
+
+          saveTeams();
+          this.renderEmptyState(container);
+          this.updatePreview(container);
         }
       });
     }
@@ -433,10 +542,16 @@ export const bracketPage = {
     addListener(dualModeToggle, "change", () => {
       const sharedFinalLabel = container.querySelector("#sharedFinalLabel");
       const sideAssignLabel = container.querySelector("#sideAssignLabel");
+      const bracketCountLabel = container.querySelector("#bracketCountLabel");
       localStorage.setItem(
         "bracket_dual_mode",
         dualModeToggle.checked ? "true" : "false"
       );
+      if (bracketCountLabel) {
+        bracketCountLabel.style.display = dualModeToggle.checked
+          ? "flex"
+          : "none";
+      }
       if (sharedFinalLabel) {
         sharedFinalLabel.style.display = dualModeToggle.checked
           ? "flex"
@@ -449,6 +564,15 @@ export const bracketPage = {
       }
       this.updatePreview(container);
     });
+
+    // Bracket count dropdown
+    const bracketCountSelect = container.querySelector("#bracketCount");
+    if (bracketCountSelect) {
+      addListener(bracketCountSelect, "change", () => {
+        localStorage.setItem("bracket_count", bracketCountSelect.value);
+        this.updatePreview(container);
+      });
+    }
 
     // Shared final toggle
     if (sharedFinalToggle) {
@@ -486,6 +610,43 @@ export const bracketPage = {
       });
     }
 
+    // Main Help button
+    const bracketHelpBtn = container.querySelector("#bracketHelpBtn");
+    if (bracketHelpBtn) {
+      addListener(bracketHelpBtn, "click", (e) => {
+        e.preventDefault();
+        showInfoModal(
+          "Bracket Tournament Guide",
+          `<div style="text-align: left;">
+            <h4 style="margin-bottom: 10px; color: var(--accent);">🏆 How It Works</h4>
+            <p>Create a single-elimination bracket where teams compete head-to-head. Losers are eliminated, winners advance until one champion remains.</p>
+            
+            <hr style="margin: 12px 0; border-color: var(--border-color);">
+            
+            <h4 style="margin-bottom: 10px; color: var(--accent);">📋 Setup Tips</h4>
+            <ul style="padding-left: 20px; margin-bottom: 12px;">
+              <li><strong>Perfect sizes:</strong> 4, 8, 16, or 32 teams</li>
+              <li><strong>Other sizes:</strong> "Byes" are assigned automatically</li>
+              <li><strong>A/B Toggle:</strong> Pre-assign teams to bracket sides</li>
+            </ul>
+            
+            <h4 style="margin-bottom: 10px; color: var(--warning);">🔀 A/B Side Toggle</h4>
+            <p>Click the toggle next to each team to assign them:</p>
+            <ul style="padding-left: 20px; margin-bottom: 12px;">
+              <li><strong>A (Blue):</strong> Left side of bracket</li>
+              <li><strong>B (Orange):</strong> Right side of bracket</li>
+              <li><strong>Gray:</strong> Unassigned (auto-distributed)</li>
+            </ul>
+            
+            <hr style="margin: 12px 0; border-color: var(--border-color);">
+            
+            <h4 style="margin-bottom: 10px; color: var(--success);">⚡ Dual Brackets Mode</h4>
+            <p>Enable "Dual Brackets" for two separate brackets (A vs B) with a shared Grand Final where the winners of each side face off!</p>
+          </div>`
+        );
+      });
+    }
+
     // Help button
     const helpBtn = container.querySelector("#bracketHelp");
     if (helpBtn) {
@@ -518,10 +679,25 @@ export const bracketPage = {
         return;
       }
 
+      const isDualMode = dualModeToggle?.checked || false;
+      const sharedFinal = sharedFinalToggle?.checked ?? true;
+
       try {
-        initBracketTournament(tempTeams);
-        showToast(`Bracket created with ${tempTeams.length} teams`, "success");
-        this.renderBracket(container);
+        if (isDualMode) {
+          initDualBracketTournament(tempTeams, sharedFinal);
+          showToast(
+            `Dual bracket created with ${tempTeams.length} teams`,
+            "success"
+          );
+          this.renderDualBracket(container);
+        } else {
+          initBracketTournament(tempTeams);
+          showToast(
+            `Bracket created with ${tempTeams.length} teams`,
+            "success"
+          );
+          this.renderBracket(container);
+        }
       } catch (e) {
         showToast("Error creating bracket: " + e.message, "error");
       }
@@ -591,86 +767,23 @@ export const bracketPage = {
 
   /**
    * Render dual bracket preview (Side A vs Side B)
+   * Now uses reusable bracketComponents module
    */
   renderDualBracketPreview(teamNames, sharedFinal = true) {
-    const count = teamNames.length;
-    const halfCount = Math.ceil(count / 2);
-    const sideACount = halfCount;
-    const sideBCount = count - halfCount;
-
-    // When sharedFinal is true, don't show individual winner boxes (they meet in Grand Final)
-    const sideABracket = this.renderMiniBracket(
-      sideACount,
-      "var(--accent)",
-      !sharedFinal
+    // Use the reusable component with default A/B configuration
+    return renderDualPreview(
+      teamNames.length,
+      SIDE_CONFIGS.A,
+      SIDE_CONFIGS.B,
+      sharedFinal
     );
-    const sideBBracket = this.renderMiniBracketReversed(
-      sideBCount,
-      "var(--warning)"
-    );
-
-    // Calculate byes for warning
-    const sideARounds = Math.ceil(Math.log2(sideACount));
-    const sideBRounds = Math.ceil(Math.log2(sideBCount));
-    const sideAByes = Math.pow(2, sideARounds) - sideACount;
-    const sideBByes = Math.pow(2, sideBRounds) - sideBCount;
-
-    return `
-      <div style="text-align: center; margin-bottom: 12px;">
-        <span style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${count} Teams → 2 ${
-      sharedFinal ? "Brackets" : "Separate Tournaments"
-    }</span>
-      </div>
-      <div class="dual-bracket-container" style="display: flex; align-items: stretch; justify-content: center; gap: 10px; flex-wrap: wrap;">
-        <!-- Side A -->
-        <div style="flex: 0 1 auto; width: fit-content; padding: 10px; border: 2px solid var(--accent); border-radius: 8px; background: rgba(59, 130, 246, 0.05);">
-          <div style="text-align: center; margin-bottom: 8px; font-weight: 600; color: var(--accent);">
-            Side A (${sideACount}) ${!sharedFinal ? "🏆" : ""}
-            ${
-              sideAByes > 0
-                ? `<span style="color: var(--warning); font-size: 0.75rem;" title="${sideAByes} byes"> ⚠️</span>`
-                : ""
-            }
-          </div>
-          ${sideABracket}
-        </div>
-        
-        <!-- Center: Grand Final or Separator -->
-        ${
-          sharedFinal
-            ? `
-          <div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px;">
-            <div style="font-size: 0.7rem; color: var(--success); font-weight: 600;">GRAND FINAL</div>
-            <div style="width: 60px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--warning)); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 1.2rem;">🏆</span>
-            </div>
-            <div style="font-size: 0.6rem; color: var(--text-muted);">A 🆚 B</div>
-          </div>
-        `
-            : ""
-        }
-        
-        <!-- Side B -->
-        <div style="flex: 0 1 auto; width: fit-content; padding: 10px; border: 2px solid var(--warning); border-radius: 8px; background: rgba(245, 158, 11, 0.05);">
-          <div style="text-align: center; margin-bottom: 8px; font-weight: 600; color: var(--warning);">
-            Side B (${sideBCount}) ${!sharedFinal ? "🏆" : ""}
-            ${
-              sideBByes > 0
-                ? `<span style="color: var(--warning); font-size: 0.75rem;" title="${sideBByes} byes"> ⚠️</span>`
-                : ""
-            }
-          </div>
-          ${sideBBracket}
-        </div>
-      </div>
-    `;
   },
 
   /**
    * Render a mini bracket visualization (reversed for mirrored display)
    * Shows F → SF → QF flowing toward center (left to right)
    */
-  renderMiniBracketReversed(count, color) {
+  renderMiniBracketReversed(count, color, showWinner = true) {
     const rounds = Math.ceil(Math.log2(count));
 
     // Build rounds array in normal order first
@@ -691,6 +804,17 @@ export const bracketPage = {
     let html =
       '<div style="display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 5px 0;">';
 
+    // Winner first (leftmost for reversed bracket) - only if showWinner is true
+    if (showWinner) {
+      html += `
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <div style="font-size: 1.2rem;">🏆</div>
+          <div style="font-size: 0.7rem; color: var(--success); font-weight: 600;">Winner!</div>
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.8rem;">←</div>
+      `;
+    }
+
     for (let r = 0; r < roundsData.length; r++) {
       const { name, matches } = roundsData[r];
 
@@ -706,7 +830,9 @@ export const bracketPage = {
             ${Array.from(
               { length: matches },
               () => `
-              <div style="width: 60px; height: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 3px;"></div>
+              <div style="width: 70px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; position: relative;">
+                <div style="position: absolute; left: 4px; right: 4px; top: 50%; height: 1px; background: var(--border-color);"></div>
+              </div>
             `
             ).join("")}
           </div>
@@ -757,7 +883,9 @@ export const bracketPage = {
             ${Array.from(
               { length: matchesInRound },
               () => `
-              <div style="width: 60px; height: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 3px;"></div>
+              <div style="width: 70px; height: 36px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; position: relative;">
+                <div style="position: absolute; left: 4px; right: 4px; top: 50%; height: 1px; background: var(--border-color);"></div>
+              </div>
             `
             ).join("")}
           </div>
@@ -769,9 +897,9 @@ export const bracketPage = {
     if (showWinner) {
       html += `
         <div style="color: var(--text-muted); font-size: 0.8rem;">→</div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
-          <div style="font-size: 0.65rem; color: var(--success);">🏆</div>
-          <div style="width: 60px; height: 20px; background: linear-gradient(135deg, ${color}, var(--success)); border-radius: 3px;"></div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <div style="font-size: 1.2rem;">🏆</div>
+          <div style="font-size: 0.7rem; color: var(--success); font-weight: 600;">Winner!</div>
         </div>
       `;
     }
@@ -848,6 +976,165 @@ export const bracketPage = {
   },
 
   /**
+   * Render dual bracket visualization (Side A left, Grand Final center, Side B right).
+   */
+  renderDualBracket(container) {
+    const tournament = state.tournament;
+    if (!tournament || tournament.format !== "dual") {
+      this.renderBracket(container);
+      return;
+    }
+
+    const matchesA = tournament.matchesA || [];
+    const matchesB = tournament.matchesB || [];
+    const grandFinal = tournament.grandFinal;
+    const numRoundsA = tournament.numRoundsA || 0;
+    const numRoundsB = tournament.numRoundsB || 0;
+
+    // Group matches by round
+    const groupByRound = (matches) => {
+      const grouped = {};
+      matches.forEach((m) => {
+        if (!grouped[m.round]) grouped[m.round] = [];
+        grouped[m.round].push(m);
+      });
+      return Object.values(grouped);
+    };
+
+    const roundsA = groupByRound(matchesA);
+    const roundsB = groupByRound(matchesB);
+
+    container.innerHTML = `
+      <div class="bracket-header">
+        <h2>Dual Bracket Tournament</h2>
+        <div class="bracket-actions">
+          <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
+          <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
+        </div>
+      </div>
+      
+      <div class="dual-bracket-layout" style="display: flex; gap: 20px; align-items: flex-start; justify-content: center; flex-wrap: wrap; padding: 20px 0;">
+        
+        <!-- Side A Bracket (Left) -->
+        <div class="bracket-side side-a" style="flex: 1; border: 2px solid var(--accent); border-radius: 12px; padding: 16px; background: rgba(59, 130, 246, 0.05);">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <span style="font-weight: 700; font-size: 1.1rem; color: var(--accent);">Side A</span>
+            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${
+              tournament.teamsA?.length || 0
+            } teams)</span>
+          </div>
+          <div class="bracket-container" style="display: flex; gap: 12px; overflow-x: auto;">
+            ${roundsA
+              .map(
+                (roundMatches, i) => `
+              <div class="bracket-round" data-round="${i + 1}">
+                <div class="round-header">${getRoundName(
+                  i + 1,
+                  numRoundsA
+                )}</div>
+                <div class="round-matches">
+                  ${roundMatches
+                    .map((match) => this.renderMatch(match))
+                    .join("")}
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        </div>
+        
+        <!-- Grand Final (Center) -->
+        <div class="bracket-final" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+          <div style="font-size: 0.85rem; color: var(--success); font-weight: 700; margin-bottom: 8px;">🏆 GRAND FINAL 🏆</div>
+          ${
+            grandFinal
+              ? this.renderMatch(grandFinal)
+              : '<div style="color: var(--text-muted);">TBD</div>'
+          }
+          ${
+            grandFinal?.winner
+              ? `
+            <div style="margin-top: 12px; text-align: center;">
+              <div style="font-size: 0.75rem; color: var(--text-muted);">Champion</div>
+              <div style="font-size: 1.1rem; font-weight: 700; color: var(--success);">
+                ${
+                  tournament.teams.find((t) => t.id === grandFinal.winner)
+                    ?.name || "?"
+                }
+              </div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+        
+        <!-- Side B Bracket (Right) -->
+        <div class="bracket-side side-b" style="flex: 1; border: 2px solid var(--warning); border-radius: 12px; padding: 16px; background: rgba(245, 158, 11, 0.05);">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <span style="font-weight: 700; font-size: 1.1rem; color: var(--warning);">Side B</span>
+            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${
+              tournament.teamsB?.length || 0
+            } teams)</span>
+          </div>
+          <div class="bracket-container" style="display: flex; gap: 12px; overflow-x: auto; flex-direction: row-reverse;">
+            ${roundsB
+              .map(
+                (roundMatches, i) => `
+              <div class="bracket-round" data-round="${i + 1}">
+                <div class="round-header">${getRoundName(
+                  i + 1,
+                  numRoundsB
+                )}</div>
+                <div class="round-matches">
+                  ${roundMatches
+                    .map((match) => this.renderMatch(match))
+                    .join("")}
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        </div>
+        
+      </div>
+    `;
+
+    // Event delegation for match clicks
+    const dualLayout = container.querySelector(".dual-bracket-layout");
+    addListener(dualLayout, "click", (e) => {
+      const matchEl = e.target.closest(".bracket-match");
+      if (matchEl && !matchEl.classList.contains("bye")) {
+        const matchId = parseInt(matchEl.dataset.matchId);
+        this.openScoreEntry(container, matchId);
+      }
+    });
+
+    // Clear button
+    const clearBtn = container.querySelector("#clearBracketBtn");
+    addListener(clearBtn, "click", () => {
+      showConfirmModal(
+        "Clear Bracket?",
+        "This will delete the entire bracket and all results.",
+        "Clear",
+        () => {
+          clearBracket();
+          this.renderEmptyState(container);
+          showToast("Bracket cleared");
+        },
+        true
+      );
+    });
+
+    // Print button
+    const printBtn = container.querySelector("#printBracketBtn");
+    if (printBtn) {
+      addListener(printBtn, "click", () => window.print());
+    }
+  },
+
+  /**
    * Render a single match.
    */
   renderMatch(match) {
@@ -861,17 +1148,28 @@ export const bracketPage = {
     const team1Class = team1IsWinner ? "winner" : isComplete ? "loser" : "";
     const team2Class = team2IsWinner ? "winner" : isComplete ? "loser" : "";
 
+    // Side badges helper
+    const getSideBadge = (team) => {
+      if (!team || !team.side) return "";
+      const color = team.side === "A" ? "var(--accent)" : "var(--warning)";
+      return `<span style="background: ${color}; color: white; font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; margin-right: 4px; font-weight: bold;">${team.side}</span>`;
+    };
+
     return `
       <div class="bracket-match ${isBye ? "bye" : ""} ${
       isComplete ? "complete" : ""
     } ${canEdit ? "editable" : ""}" 
            data-match-id="${match.id}">
         <div class="match-team ${team1Class}">
-          <span class="team-name">${match.team1?.name || "TBD"}</span>
+          ${getSideBadge(match.team1)}<span class="team-name">${
+      match.team1?.name || "TBD"
+    }</span>
           <span class="team-score">${match.score1 ?? "-"}</span>
         </div>
         <div class="match-team ${team2Class}">
-          <span class="team-name">${match.team2?.name || "TBD"}</span>
+          ${getSideBadge(match.team2)}<span class="team-name">${
+      match.team2?.name || "TBD"
+    }</span>
           <span class="team-score">${match.score2 ?? "-"}</span>
         </div>
         ${isBye ? '<div class="bye-label">BYE</div>' : ""}

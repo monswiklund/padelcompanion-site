@@ -103,13 +103,36 @@ export function generateBracket(teams) {
 }
 
 /**
- * Seed teams for bracket (1 vs last, 2 vs second-last, etc.)
+ * Seed teams for bracket based on side assignments (A = top half, B = bottom half).
+ * Teams without side assignments are distributed evenly.
  */
 function seedTeams(teams, bracketSize) {
+  // Separate teams by side
+  const sideA = teams.filter((t) => t.side === "A");
+  const sideB = teams.filter((t) => t.side === "B");
+  const unassigned = teams.filter(
+    (t) => !t.side || (t.side !== "A" && t.side !== "B")
+  );
+
+  // Distribute unassigned teams evenly
+  const unassignedHalf = Math.ceil(unassigned.length / 2);
+  const topHalf = [...sideA, ...unassigned.slice(0, unassignedHalf)];
+  const bottomHalf = [...sideB, ...unassigned.slice(unassignedHalf)];
+
+  // Place top half in first positions, bottom half in last positions
+  const halfSize = bracketSize / 2;
   const seeded = new Array(bracketSize).fill(null);
-  for (let i = 0; i < teams.length; i++) {
-    seeded[i] = teams[i];
-  }
+
+  // Top half fills from start
+  topHalf.forEach((team, i) => {
+    if (i < halfSize) seeded[i] = team;
+  });
+
+  // Bottom half fills from middle
+  bottomHalf.forEach((team, i) => {
+    if (halfSize + i < bracketSize) seeded[halfSize + i] = team;
+  });
+
   return seeded;
 }
 
@@ -299,12 +322,18 @@ export function getFinalStandings() {
 
 /**
  * Initialize bracket tournament with teams.
+ * @param {Array<string|{name: string, side?: string}>} teamNames - Team names or objects
  */
 export function initBracketTournament(teamNames) {
-  const teams = teamNames.map((name, i) => ({
-    id: `team-${Date.now()}-${i}`,
-    name: name.trim(),
-  }));
+  const teams = teamNames.map((team, i) => {
+    const name = typeof team === "string" ? team : team.name;
+    const side = typeof team === "object" ? team.side : null;
+    return {
+      id: `team-${Date.now()}-${i}`,
+      name: name.trim(),
+      side: side, // Preserve side for seeding
+    };
+  });
 
   const bracket = generateBracket(teams);
 
@@ -336,4 +365,131 @@ export function clearBracket() {
     meta: { name: "", notes: "", createdAt: null },
   };
   saveState();
+}
+
+/**
+ * Generate a dual bracket (Side A vs Side B with Grand Final).
+ * @param {Array} teamsA - Side A teams
+ * @param {Array} teamsB - Side B teams
+ * @returns {Object} Dual bracket structure
+ */
+export function generateDualBracket(teamsA, teamsB) {
+  // Generate separate brackets for each side
+  const bracketA = generateBracket(teamsA);
+  const bracketB = generateBracket(teamsB);
+
+  // Offset match IDs for bracket B to avoid conflicts
+  const maxIdA = Math.max(...bracketA.matches.map((m) => m.id));
+  bracketB.matches.forEach((m) => {
+    m.id += maxIdA;
+    if (m.nextMatchId) m.nextMatchId += maxIdA;
+    m.bracket = "B";
+  });
+
+  // Mark bracket A matches
+  bracketA.matches.forEach((m) => {
+    m.bracket = "A";
+  });
+
+  // Find finals of each bracket
+  const finalA = bracketA.matches.find((m) => m.round === bracketA.numRounds);
+  const finalB = bracketB.matches.find((m) => m.round === bracketB.numRounds);
+
+  // Create grand final match
+  const grandFinalId =
+    maxIdA + Math.max(...bracketB.matches.map((m) => m.id)) + 1;
+  const grandFinal = {
+    id: grandFinalId,
+    round: Math.max(bracketA.numRounds, bracketB.numRounds) + 1,
+    position: 0,
+    team1: null,
+    team2: null,
+    score1: null,
+    score2: null,
+    winner: null,
+    nextMatchId: null,
+    bracket: "FINAL",
+    isGrandFinal: true,
+  };
+
+  // Link finals to grand final
+  finalA.nextMatchId = grandFinalId;
+  finalB.nextMatchId = grandFinalId;
+
+  // Combine all matches
+  const allMatches = [...bracketA.matches, ...bracketB.matches, grandFinal];
+  const allTeams = [...bracketA.teams, ...bracketB.teams];
+
+  return {
+    teams: allTeams,
+    teamsA: bracketA.teams,
+    teamsB: bracketB.teams,
+    matches: allMatches,
+    matchesA: bracketA.matches,
+    matchesB: bracketB.matches,
+    grandFinal,
+    numRoundsA: bracketA.numRounds,
+    numRoundsB: bracketB.numRounds,
+    format: "dual",
+  };
+}
+
+/**
+ * Initialize a dual bracket tournament.
+ * @param {Array} teamNames - Team objects with name and side
+ * @param {boolean} sharedFinal - Whether to have a shared grand final
+ */
+export function initDualBracketTournament(teamNames, sharedFinal = true) {
+  // Convert to team objects with IDs
+  const teams = teamNames.map((team, i) => {
+    const name = typeof team === "string" ? team : team.name;
+    const side = typeof team === "object" ? team.side : null;
+    return {
+      id: `team-${Date.now()}-${i}`,
+      name: name.trim(),
+      side: side,
+    };
+  });
+
+  // Split teams by side
+  const teamsA = teams.filter((t) => t.side === "A");
+  const teamsB = teams.filter((t) => t.side === "B");
+  const unassigned = teams.filter(
+    (t) => !t.side || (t.side !== "A" && t.side !== "B")
+  );
+
+  // Distribute unassigned teams evenly
+  const halfUnassigned = Math.ceil(unassigned.length / 2);
+  const finalTeamsA = [...teamsA, ...unassigned.slice(0, halfUnassigned)];
+  const finalTeamsB = [...teamsB, ...unassigned.slice(halfUnassigned)];
+
+  // Ensure minimum teams on each side
+  if (finalTeamsA.length < 2 || finalTeamsB.length < 2) {
+    throw new Error("Need at least 2 teams on each side for dual bracket");
+  }
+
+  const bracket = generateDualBracket(finalTeamsA, finalTeamsB);
+
+  state.tournament = {
+    format: "dual",
+    teams: bracket.teams,
+    teamsA: bracket.teamsA,
+    teamsB: bracket.teamsB,
+    matches: bracket.matches,
+    matchesA: bracket.matchesA,
+    matchesB: bracket.matchesB,
+    grandFinal: bracket.grandFinal,
+    numRoundsA: bracket.numRoundsA,
+    numRoundsB: bracket.numRoundsB,
+    sharedFinal,
+    standings: [],
+    meta: {
+      name: "",
+      notes: "",
+      createdAt: new Date().toISOString(),
+    },
+  };
+
+  saveState();
+  return bracket;
 }

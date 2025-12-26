@@ -117,6 +117,8 @@ export const winnersCourtPage = {
 
       <div id="wcSetupContainer"></div>
       <div id="wcActiveContainer"></div>
+      
+      ${getHistoryTemplate()}
     `;
 
     this.renderSetup(container.querySelector("#wcSetupContainer"));

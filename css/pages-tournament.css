@@ -2109,6 +2109,69 @@
     align-items: center;
   }
 
+  /* Dual Bracket Layout - Full Width */
+  .tournament-page .dual-bracket-layout {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    justify-content: center;
+    padding: 20px 0;
+    width: 100%;
+    max-width: none !important;
+  }
+
+  .tournament-page .bracket-side {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+  }
+
+  .tournament-page .bracket-side .bracket-container {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .tournament-page .bracket-side.side-b .bracket-container {
+    justify-content: flex-end;
+  }
+
+  .tournament-page .bracket-final {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-width: 140px;
+  }
+
+  /* Dynamic scaling based on viewport */
+  .tournament-page .dual-bracket-layout .bracket-round {
+    min-width: 150px;
+    flex: 0 0 auto;
+  }
+
+  .tournament-page .dual-bracket-layout .bracket-match {
+    min-width: 130px;
+  }
+
+  @media (min-width: 1400px) {
+    .tournament-page .dual-bracket-layout .bracket-round {
+      min-width: 180px;
+    }
+    .tournament-page .dual-bracket-layout .bracket-match {
+      min-width: 160px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .tournament-page .dual-bracket-layout {
+      flex-direction: column;
+    }
+    .tournament-page .bracket-final {
+      order: -1;
+    }
+  }
+
   .tournament-page .bracket-round {
     display: flex;
     flex-direction: column;
