@@ -11,7 +11,7 @@ import {
 } from "../../content/help.js";
 import {
   SIDE_CONFIGS,
-  renderDualBracketPreview as renderMultiPreview,
+  renderMultiBracketPreview as renderMultiPreview,
 } from "../../ui/bracketComponents.js";
 import {
   initBracketTournament,
