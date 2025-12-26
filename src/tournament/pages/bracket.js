@@ -24,6 +24,20 @@ const listeners = [];
 // Temporary teams array for bracket setup
 let tempTeams = [];
 let listExpanded = false;
+let bracketMode = localStorage.getItem("bracket_mode") || "teams"; // "teams" or "players"
+
+// Helper functions for mode-specific labels
+function getModeLabel() {
+  return bracketMode === "players" ? "Players" : "Teams";
+}
+function getModeLabelSingular() {
+  return bracketMode === "players" ? "Player" : "Team";
+}
+function getModeInputPlaceholder() {
+  return bracketMode === "players"
+    ? "Enter player name..."
+    : "Enter team name...";
+}
 
 function addListener(el, event, handler) {
   if (!el) return;
@@ -115,9 +129,9 @@ export const bracketPage = {
         
         <div class="players-section" style="max-width: 500px; margin: 0 auto;">
           <div class="section-header">
-            <h3>Teams <span id="bracketTeamCount">(${
-              tempTeams.length
-            })</span></h3>
+            <h3>${getModeLabel()} <span id="bracketTeamCount">(${
+      tempTeams.length
+    })</span></h3>
             <div class="player-actions">
               <button class="btn btn-sm btn-secondary" id="importTeamsBtn">Import...</button>
               <button class="btn btn-sm btn-danger" id="clearAllTeamsBtn">Clear All</button>
@@ -126,8 +140,8 @@ export const bracketPage = {
           
           <div class="player-input-row" style="display: flex; gap: 12px; align-items: flex-end;">
             <div class="input-group" style="flex: 1;">
-              <label for="bracketTeamInput" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Team Name</label>
-              <input type="text" id="bracketTeamInput" class="form-input" placeholder="Enter team name..." />
+              <label for="bracketTeamInput" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">${getModeLabelSingular()} Name</label>
+              <input type="text" id="bracketTeamInput" class="form-input" placeholder="${getModeInputPlaceholder()}" />
             </div>
             <button class="btn btn-primary" id="addTeamBtn" style="height: 44px;">Add</button>
           </div>
@@ -150,12 +164,30 @@ export const bracketPage = {
           
           <p class="players-hint" id="bracketTeamsHint">${getTeamsHint()}</p>
           <p class="form-hint" style="margin-top: 8px;">
-            Use 4, 8, 16, or 32 teams for perfect brackets. 
+            Use 4, 8, 16, or 32 ${
+              bracketMode === "players" ? "players" : "teams"
+            } for perfect brackets. 
             <button type="button" id="bracketHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
           </p>
         </div>
         
         <div class="bracket-options" style="display: flex; gap: 20px; justify-content: center; margin: 15px 0; flex-wrap: wrap;">
+          <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <span style="color: ${
+              bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
+            }; font-weight: ${
+      bracketMode === "teams" ? "600" : "400"
+    };">Teams</span>
+            <input type="checkbox" id="bracketModeToggle" ${
+              bracketMode === "players" ? "checked" : ""
+            } />
+            <span class="slider round"></span>
+            <span style="color: ${
+              bracketMode === "players" ? "var(--accent)" : "var(--text-muted)"
+            }; font-weight: ${
+      bracketMode === "players" ? "600" : "400"
+    };">Players</span>
+          </label>
           <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
             <input type="checkbox" id="bracketDualMode" ${
               savedDualMode ? "checked" : ""
@@ -273,6 +305,16 @@ export const bracketPage = {
     const dualModeToggle = container.querySelector("#bracketDualMode");
     const sharedFinalToggle = container.querySelector("#bracketSharedFinal");
     const sideAssignSelect = container.querySelector("#bracketSideAssign");
+    const modeToggle = container.querySelector("#bracketModeToggle");
+
+    // Mode toggle (Teams vs Players)
+    if (modeToggle) {
+      addListener(modeToggle, "change", () => {
+        bracketMode = modeToggle.checked ? "players" : "teams";
+        localStorage.setItem("bracket_mode", bracketMode);
+        this.renderEmptyState(container);
+      });
+    }
 
     // Add team
     const addTeam = () => {

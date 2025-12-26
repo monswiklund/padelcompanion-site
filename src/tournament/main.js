@@ -228,16 +228,13 @@ function injectPageNavigation() {
   nav.innerHTML = `
     <div class="page-nav-tabs">
       <a href="#/generator" class="page-nav-tab" data-route="generator">
-        <span class="tab-icon">🎯</span>
         <span class="tab-label">Generator</span>
       </a>
       <a href="#/bracket" class="page-nav-tab" data-route="bracket">
-        <span class="tab-icon">🏆</span>
         <span class="tab-label">Bracket</span>
       </a>
       <a href="#/winners-court" class="page-nav-tab" data-route="winners-court">
-        <span class="tab-icon">🥇</span>
-        <span class="tab-label">Winners</span>
+        <span class="tab-label">Winners Court</span>
       </a>
     </div>
   `;
