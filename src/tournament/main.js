@@ -268,6 +268,30 @@ function injectPageNavigation() {
       }
     });
 
+    // Update page title and subtitle based on route
+    const titleEl = document.getElementById("toolTitle");
+    const subtitleEl = document.getElementById("toolSubtitle");
+    if (titleEl && subtitleEl) {
+      const titles = {
+        generator: {
+          title: "Americano & Mexicano Generator",
+          subtitle:
+            "Create Americano and Mexicano schedules for your padel group in seconds.",
+        },
+        bracket: {
+          title: "Bracket Generator",
+          subtitle: "Create single or dual elimination tournament brackets.",
+        },
+        "winners-court": {
+          title: "Winners Court",
+          subtitle: "Skill-based court placement for balanced matches.",
+        },
+      };
+      const config = titles[currentRoute] || titles.generator;
+      titleEl.textContent = config.title;
+      subtitleEl.textContent = config.subtitle;
+    }
+
     // Toggle visibility: generator uses existing HTML, others use pageContainer
     const existingContent = document.querySelector(
       ".players-section, .tournament-config, .schedule-section, .leaderboard-section"

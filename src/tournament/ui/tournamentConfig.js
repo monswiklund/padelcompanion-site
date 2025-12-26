@@ -118,11 +118,6 @@ export function renderTournamentConfig() {
   // Safe to call repeatedly thanks to internal guard
   attachConfigListeners(container);
 
-  // Hide if tournament is running
-  if (state.isLocked) {
-    container.style.display = "none";
-    return;
-  }
   container.style.display = "block";
 
   const isTeam = state.format === "team" || state.format === "teamMexicano";

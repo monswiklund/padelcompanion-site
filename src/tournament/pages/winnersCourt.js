@@ -209,6 +209,9 @@ export const winnersCourtPage = {
           
           <!-- Options Section -->
           <div class="wc-options">
+            ${
+              !this.splitSidesEnabled
+                ? `
             <div class="wc-option">
               <label for="wcCourts">Courts</label>
               <select id="wcCourts" class="form-input">
@@ -225,6 +228,9 @@ export const winnersCourtPage = {
                   .join("")}
               </select>
             </div>
+            `
+                : ""
+            }
             
             <label class="wc-toggle">
               <input type="checkbox" id="wcTwist" />
@@ -324,9 +330,9 @@ export const winnersCourtPage = {
             <div class="toggle-track" style="width: 28px; height: 16px; background: ${
               player.side === "B" ? "var(--warning)" : "var(--accent)"
             }; border-radius: 8px; position: relative;">
-              <div class="toggle-thumb" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; ${
-                player.side === "B" ? "right: 2px;" : "left: 2px;"
-              }"></div>
+              <div class="toggle-thumb" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; left: ${
+                player.side === "B" ? "14px" : "2px"
+              };"></div>
             </div>
             <span style="color: ${
               player.side === "B" ? "var(--warning)" : "var(--text-muted)"
@@ -354,11 +360,18 @@ export const winnersCourtPage = {
 
     const renderSideList = (players, sideName, color) => {
       if (players.length === 0) return "";
+      const courts = Math.floor(players.length / 4);
+      const extra = players.length % 4;
       return `
         <div style="flex: 1; min-width: 120px;">
           <div style="font-weight: 600; color: ${color}; margin-bottom: 4px;">
             ${sideName}: ${players.length} player${
         players.length !== 1 ? "s" : ""
+      }
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">
+            ${courts} court${courts !== 1 ? "s" : ""}${
+        extra > 0 ? ` (+${extra} bench)` : ""
       }
           </div>
           <ul style="margin: 0; padding-left: 16px; font-size: 0.8rem; color: var(--text-secondary);">
@@ -442,13 +455,48 @@ export const winnersCourtPage = {
     const autoAssignBtn = container.querySelector("#wcAutoAssignBtn");
     if (autoAssignBtn) {
       addListener(autoAssignBtn, "click", () => {
-        this.tempPlayers.forEach((player) => {
-          // Skill >= 5 goes to Side A, < 5 goes to Side B, unknown (0) goes to A
-          player.side = player.skill === 0 || player.skill >= 5 ? "A" : "B";
+        // First pass: assign known skills, collect unknown
+        const unknownIndices = [];
+        this.tempPlayers.forEach((player, i) => {
+          if (player.skill === 0) {
+            unknownIndices.push(i);
+            player.side = null; // Reset for counting
+          } else {
+            player.side = player.skill >= 5 ? "A" : "B";
+          }
         });
+
+        // Count current sides (only known players)
+        let countA = this.tempPlayers.filter((p) => p.side === "A").length;
+        let countB = this.tempPlayers.filter((p) => p.side === "B").length;
+
+        // Shuffle unknown players for randomization
+        for (let i = unknownIndices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [unknownIndices[i], unknownIndices[j]] = [
+            unknownIndices[j],
+            unknownIndices[i],
+          ];
+        }
+
+        // Second pass: assign unknown players to balance sides
+        unknownIndices.forEach((idx) => {
+          if (countA <= countB) {
+            this.tempPlayers[idx].side = "A";
+            countA++;
+          } else {
+            this.tempPlayers[idx].side = "B";
+            countB++;
+          }
+        });
+
         this.saveSetup();
         this.renderSetup(container);
-        showToast("Players auto-assigned by skill level", "success");
+
+        showToast(
+          `Auto-assigned: Side A (${countA}) / Side B (${countB})`,
+          "success"
+        );
       });
     }
 
@@ -525,11 +573,19 @@ export const winnersCourtPage = {
       }
 
       if (name && skill >= 0 && skill <= 10) {
-        this.tempPlayers.push({ name, skill, side: "A" }); // Default to Side A
+        // Auto-assign side based on skill when split sides is enabled
+        const side =
+          this.splitSidesEnabled && skill > 0 && skill < 5 ? "B" : "A";
+        this.tempPlayers.push({ name, skill, side });
         this.saveSetup();
         nameInput.value = "";
         this.renderSetup(container);
         container.querySelector("#wcNameInput").focus();
+
+        // Show notification
+        const skillText = skill === 0 ? "-" : skill;
+        const sideText = this.splitSidesEnabled ? ` → Side ${side}` : "";
+        showToast(`${name} (${skillText}) added${sideText}`, "success");
       }
     };
 
@@ -581,17 +637,19 @@ export const winnersCourtPage = {
     if (toggleBtn) {
       addListener(toggleBtn, "click", () => {
         const list = container.querySelector("#wcPlayersList");
-        const isExpanded = toggleBtn.dataset.expanded === "true";
 
-        if (isExpanded) {
-          list.style.maxHeight = "280px";
-          toggleBtn.textContent = `Show All (${this.tempPlayers.length})`;
-          toggleBtn.dataset.expanded = "false";
-        } else {
-          // Use scrollHeight for smooth animation (can't animate to 'none')
+        // Toggle the expanded state
+        this.listExpanded = !this.listExpanded;
+
+        if (this.listExpanded) {
+          // Use scrollHeight for smooth animation
           list.style.maxHeight = list.scrollHeight + "px";
           toggleBtn.textContent = "Show Less";
           toggleBtn.dataset.expanded = "true";
+        } else {
+          list.style.maxHeight = "280px";
+          toggleBtn.textContent = `Show All (${this.tempPlayers.length})`;
+          toggleBtn.dataset.expanded = "false";
         }
       });
     }
@@ -685,7 +743,7 @@ export const winnersCourtPage = {
     }
 
     container.innerHTML = `
-      <div class="wc-view" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+      <div class="wc-view" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
         ${activeSides
           .map((side) => this.renderSide(side, sides[side], twist))
           .join("")}
@@ -763,7 +821,7 @@ export const winnersCourtPage = {
     const sideColor = side === "A" ? "var(--accent)" : "var(--warning)";
 
     return `
-      <div class="wc-side" data-side="${side}" style="margin-bottom: 30px; padding: 15px; border: 2px solid ${sideColor}; border-radius: var(--radius-md); background: rgba(0,0,0,0.2);">
+      <div class="wc-side" data-side="${side}" style="flex: 1; min-width: 300px; padding: 15px; border: 2px solid ${sideColor}; border-radius: var(--radius-md); background: rgba(0,0,0,0.2);">
         <div class="wc-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <h3 style="margin: 0; color: ${sideColor};">${sideLabel} — Round ${round}</h3>
           <div class="wc-actions" style="display: flex; gap: 8px;">
@@ -879,11 +937,6 @@ export const winnersCourtPage = {
                  .map((p) => p.name)
                  .join(", ")}
              </div>`
-            : ""
-        }
-        ${
-          !readOnly && !isComplete
-            ? '<div class="wc-hint">Tap winning team</div>'
             : ""
         }
       </div>
