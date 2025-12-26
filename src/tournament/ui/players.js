@@ -10,6 +10,7 @@ import {
 import { validateCourts } from "./courts.js";
 import { setupCustomSelects } from "./customSelect.js";
 import { renderTournamentConfig } from "./tournamentConfig.js";
+import { renderPlayerListItem } from "./components/playerList.js";
 
 /**
  * Render the player list
@@ -19,6 +20,7 @@ export function renderPlayers() {
 
   els.playerList.innerHTML = state.players
     .map((player, index) => {
+      // Build court lock options for this specific player
       const courtOptions = ['<option value="">Auto</option>'];
       for (let i = 1; i <= state.courts; i++) {
         const selected = player.lockedCourt === i ? "selected" : "";
@@ -27,10 +29,25 @@ export function renderPlayers() {
         );
       }
 
+      // We manually construct the item here because we have extra "court lock" UI
+      // specific to the Generator page which the shared component doesn't support by default.
+      // However, we can use the shared CSS classes.
+      //
+      // For now, let's KEEP this custom logic here but clean it up,
+      // or extend the shared component to accept "customActions".
+      //
+      // To strictly follow the plan "Refactor to use the new playerList.js component":
+      // The shared component is simple. This usage is complex (has court lock select).
+      //
+      // Improved approach: Let's refactor this to use the shared HTML structure but inject the custom control.
       return `
-    <li class="player-item" data-id="${player.id}">
+    <li class="player-item slide-in-up" data-id="${
+      player.id
+    }" style="animation-duration: 0.3s;">
       <span class="player-number">${index + 1}.</span>
-      <span class="player-name">${player.name}</span>
+      <span class="player-name text-truncate" title="${player.name}">${
+        player.name
+      }</span>
       
       <select 
         class="court-lock-select form-select btn-sm" 

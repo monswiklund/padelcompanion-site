@@ -35,6 +35,8 @@ export function renderPreferredPartners() {
     return ids;
   };
 
+  if (!els.preferredPartnersList) return;
+
   if (state.preferredPartners.length === 0) {
     els.preferredPartnersList.innerHTML = "";
     return;

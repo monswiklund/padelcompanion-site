@@ -1,10 +1,15 @@
 import { getHistoryTemplate } from "./historyTemplate.js";
 
 export const getGeneratorTemplate = () => `
-  <!-- Americano Setup Section -->
+  <!-- Standard Header -->
+  <div class="page-intro-header">
+    <h2 class="page-title">Americano Setup</h2>
+    <p class="page-subtitle">Add players and configure your tournament settings.</p>
+  </div>
+
+  <!-- Setup Section -->
   <div class="players-section">
-    <h2 id="setupSectionTitle">Americano Setup</h2>
-    <p id="setupSectionDescription" style="color: var(--text-muted); margin-bottom: var(--space-md);">Add players and configure your tournament settings.</p>
+    <!-- Inner title removed -->
     
     <div class="section-header">
       <h3 id="playersHeader">Players <span class="player-count" id="playerCount">(0)</span></h3>
@@ -49,6 +54,12 @@ export const getGeneratorTemplate = () => `
       </ul>
     </div>
     <button class="expand-players-btn" id="expandPlayersBtn" data-action="toggle-player-list">Show Less ▲</button>
+
+    <!-- Preferred Partners Section (Hidden by default or empty) -->
+    <div id="preferredPartnersList" class="preferred-partners-list"></div>
+    <div style="text-align: center; margin: 10px 0; display: none;">
+      <button id="addPartnerPairBtn" class="btn btn-secondary btn-sm">Add Fixed Pair</button>
+    </div>
 
     <p class="players-hint" id="playersHint">Add at least 4 players to generate a schedule</p>
   </div>

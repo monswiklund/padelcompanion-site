@@ -18,6 +18,7 @@ import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
 import { showToast } from "../../shared/utils.js";
 import { setupCustomSelects } from "../ui/customSelect.js";
 import { getHistoryTemplate } from "../ui/historyTemplate.js";
+import { renderPlayerListItem } from "../ui/components/playerList.js";
 import { initHistory, renderHistory } from "../history.js";
 
 // Track attached listeners for cleanup
@@ -109,6 +110,11 @@ export const winnersCourtPage = {
    */
   render(container) {
     container.innerHTML = `
+      <div class="page-intro-header">
+        <h2>Winners Court</h2>
+        <p>Skill-based court promotion</p>
+      </div>
+
       <div id="wcSetupContainer"></div>
       <div id="wcActiveContainer"></div>
     `;
@@ -142,11 +148,10 @@ export const winnersCourtPage = {
 
     container.innerHTML = `
       <div class="wc-setup ${isGameActive ? "compact" : ""}">
-        <div class="wc-header-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-          <h2 style="margin: 0;">Winners Court Setup</h2>
+        <div class="wc-header-row" style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 8px;">
           <button class="help-icon" id="wcHelpBtn" style="width: 28px; height: 28px; font-size: 1rem; font-weight: bold;">?</button>
         </div>
-        
+
         ${
           isGameActive
             ? `<p class="wc-description" style="margin-bottom: 12px; color: var(--success);">
@@ -287,12 +292,20 @@ export const winnersCourtPage = {
 
   /**
    * Render player list items.
+  /**
+   * Render player list items.
    */
   renderPlayerItems() {
+    // Shared options
+    const options = {
+      showSkill: true,
+      showSide: this.splitSidesEnabled,
+    };
+
     if (!this.splitSidesEnabled) {
       // Simple list without side grouping
       return this.tempPlayers
-        .map((player, i) => this.renderPlayerItem(player, i))
+        .map((player, i) => renderPlayerListItem(player, i, options))
         .join("");
     }
 
@@ -308,15 +321,16 @@ export const winnersCourtPage = {
 
     if (sideA.length > 0) {
       html += `<li class="side-header" style="padding: 4px 8px; background: rgba(59, 130, 246, 0.1); color: var(--accent); font-size: 0.75rem; font-weight: 600; border-radius: 4px; margin-bottom: 4px;">Side A (${sideA.length})</li>`;
+      // Use originalIndex to ensure data-index matches the main array
       html += sideA
-        .map((p) => this.renderPlayerItem(p, p.originalIndex))
+        .map((p) => renderPlayerListItem(p, p.originalIndex, options))
         .join("");
     }
 
     if (sideB.length > 0) {
       html += `<li class="side-header" style="padding: 4px 8px; background: rgba(245, 158, 11, 0.1); color: var(--warning); font-size: 0.75rem; font-weight: 600; border-radius: 4px; margin-top: 8px; margin-bottom: 4px;">Side B (${sideB.length})</li>`;
       html += sideB
-        .map((p) => this.renderPlayerItem(p, p.originalIndex))
+        .map((p) => renderPlayerListItem(p, p.originalIndex, options))
         .join("");
     }
 
@@ -325,39 +339,11 @@ export const winnersCourtPage = {
 
   /**
    * Render a single player item.
+   * DEPRECATED: Uses renderPlayerList now.
    */
   renderPlayerItem(player, i) {
-    return `
-      <li class="player-item" data-index="${i}">
-        <span class="player-number">${i + 1}.</span>
-        <span class="player-name">${player.name}</span>
-        ${
-          this.splitSidesEnabled
-            ? `
-          <label class="side-toggle" data-index="${i}" style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.75rem;">
-            <span style="color: ${
-              player.side !== "B" ? "var(--accent)" : "var(--text-muted)"
-            }; font-weight: ${player.side !== "B" ? "600" : "400"};">A</span>
-            <div class="toggle-track" style="width: 28px; height: 16px; background: ${
-              player.side === "B" ? "var(--warning)" : "var(--accent)"
-            }; border-radius: 8px; position: relative;">
-              <div class="toggle-thumb" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; left: ${
-                player.side === "B" ? "14px" : "2px"
-              };"></div>
-            </div>
-            <span style="color: ${
-              player.side === "B" ? "var(--warning)" : "var(--text-muted)"
-            }; font-weight: ${player.side === "B" ? "600" : "400"};">B</span>
-          </label>
-        `
-            : ""
-        }
-        <span class="player-skill">${
-          player.skill === 0 ? "-" : player.skill
-        }</span>
-        <button class="player-remove" data-index="${i}">×</button>
-      </li>
-    `;
+    // This is now handled by the shared component
+    return "";
   },
 
   /**

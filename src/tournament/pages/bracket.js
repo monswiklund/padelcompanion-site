@@ -135,8 +135,10 @@ export const bracketPage = {
 
     container.innerHTML = `
       <div class="bracket-empty-state">
-        <h2>Create a Bracket</h2>
-        <p>Set up a single elimination tournament bracket.</p>
+        <div class="page-intro-header">
+          <h2>Create a Bracket</h2>
+          <p>Set up a single elimination tournament bracket.</p>
+        </div>
         
         <div class="players-section" style="max-width: 500px; margin: 0 auto;">
           <div class="section-header">

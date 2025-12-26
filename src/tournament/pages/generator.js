@@ -23,6 +23,7 @@ import { state, loadState } from "../state.js";
 import { initHistory, renderHistory } from "../history.js";
 import { showToast } from "../../shared/utils.js";
 import { getAvailablePlayersForPairing, addPreferredPair } from "../players.js";
+import { renderPlayerList } from "../ui/components/playerList.js";
 
 // Track attached listeners for cleanup
 const listeners = [];

@@ -35,17 +35,33 @@ export function updateSetupUI() {
   const format = state.format;
   const isTeam = format === "team" || format === "teamMexicano";
 
-  // Update section title based on format
-  const setupTitle = document.getElementById("setupSectionTitle");
-  if (setupTitle) {
-    const formatNames = {
-      americano: "Americano Setup",
-      mexicano: "Mexicano Setup",
-      team: "Team Americano Setup",
-      teamMexicano: "Team Mexicano Setup",
-    };
-    setupTitle.textContent = formatNames[format] || "Tournament Setup";
-  }
+  // Update labels based on format
+  const labels = {
+    americano: {
+      title: "Americano Setup",
+      description: "Add players and configure your tournament settings.",
+    },
+    mexicano: {
+      title: "Mexicano Setup",
+      description:
+        "Dynamic schedule that adjusts pairings based on leaderboard.",
+    },
+    team: {
+      title: "Team Americano Setup",
+      description: "Play with fixed teams.",
+    },
+    teamMexicano: {
+      title: "Team Mexicano Setup",
+      description: "Dynamic schedule for fixed teams.",
+    },
+  };
+
+  const current = labels[state.format] || labels.americano;
+  const titleEl = document.querySelector(".page-title");
+  const descEl = document.querySelector(".page-subtitle");
+
+  if (titleEl) titleEl.textContent = current.title;
+  if (descEl) descEl.textContent = current.description;
 
   // Update UI labels for Team Mode
   const playersHeader = document.getElementById("playersHeader");

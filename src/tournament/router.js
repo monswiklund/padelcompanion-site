@@ -97,6 +97,13 @@ function handleRoute() {
         currentPage.mount(container, params);
       } catch (e) {
         console.error("[Router] Error mounting page:", e);
+        container.innerHTML = `
+          <div class="alert alert-danger" style="margin: 20px;">
+            <h3>Error Loading Page</h3>
+            <pre>${e.message}\n${e.stack}</pre>
+            <button class="btn btn-secondary" onclick="window.location.reload()">Reload</button>
+          </div>
+        `;
       }
     }
   }, 50);
