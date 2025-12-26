@@ -392,6 +392,11 @@ function updateConfigValue(key, value) {
 
   // Update other UI components
   import("./players.js").then((m) => m.renderPlayers && m.renderPlayers());
+
+  // Update section title when format changes
+  if (key === "format") {
+    import("./setup.js").then((m) => m.updateSetupUI && m.updateSetupUI());
+  }
 }
 
 function attachConfigListeners(container) {

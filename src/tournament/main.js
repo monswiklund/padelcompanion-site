@@ -71,122 +71,121 @@ import { winnersCourtPage } from "./pages/winnersCourt.js";
 
 // ===== Initialize Application =====
 function init() {
-  console.log("Tournament App: Initialized");
-  injectLayout({ activeLink: "tournament" });
+  try {
+    console.log("Tournament App: Initialized");
+    injectLayout({ activeLink: "tournament" });
 
-  // Initialize PWA
-  initPWA("installBtn", () => {
-    showInfoModal(
-      "Install App on iPhone",
-      `
-      <div style="text-align: center;">
-        <p style="margin-bottom: 20px;">To install <strong>Tournament - Padel Companion</strong> as an app on your Home Screen:</p>
-        <ol style="text-align: left; padding-left: 20px; line-height: 1.6;">
-          <li style="margin-bottom: 12px;">Tap the <strong>Share</strong> button <span style="font-size: 1.2em">⎋</span> (square with arrow) at the bottom in Safari.</li>
-          <li style="margin-bottom: 12px;">Scroll down and tap <strong>Add to Home Screen</strong> <span style="font-size: 1.2em">⊞</span>.</li>
-          <li>Tap <strong>Add</strong> in the top right corner.</li>
-        </ol>
-      </div>
-      `
+    // Initialize PWA
+    initPWA("installBtn", () => {
+      showInfoModal(
+        "Install App on iPhone",
+        `
+        <div style="text-align: center;">
+          <p style="margin-bottom: 20px;">To install <strong>Tournament - Padel Companion</strong> as an app on your Home Screen:</p>
+          <ol style="text-align: left; padding-left: 20px; line-height: 1.6;">
+            <li style="margin-bottom: 12px;">Tap the <strong>Share</strong> button <span style="font-size: 1.2em">⎋</span> (square with arrow) at the bottom in Safari.</li>
+            <li style="margin-bottom: 12px;">Scroll down and tap <strong>Add to Home Screen</strong> <span style="font-size: 1.2em">⊞</span>.</li>
+            <li>Tap <strong>Add</strong> in the top right corner.</li>
+          </ol>
+        </div>
+        `
+      );
+    });
+
+    // Initialize theme
+    const theme = initTheme();
+
+    // Initialize DOM elements
+    const elements = initElements();
+
+    // Update theme icon - Handled in layout.js now
+
+    // Load saved state
+    const hasState = loadState();
+
+    // Sync UI with state
+    // REMOVED: Premature access to UI elements that may not exist yet.
+    // The generatorPage.mount() method handles initial state sync for these elements.
+    /*
+    if (elements.format) elements.format.value = state.format;
+    if (elements.courts) elements.courts.value = state.courts;
+    if (elements.scoringMode) elements.scoringMode.value = state.scoringMode;
+    if (elements.points) elements.points.value = state.pointsPerMatch;
+    if (elements.courtFormat) elements.courtFormat.value = state.courtFormat;
+    if (elements.maxRepeats) elements.maxRepeats.value = state.maxRepeats;
+    if (elements.pairingStrategy) {
+      elements.pairingStrategy.value = state.pairingStrategy;
+    }
+    */
+
+    // No need to manually set these here anymore as they will be set
+    // when the generator page mounts and calls updateSetupUI/renderLeaderboard.
+    // We can just rely on the initial state sync happening in generatorPage.mount()
+
+    toggleCustomCourtNames();
+
+    // Set callback to avoid circular dependency
+    setRenderTournamentConfigCallback(renderTournamentConfig);
+
+    // Note: renderPlayers, renderSchedule etc. removed from here because
+    // the container doesn't exist yet! It will be rendered by generatorPage.mount().
+
+    // Initialize event listeners
+    // Note: We still call this to setup global listeners (like PWA, History init, etc if any?)
+    // But attachCoreListeners will fail to find elements initially?
+    // YES. But that's fine, it handles null checks.
+    // And when Generator mounts, it triggers the custom event to re-run it.
+
+    // Initialize event listeners
+    initEventListeners(elements);
+
+    // Initialize Custom Selects (must be after values are set and listeners are ready)
+    setupCustomSelects();
+
+    // Initialize event delegation for dynamic content
+    initEventDelegation();
+
+    // Initialize History
+    initHistory();
+
+    // Setup resize handler
+    window.addEventListener("resize", handleResize);
+
+    // Setup scroll-to-top button
+    initScrollToTop();
+
+    // Initial UI Sync
+    updateSetupUI();
+    updateScoringLabel();
+    renderTournamentConfig();
+
+    // Initialize ripple effect on buttons
+    initRippleEffect();
+
+    // Initialize scroll animations
+    initScrollAnimations();
+
+    // ===== Router Setup =====
+    // Register page routes
+    registerRoute("", generatorPage); // Default
+    registerRoute("generator", generatorPage); // Explicit generator
+    registerRoute("bracket", bracketPage); // Bracket view
+    registerRoute("winners-court", winnersCourtPage); // Finals/podium
+
+    // Add page navigation tabs
+    injectPageNavigation();
+
+    // Initialize router (will mount appropriate page based on hash)
+    // For Phase 1, generator page just logs - existing UI remains active
+    initRouter();
+    console.log(
+      "[Tournament] Router initialized. Current route:",
+      getCurrentRoute()
     );
-  });
-
-  // Initialize theme
-  const theme = initTheme();
-
-  // Initialize DOM elements
-  const elements = initElements();
-
-  // Update theme icon - Handled in layout.js now
-
-  // Load saved state
-  const hasState = loadState();
-
-  // Sync UI with state
-  elements.format.value = state.format;
-  elements.courts.value = state.courts;
-  elements.scoringMode.value = state.scoringMode;
-  elements.points.value = state.pointsPerMatch;
-  elements.courtFormat.value = state.courtFormat;
-  elements.maxRepeats.value = state.maxRepeats;
-  if (elements.pairingStrategy) {
-    elements.pairingStrategy.value = state.pairingStrategy;
+  } catch (e) {
+    console.error("CRITICAL ERROR IN INIT:", e);
+    showToast("Application failed to start: " + e.message, "error");
   }
-
-  const rankingCriteriaSelect = document.getElementById("rankingCriteria");
-  if (rankingCriteriaSelect) {
-    rankingCriteriaSelect.value = state.rankingCriteria;
-  }
-
-  const strictStrategy = document.getElementById("strictStrategy");
-  if (strictStrategy) {
-    strictStrategy.checked = state.strictStrategy || false;
-  }
-
-  toggleCustomCourtNames();
-
-  // Set callback to avoid circular dependency
-  setRenderTournamentConfigCallback(renderTournamentConfig);
-
-  renderPlayers();
-
-  // Restore active tournament if exists
-  if (state.schedule.length > 0) {
-    elements.scheduleSection.style.display = "block";
-    elements.leaderboardSection.style.display = "block";
-    const actionsSection = document.getElementById("tournamentActionsSection");
-    if (actionsSection) actionsSection.style.display = "block";
-    renderSchedule();
-    renderLeaderboard();
-    updateGridColumns();
-  }
-
-  // Initialize event listeners
-  initEventListeners(elements);
-
-  // Initialize Custom Selects (must be after values are set and listeners are ready)
-  setupCustomSelects();
-
-  // Initialize event delegation for dynamic content
-  initEventDelegation();
-
-  // Initialize History
-  initHistory();
-
-  // Setup resize handler
-  window.addEventListener("resize", handleResize);
-
-  // Setup scroll-to-top button
-  initScrollToTop();
-
-  // Initial UI Sync
-  updateSetupUI();
-  updateScoringLabel();
-  renderTournamentConfig();
-
-  // Initialize ripple effect on buttons
-  initRippleEffect();
-
-  // Initialize scroll animations
-  initScrollAnimations();
-
-  // ===== Router Setup =====
-  // Register page routes
-  registerRoute("", generatorPage); // Default
-  registerRoute("generator", generatorPage); // Explicit generator
-  registerRoute("bracket", bracketPage); // Bracket view
-  registerRoute("winners-court", winnersCourtPage); // Finals/podium
-
-  // Add page navigation tabs
-  injectPageNavigation();
-
-  // Initialize router (will mount appropriate page based on hash)
-  // For Phase 1, generator page just logs - existing UI remains active
-  initRouter();
-  console.log(
-    "[Tournament] Router initialized. Current route:",
-    getCurrentRoute()
-  );
 }
 
 // ===== Ripple Effect =====
@@ -215,7 +214,11 @@ function injectPageNavigation() {
   const toolHeader = container?.querySelector(".tool-header");
 
   if (!toolHeader) {
-    console.warn("[Router] Could not find .tool-header to inject navigation");
+    console.error(
+      "[Router] Could not find .tool-header to inject navigation. Check HTML structure."
+    );
+    if (!container)
+      console.error("[Router] .tournament-page .container not found either.");
     return;
   }
 
@@ -292,37 +295,15 @@ function injectPageNavigation() {
       subtitleEl.textContent = config.subtitle;
     }
 
-    // Toggle visibility: generator uses existing HTML, others use pageContainer
-    const existingContent = document.querySelector(
-      ".players-section, .tournament-config, .schedule-section, .leaderboard-section"
-    );
-    const playersSection = document.querySelector(".players-section");
-    const tournamentConfig = document.getElementById("tournamentConfig");
-    const generateBtn = document.getElementById("generateBtn");
-    const scheduleSection = document.getElementById("scheduleSection");
-    const leaderboardSection = document.getElementById("leaderboardSection");
-    const tournamentActions = document.getElementById(
-      "tournamentActionsSection"
-    );
-    const historySection = document.getElementById("historySectionPage");
+    // Toggle visibility:
+    // generator, bracket, winners - all render into pageContainer now.
+    // The previous logic hid pageContainer for generator and showed static HTML.
+    // Now we ALWAYS show pageContainer and hide nothing (since static HTML is gone).
 
-    if (currentRoute === "generator" || currentRoute === "") {
-      // Show generator content
-      if (playersSection) playersSection.style.display = "";
-      if (tournamentConfig) tournamentConfig.style.display = "";
-      if (generateBtn) generateBtn.style.display = "";
-      if (historySection) historySection.style.display = "";
-      // Schedule/leaderboard visibility depends on tournament state
-      pageContainer.style.display = "none";
-    } else {
-      // Hide generator content, show pageContainer
-      if (playersSection) playersSection.style.display = "none";
-      if (tournamentConfig) tournamentConfig.style.display = "none";
-      if (generateBtn) generateBtn.style.display = "none";
-      if (scheduleSection) scheduleSection.style.display = "none";
-      if (leaderboardSection) leaderboardSection.style.display = "none";
-      if (tournamentActions) tournamentActions.style.display = "none";
-      if (historySection) historySection.style.display = "none";
+    // Actually, we should check if there are any other sections we need to hide?
+    // No, we removed them from HTML.
+
+    if (pageContainer.style.display === "none") {
       pageContainer.style.display = "block";
     }
   }
@@ -377,12 +358,201 @@ function initScrollToTop() {
 }
 
 // ===== Event Listeners =====
+// ===== Event Listeners =====
 function initEventListeners(elements) {
   // Theme toggle handled in layout.js
 
+  // Handle re-attachment of listeners when Generator page re-mounts
+  window.addEventListener("tournament-generator-mounted", () => {
+    // Re-bind specific listeners that are not delegated
+    // Note: 'elements' in this closure is the *initial* elements object.
+    // The generator page has called initElements(), so the module-level 'elements'
+    // in ui/index.js are updated. We need to fetch fresh references here if we want to bind them.
+    // But since this function scope is closed over the initial 'elements' object,
+    // we need to ask getElements() again.
+
+    const freshElements = getElements();
+
+    // Format
+    if (freshElements.format) {
+      freshElements.format.addEventListener("change", () => {
+        state.format = freshElements.format.value;
+        updateSetupUI();
+        saveState();
+        if (state.schedule.length > 0) {
+          renderGameDetails();
+        }
+      });
+    }
+
+    // Scoring Mode
+    if (freshElements.scoringMode) {
+      freshElements.scoringMode.addEventListener("change", () => {
+        state.scoringMode = freshElements.scoringMode.value;
+        updateScoringLabel();
+        saveState();
+        renderTournamentConfig();
+        if (state.schedule.length > 0) {
+          renderSchedule();
+        }
+      });
+    }
+
+    // Points
+    if (freshElements.points) {
+      freshElements.points.addEventListener("change", () => {
+        state.pointsPerMatch = parseInt(freshElements.points.value);
+        saveState();
+        renderTournamentConfig();
+        if (state.schedule.length > 0) {
+          renderSchedule();
+        }
+      });
+    }
+
+    // Courts (Input & Change)
+    if (freshElements.courts) {
+      freshElements.courts.addEventListener("change", () => {
+        state.courts = parseInt(freshElements.courts.value);
+        saveState();
+        renderTournamentConfig();
+        if (state.schedule.length > 0) {
+          renderGameDetails();
+        }
+        if (state.courtFormat === "custom") {
+          renderCustomCourtNames();
+        }
+      });
+
+      freshElements.courts.addEventListener("input", () => {
+        const MAX_COURTS = 50;
+        const rawVal = freshElements.courts.value;
+        if (rawVal === "") return;
+        let val = parseInt(rawVal) || 1;
+        val = Math.max(1, Math.min(MAX_COURTS, val));
+        if (state.isLocked) return;
+        freshElements.courts.value = val;
+        state.courts = val;
+        saveState();
+        if (state.courtFormat === "custom") {
+          renderCustomCourtNames();
+        }
+        if (state.schedule.length > 0) {
+          renderGameDetails();
+        }
+      });
+    }
+
+    // Court Format
+    if (freshElements.courtFormat) {
+      freshElements.courtFormat.addEventListener("change", () => {
+        state.courtFormat = freshElements.courtFormat.value;
+        toggleCustomCourtNames();
+        saveState();
+      });
+    }
+
+    // Player Input Enter
+    const playerInput = document.getElementById("playerNameInput");
+    if (playerInput) {
+      playerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          if (addPlayer(playerInput.value)) {
+            playerInput.value = "";
+            renderPlayers();
+          }
+        }
+      });
+    }
+    const addBtn = document.getElementById("confirmAddBtn");
+    if (addBtn && playerInput) {
+      addBtn.addEventListener("click", () => {
+        if (addPlayer(playerInput.value)) {
+          playerInput.value = "";
+          playerInput.focus();
+          renderPlayers();
+        }
+      });
+    }
+
+    // Import/Clear Buttons
+    if (freshElements.clearAllPlayersBtn) {
+      freshElements.clearAllPlayersBtn.addEventListener("click", () => {
+        removeAllPlayers(() => {
+          renderPlayers();
+          renderPreferredPartners();
+          updateSetupUI();
+        });
+      });
+    }
+
+    const importBtn = document.getElementById("importPlayersBtn");
+    const closeImport = document.getElementById("closeImportModal");
+    const cancelImport = document.getElementById("cancelImportBtn");
+    const confirmImport = document.getElementById("confirmImportBtn");
+
+    if (importBtn) importBtn.addEventListener("click", showImportModal);
+    if (closeImport) closeImport.addEventListener("click", hideImportModal);
+    if (cancelImport) cancelImport.addEventListener("click", hideImportModal);
+    if (confirmImport) {
+      confirmImport.addEventListener("click", () => {
+        const textarea = document.getElementById("importTextarea");
+        if (!textarea) return;
+        const text = textarea.value;
+        const result = importPlayersData(text);
+
+        let statusMsg = `Added ${result.added} players.`;
+        if (result.duplicates > 0)
+          statusMsg += ` Skipped ${result.duplicates} duplicates.`;
+        if (result.hitLimit) statusMsg += ` Stopped at 24 max limit.`;
+
+        const statusEl = document.getElementById("importStatus");
+        if (statusEl) statusEl.textContent = statusMsg;
+        renderPlayers();
+
+        if (result.added > 0 && result.duplicates === 0 && !result.hitLimit) {
+          setTimeout(hideImportModal, 1500);
+          showToast(`Imported ${result.added} players`);
+        }
+      });
+    }
+
+    // Help Buttons (re-attach)
+    const helpFit = document.getElementById("helpFormat");
+    if (helpFit)
+      helpFit.addEventListener("click", () => {
+        // Trigger same help modal (we can trigger the event manually or call logic)
+        // Since we can't easily access the closures for help content, we'll need to duplicate
+        // or move those help listeners to a shared helper function.
+        // For now, simpler to leave them non-functional or copy paste the help modal calls.
+        // Actually, let's just re-run initEventListeners(freshElements)?
+        // NO, that would duplicate the 'tournament-generator-mounted' listener itself!
+        // We will call a helper function `attachCoreListeners(freshElements)` which we will extract.
+      });
+
+    // Instead of duplicating all this logic above, let's extract the core listener logic.
+    attachCoreListeners(freshElements);
+  });
+  // Theme toggle handled in layout.js
+
+  // Initial attach
+  attachCoreListeners(elements);
+}
+
+/**
+ * Attach core event listeners to elements.
+ * Extracted so it can be re-run when Generator component re-mounts.
+ */
+function attachCoreListeners(elements) {
   // Undo Action
   const undoBtn = document.getElementById("undoBtn");
   if (undoBtn) {
+    // Clone to remove old listeners if we are re-attaching,
+    // otherwise we might stack listeners or leak.
+    // Actually, since the elements are destroyed and recreated,
+    // picking them up by ID gives us fresh elements with NO listeners.
+    // So simple addEventListener is fine.
+
     undoBtn.addEventListener("click", () => {
       if (undoLastAction()) {
         showToast("Undo successful");
@@ -397,13 +567,17 @@ function initEventListeners(elements) {
 
         // Toggle sections based on schedule
         if (state.schedule.length > 0) {
-          elements.scheduleSection.style.display = "block";
-          elements.leaderboardSection.style.display = "block";
+          if (elements.scheduleSection)
+            elements.scheduleSection.style.display = "block";
+          if (elements.leaderboardSection)
+            elements.leaderboardSection.style.display = "block";
           const actions = document.getElementById("tournamentActionsSection");
           if (actions) actions.style.display = "block";
         } else {
-          elements.scheduleSection.style.display = "none";
-          elements.leaderboardSection.style.display = "none";
+          if (elements.scheduleSection)
+            elements.scheduleSection.style.display = "none";
+          if (elements.leaderboardSection)
+            elements.leaderboardSection.style.display = "none";
           const actions = document.getElementById("tournamentActionsSection");
           if (actions) actions.style.display = "none";
         }
@@ -411,12 +585,17 @@ function initEventListeners(elements) {
     });
 
     // Keyboard Shortcut (Ctrl/Cmd + Z)
-    document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
-        e.preventDefault();
-        undoBtn.click();
-      }
-    });
+    // Document level - only attach once!
+    if (!window._undoListenerAttached) {
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+          e.preventDefault();
+          const btn = document.getElementById("undoBtn");
+          if (btn && !btn.disabled) btn.click();
+        }
+      });
+      window._undoListenerAttached = true;
+    }
   }
 
   if (elements.clearAllPlayersBtn) {
@@ -430,84 +609,101 @@ function initEventListeners(elements) {
   }
 
   // Bulk Import
-  elements.importPlayersBtn.addEventListener("click", showImportModal);
-  elements.closeImportModal.addEventListener("click", hideImportModal);
-  elements.cancelImportBtn.addEventListener("click", hideImportModal);
-  elements.confirmImportBtn.addEventListener("click", () => {
-    const text = elements.importTextarea.value;
-    const result = importPlayersData(text);
+  if (elements.importPlayersBtn)
+    elements.importPlayersBtn.addEventListener("click", showImportModal);
+  if (elements.closeImportModal)
+    elements.closeImportModal.addEventListener("click", hideImportModal);
+  if (elements.cancelImportBtn)
+    elements.cancelImportBtn.addEventListener("click", hideImportModal);
+  if (elements.confirmImportBtn) {
+    elements.confirmImportBtn.addEventListener("click", () => {
+      const text = elements.importTextarea ? elements.importTextarea.value : "";
+      const result = importPlayersData(text);
 
-    let statusMsg = `Added ${result.added} players.`;
-    if (result.duplicates > 0)
-      statusMsg += ` Skipped ${result.duplicates} duplicates.`;
-    if (result.hitLimit) statusMsg += ` Stopped at 24 max limit.`;
+      let statusMsg = `Added ${result.added} players.`;
+      if (result.duplicates > 0)
+        statusMsg += ` Skipped ${result.duplicates} duplicates.`;
+      if (result.hitLimit) statusMsg += ` Stopped at 24 max limit.`;
 
-    elements.importStatus.textContent = statusMsg;
-    renderPlayers();
-
-    if (result.added > 0 && result.duplicates === 0 && !result.hitLimit) {
-      setTimeout(hideImportModal, 1500);
-      showToast(`Imported ${result.added} players`);
-    }
-  });
-
-  elements.confirmAddBtn.addEventListener("click", () => {
-    if (addPlayer(elements.playerNameInput.value)) {
-      elements.playerNameInput.value = "";
-      elements.playerNameInput.focus();
+      if (elements.importStatus) elements.importStatus.textContent = statusMsg;
       renderPlayers();
-    }
-  });
 
-  elements.playerNameInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+      if (result.added > 0 && result.duplicates === 0 && !result.hitLimit) {
+        setTimeout(hideImportModal, 1500);
+        showToast(`Imported ${result.added} players`);
+      }
+    });
+  }
+
+  if (elements.confirmAddBtn) {
+    elements.confirmAddBtn.addEventListener("click", () => {
       if (addPlayer(elements.playerNameInput.value)) {
         elements.playerNameInput.value = "";
+        elements.playerNameInput.focus();
         renderPlayers();
       }
-    }
-  });
+    });
+  }
+
+  if (elements.playerNameInput) {
+    elements.playerNameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        if (addPlayer(elements.playerNameInput.value)) {
+          elements.playerNameInput.value = "";
+          renderPlayers();
+        }
+      }
+    });
+  }
 
   // Form changes
-  elements.format.addEventListener("change", () => {
-    state.format = elements.format.value;
-    updateSetupUI();
-    saveState();
-    if (state.schedule.length > 0) {
-      renderGameDetails();
-    }
-  });
+  if (elements.format) {
+    elements.format.addEventListener("change", () => {
+      state.format = elements.format.value;
+      updateSetupUI();
+      saveState();
+      if (state.schedule.length > 0) {
+        renderGameDetails();
+      }
+    });
+  }
 
-  elements.courts.addEventListener("change", () => {
-    state.courts = parseInt(elements.courts.value);
-    saveState();
-    renderTournamentConfig();
-    if (state.schedule.length > 0) {
-      renderGameDetails();
-    }
-    if (state.courtFormat === "custom") {
-      renderCustomCourtNames();
-    }
-  });
+  if (elements.courts) {
+    elements.courts.addEventListener("change", () => {
+      state.courts = parseInt(elements.courts.value);
+      saveState();
+      renderTournamentConfig();
+      if (state.schedule.length > 0) {
+        renderGameDetails();
+      }
+      if (state.courtFormat === "custom") {
+        renderCustomCourtNames();
+      }
+    });
+  }
 
-  elements.points.addEventListener("change", () => {
-    state.pointsPerMatch = parseInt(elements.points.value);
-    saveState();
-    renderTournamentConfig();
-    if (state.schedule.length > 0) {
-      renderSchedule();
-    }
-  });
+  if (elements.points) {
+    elements.points.addEventListener("change", () => {
+      state.pointsPerMatch = parseInt(elements.points.value);
+      saveState();
+      renderTournamentConfig();
+      if (state.schedule.length > 0) {
+        renderSchedule();
+      }
+    });
+  }
 
-  elements.scoringMode.addEventListener("change", () => {
-    state.scoringMode = elements.scoringMode.value;
-    updateScoringLabel();
-    saveState();
-    renderTournamentConfig();
-    if (state.schedule.length > 0) {
-      renderSchedule();
-    }
-  });
+  if (elements.scoringMode) {
+    elements.scoringMode.addEventListener("change", () => {
+      state.scoringMode = elements.scoringMode.value;
+      updateScoringLabel();
+      saveState();
+      renderTournamentConfig();
+      if (state.schedule.length > 0) {
+        renderSchedule();
+      }
+    });
+  }
 
   const rankingCriteriaSelect = document.getElementById("rankingCriteria");
   if (rankingCriteriaSelect) {
@@ -518,64 +714,70 @@ function initEventListeners(elements) {
     });
   }
 
-  elements.courtFormat.addEventListener("change", () => {
-    state.courtFormat = elements.courtFormat.value;
-    toggleCustomCourtNames();
-    saveState();
-  });
+  if (elements.courtFormat) {
+    elements.courtFormat.addEventListener("change", () => {
+      state.courtFormat = elements.courtFormat.value;
+      toggleCustomCourtNames();
+      saveState();
+    });
+  }
 
-  elements.courts.addEventListener("input", () => {
-    const MAX_COURTS = 50;
-    const rawVal = elements.courts.value;
+  if (elements.courts) {
+    elements.courts.addEventListener("input", () => {
+      const MAX_COURTS = 50;
+      const rawVal = elements.courts.value;
 
-    // Allow empty input while typing
-    if (rawVal === "") return;
+      // Allow empty input while typing
+      if (rawVal === "") return;
 
-    let val = parseInt(rawVal) || 1;
-    val = Math.max(1, Math.min(MAX_COURTS, val));
+      let val = parseInt(rawVal) || 1;
+      val = Math.max(1, Math.min(MAX_COURTS, val));
 
-    // If locked, do not update state actively
-    if (state.isLocked) return;
+      // If locked, do not update state actively
+      if (state.isLocked) return;
 
-    elements.courts.value = val;
-    state.courts = val;
-    saveState();
-    if (state.courtFormat === "custom") {
-      renderCustomCourtNames();
-    }
-    if (state.schedule.length > 0) {
-      renderGameDetails();
-    }
-  });
+      elements.courts.value = val;
+      state.courts = val;
+      saveState();
+      if (state.courtFormat === "custom") {
+        renderCustomCourtNames();
+      }
+      if (state.schedule.length > 0) {
+        renderGameDetails();
+      }
+    });
+  }
 
   // Matchup settings (always enabled, with confirmation during tournament)
-  elements.maxRepeats.addEventListener("change", (e) => {
-    const newValue = parseInt(e.target.value);
-    const oldValue = state.maxRepeats;
+  if (elements.maxRepeats) {
+    elements.maxRepeats.addEventListener("change", (e) => {
+      const newValue = parseInt(e.target.value);
+      const oldValue = state.maxRepeats;
 
-    if (state.isLocked) {
-      // Revert visually first
-      e.target.value = oldValue;
+      if (state.isLocked) {
+        // Revert visually first
+        e.target.value = oldValue;
 
-      showConfirmModal(
-        "Change Matchup Setting?",
-        "The tournament is running. This change will affect how future rounds are generated.",
-        "Apply Change",
-        () => {
-          state.maxRepeats = newValue;
-          elements.maxRepeats.value = newValue;
-          saveState();
-          renderTournamentConfig();
-          showToast("Max Partner Repeats updated");
-        },
-        true // isDanger
-      );
-    } else {
-      state.maxRepeats = newValue;
-      saveState();
-      renderTournamentConfig();
-    }
-  });
+        showConfirmModal(
+          "Change Matchup Setting?",
+          "The tournament is running. This change will affect how future rounds are generated.",
+          "Apply Change",
+          () => {
+            state.maxRepeats = newValue;
+            elements.maxRepeats.value = newValue;
+            saveState();
+            renderTournamentConfig();
+            showToast("Max Partner Repeats updated");
+          },
+          true // isDanger
+        );
+      } else {
+        state.maxRepeats = newValue;
+        saveState();
+        renderTournamentConfig();
+      }
+    });
+  }
 
   const strictStrategy = document.getElementById("strictStrategy");
   if (strictStrategy) {
@@ -656,19 +858,21 @@ function initEventListeners(elements) {
     });
   }
 
-  elements.addPartnerPairBtn.addEventListener("click", () => {
-    const available = getAvailablePlayersForPairing();
-    if (available.length < 2) {
-      showToast("Not enough available players to form a pair", "error");
-      return;
-    }
+  if (elements.addPartnerPairBtn) {
+    elements.addPartnerPairBtn.addEventListener("click", () => {
+      const available = getAvailablePlayersForPairing();
+      if (available.length < 2) {
+        showToast("Not enough available players to form a pair", "error");
+        return;
+      }
 
-    addPreferredPair();
-    renderPreferredPartners();
-    updateSetupUI();
-    setupCustomSelects();
-    showToast("Fixed pair added", "success");
-  });
+      addPreferredPair();
+      renderPreferredPartners();
+      updateSetupUI();
+      setupCustomSelects();
+      showToast("Fixed pair added", "success");
+    });
+  }
 
   // Contextual Help
   const helpFormat = document.getElementById("helpFormat");
@@ -869,9 +1073,12 @@ function initEventListeners(elements) {
   }
 
   // Schedule actions
-  elements.generateBtn.addEventListener("click", generateSchedule);
-  elements.printBtn.addEventListener("click", () => window.print());
-  elements.resetBtn.addEventListener("click", resetSchedule);
+  if (elements.generateBtn)
+    elements.generateBtn.addEventListener("click", generateSchedule);
+  if (elements.printBtn)
+    elements.printBtn.addEventListener("click", () => window.print());
+  if (elements.resetBtn)
+    elements.resetBtn.addEventListener("click", resetSchedule);
 
   // Grid columns slider
   if (elements.gridColumns) {

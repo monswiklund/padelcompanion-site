@@ -35,6 +35,18 @@ export function updateSetupUI() {
   const format = state.format;
   const isTeam = format === "team" || format === "teamMexicano";
 
+  // Update section title based on format
+  const setupTitle = document.getElementById("setupSectionTitle");
+  if (setupTitle) {
+    const formatNames = {
+      americano: "Americano Setup",
+      mexicano: "Mexicano Setup",
+      team: "Team Americano Setup",
+      teamMexicano: "Team Mexicano Setup",
+    };
+    setupTitle.textContent = formatNames[format] || "Tournament Setup";
+  }
+
   // Update UI labels for Team Mode
   const playersHeader = document.getElementById("playersHeader");
   if (playersHeader) {
@@ -53,50 +65,52 @@ export function updateSetupUI() {
       : "Enter name...";
   }
 
+  // Legacy setup-card is now removed; locking behavior handled by tournamentConfig
+  // The following code can be removed or adapted if tournament-config needs locking support
   const setupCard = document.querySelector(".setup-card");
-  if (!setupCard) return;
+  if (setupCard) {
+    // Disable Core Setup inputs when locked
+    const coreContainers = [
+      setupCard.querySelector(".setup-grid"),
+      setupCard.querySelector(".setup-grid-3"),
+      document.getElementById("customCourtNamesSection"),
+    ];
 
-  // Disable Core Setup inputs when locked
-  const coreContainers = [
-    setupCard.querySelector(".setup-grid"),
-    setupCard.querySelector(".setup-grid-3"),
-    document.getElementById("customCourtNamesSection"),
-  ];
+    coreContainers.forEach((container) => {
+      if (!container) return;
+      const inputs = container.querySelectorAll("input, select, button");
+      inputs.forEach((input) => {
+        // Skip always-enabled elements
+        if (input.classList.contains("always-enabled")) return;
 
-  coreContainers.forEach((container) => {
-    if (!container) return;
-    const inputs = container.querySelectorAll("input, select, button");
-    inputs.forEach((input) => {
-      // Skip always-enabled elements
-      if (input.classList.contains("always-enabled")) return;
+        if (state.isLocked) {
+          input.disabled = true;
+          input.classList.add("locked");
 
-      if (state.isLocked) {
-        input.disabled = true;
-        input.classList.add("locked");
+          // Handle Custom Selects
+          if (input.tagName === "SELECT") {
+            const wrapper = input.closest(".custom-select-wrapper");
+            if (wrapper) {
+              const customSelect = wrapper.querySelector(".custom-select");
+              if (customSelect) customSelect.classList.add("disabled");
+            }
+          }
+        } else {
+          input.disabled = false;
+          input.classList.remove("locked");
 
-        // Handle Custom Selects
-        if (input.tagName === "SELECT") {
-          const wrapper = input.closest(".custom-select-wrapper");
-          if (wrapper) {
-            const customSelect = wrapper.querySelector(".custom-select");
-            if (customSelect) customSelect.classList.add("disabled");
+          // Handle Custom Selects
+          if (input.tagName === "SELECT") {
+            const wrapper = input.closest(".custom-select-wrapper");
+            if (wrapper) {
+              const customSelect = wrapper.querySelector(".custom-select");
+              if (customSelect) customSelect.classList.remove("disabled");
+            }
           }
         }
-      } else {
-        input.disabled = false;
-        input.classList.remove("locked");
-
-        // Handle Custom Selects
-        if (input.tagName === "SELECT") {
-          const wrapper = input.closest(".custom-select-wrapper");
-          if (wrapper) {
-            const customSelect = wrapper.querySelector(".custom-select");
-            if (customSelect) customSelect.classList.remove("disabled");
-          }
-        }
-      }
+      });
     });
-  });
+  }
 
   // Ensure Matchup Rules are NOT disabled
   const matchupContainer = document.getElementById("advancedSettingsContent");
@@ -125,14 +139,16 @@ export function updateSetupUI() {
   // Update generate button text
   const runningBadge = document.getElementById("runningBadge");
   if (state.isLocked) {
-    els.generateBtn.style.display = "none";
+    if (els.generateBtn) els.generateBtn.style.display = "none";
     if (runningBadge) runningBadge.style.display = "inline-flex";
   } else {
-    els.generateBtn.style.display = "block";
+    if (els.generateBtn) {
+      els.generateBtn.style.display = "block";
+      els.generateBtn.textContent = "Generate Schedule";
+      // Always enable to allow validation feedback on click
+      els.generateBtn.disabled = false;
+    }
     if (runningBadge) runningBadge.style.display = "none";
-    els.generateBtn.textContent = "Generate Schedule";
-    // Always enable to allow validation feedback on click
-    els.generateBtn.disabled = false;
   }
 
   // Toggle Advanced Settings visibility based on Format

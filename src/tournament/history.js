@@ -201,6 +201,9 @@ export function renderHistoryList() {
   renderRows(historyData);
 }
 
+// Alias for compatibility
+export const renderHistory = renderHistoryList;
+
 function renderRows(items) {
   const tbody = document.getElementById("historyTableBody");
   const emptyState = document.getElementById("historyEmptyStatePage");
