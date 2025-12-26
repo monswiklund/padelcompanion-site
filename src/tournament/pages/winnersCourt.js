@@ -15,6 +15,7 @@ import {
   nextRound,
 } from "../winnersCourtLogic.js";
 import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
+import { HELP_WINNERS_INTRO, HELP_SKILL_LEVELS } from "../content/help.js";
 import { showToast } from "../../shared/utils.js";
 import { setupCustomSelects } from "../ui/customSelect.js";
 import { getHistoryTemplate } from "../ui/historyTemplate.js";
@@ -80,28 +81,7 @@ export const winnersCourtPage = {
    * Show help modal.
    */
   showHelp() {
-    const content = `
-      <div style="font-size: 0.95rem; line-height: 1.6;">
-        <p><strong>Winners Court (Americano Mexicano hybrid)</strong> is a fun, skill-based king of the hill format.</p>
-        
-        <h4 style="margin: 12px 0 6px; color: var(--accent);">How it works</h4>
-        <ul style="padding-left: 20px; margin: 0;">
-          <li><strong>Win match:</strong> Move UP one court (e.g. Court 2 → Court 1).</li>
-          <li><strong>Lose match:</strong> Move DOWN one court (e.g. Court 1 → Court 2).</li>
-          <li><strong>Top Court Winners</strong> stay on Court 1.</li>
-          <li><strong>Bottom Court Losers</strong> stay on the last court.</li>
-        </ul>
-
-        <h4 style="margin: 12px 0 6px; color: var(--accent);">Twist Mode</h4>
-        <p style="margin: 0;">If enabled, partners rotate every round so you play with different people on your court. Great for socializing!</p>
-
-        <h4 style="margin: 12px 0 6px; color: var(--accent);">Tips</h4>
-        <ul style="padding-left: 20px; margin: 0;">
-          <li>Initial placement is based on the <strong>Skill Level</strong> you enter.</li>
-          <li>Default skill is (-) which is treated as 0.</li>
-        </ul>
-      </div>
-    `;
+    const content = HELP_WINNERS_INTRO;
     showInfoModal("How to Play", content);
   },
 
@@ -492,19 +472,7 @@ export const winnersCourtPage = {
       addListener(skillHelpBtn, "click", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        showInfoModal(
-          "About Skill Levels",
-          `<p><strong>Skill levels are optional!</strong></p>
-          <p>Use them to help create balanced teams for the <strong>first round</strong>:</p>
-          <ul style="margin: 12px 0; padding-left: 20px;">
-            <li><strong>1-3:</strong> Beginner</li>
-            <li><strong>4-6:</strong> Intermediate</li>
-            <li><strong>7-9:</strong> Advanced</li>
-            <li><strong>10:</strong> Pro</li>
-            <li><strong>-:</strong> Unknown/Skip</li>
-          </ul>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">After round 1, matchups are based on wins/losses only—skill ratings won't affect later rounds.</p>`
-        );
+        showInfoModal("About Skill Levels", HELP_SKILL_LEVELS);
       });
     }
 

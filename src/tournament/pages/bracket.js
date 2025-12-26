@@ -17,6 +17,11 @@ import {
   getFinalStandings,
 } from "../bracketLogic.js";
 import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
+import {
+  HELP_POOL_ASSIGNMENT,
+  HELP_BRACKET_GUIDE,
+  HELP_BRACKET_SIZES,
+} from "../content/help.js";
 import { showToast } from "../../shared/utils.js";
 import { getHistoryTemplate } from "../ui/historyTemplate.js";
 import { initHistory, renderHistory } from "../history.js";
@@ -744,17 +749,7 @@ export const bracketPage = {
     if (assignHelpBtn) {
       addListener(assignHelpBtn, "click", (e) => {
         e.preventDefault();
-        showInfoModal(
-          "Pool Assignment Explained",
-          `<p><strong>How teams are distributed across pools:</strong></p>
-          <ul style="margin: 10px 0; padding-left: 20px;">
-            <li><strong>🎲 Random</strong> – Teams are shuffled randomly into pools</li>
-            <li><strong>↔️ Alternate</strong> – Team 1→A, Team 2→B, Team 3→C, etc.</li>
-            <li><strong>½ Split by Pool</strong> – Teams divided evenly (first third to A, second to B, etc.)</li>
-            <li><strong>✋ Manual</strong> – You set each team's pool using the A/B/C/D/E/F toggle on each team</li>
-          </ul>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 10px;">💡 With <strong>Pair Finals</strong> enabled, each pair of pools (A vs B, C vs D) has its own final match!</p>`
-        );
+        showInfoModal("Pool Assignment Explained", HELP_POOL_ASSIGNMENT);
       });
     }
 
@@ -763,35 +758,7 @@ export const bracketPage = {
     if (bracketHelpBtn) {
       addListener(bracketHelpBtn, "click", (e) => {
         e.preventDefault();
-        showInfoModal(
-          "Bracket Tournament Guide",
-          `<div style="text-align: left;">
-            <h4 style="margin-bottom: 10px; color: var(--accent);">🏆 How It Works</h4>
-            <p>Create a single-elimination bracket where teams compete head-to-head. Losers are eliminated, winners advance until one champion remains.</p>
-            
-            <hr style="margin: 12px 0; border-color: var(--border-color);">
-            
-            <h4 style="margin-bottom: 10px; color: var(--accent);">📋 Setup Tips</h4>
-            <ul style="padding-left: 20px; margin-bottom: 12px;">
-              <li><strong>Perfect sizes:</strong> 4, 8, 16, or 32 teams</li>
-              <li><strong>Other sizes:</strong> "Byes" are assigned automatically</li>
-              <li><strong>A/B Toggle:</strong> Pre-assign teams to bracket sides</li>
-            </ul>
-            
-            <h4 style="margin-bottom: 10px; color: var(--warning);">🔀 A/B Side Toggle</h4>
-            <p>Click the toggle next to each team to assign them:</p>
-            <ul style="padding-left: 20px; margin-bottom: 12px;">
-              <li><strong>A (Blue):</strong> Left side of bracket</li>
-              <li><strong>B (Orange):</strong> Right side of bracket</li>
-              <li><strong>Gray:</strong> Unassigned (auto-distributed)</li>
-            </ul>
-            
-            <hr style="margin: 12px 0; border-color: var(--border-color);">
-            
-            <h4 style="margin-bottom: 10px; color: var(--success);">⚡ Dual Brackets Mode</h4>
-            <p>Enable "Dual Brackets" for two separate brackets (A vs B) with a shared Grand Final where the winners of each side face off!</p>
-          </div>`
-        );
+        showInfoModal("Bracket Tournament Guide", HELP_BRACKET_GUIDE);
       });
     }
 
@@ -800,18 +767,7 @@ export const bracketPage = {
     if (helpBtn) {
       addListener(helpBtn, "click", (e) => {
         e.preventDefault();
-        showInfoModal(
-          "Bracket Sizes Explained",
-          `<p><strong>Perfect bracket sizes:</strong> 4, 8, 16, or 32 teams</p>
-          <p>With these numbers, all teams play every round—no one gets a free pass!</p>
-          <hr style="margin: 12px 0; border-color: var(--border-color);">
-          <p><strong>What are "byes"?</strong></p>
-          <p>If you don't have a perfect number (e.g., 10 teams), some teams get a <strong>bye</strong>—they skip round 1 and go directly to round 2.</p>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 8px;">Example: With 10 teams, 6 teams get byes (advance automatically), and 4 teams play in round 1.</p>
-          <hr style="margin: 12px 0; border-color: var(--border-color);">
-          <p><strong>Dual Brackets mode:</strong></p>
-          <p>Splits teams into Side A and Side B. Each side has its own bracket, and the winners face off in a Grand Final!</p>`
-        );
+        showInfoModal("Bracket Sizes Explained", HELP_BRACKET_SIZES);
       });
     }
 
