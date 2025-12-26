@@ -2293,6 +2293,44 @@
     }
   }
 
+  /* Preview Mobile Tabs for bracket creation preview */
+  @media (max-width: 600px) {
+    .preview-mobile-tabs {
+      display: flex !important;
+    }
+
+    .dual-bracket-container .preview-side,
+    .dual-bracket-container .preview-final {
+      display: none !important;
+    }
+
+    .dual-bracket-container .preview-side.preview-active,
+    .dual-bracket-container .preview-final.preview-active {
+      display: block !important;
+      flex: none !important;
+      width: 100% !important;
+    }
+
+    /* Default: Show Side A on load */
+    .dual-bracket-container .preview-side-a:not(.preview-hidden) {
+      display: block !important;
+    }
+
+    /* Multi-bracket preview mobile handling */
+    .multi-bracket-container .preview-bracket {
+      display: none !important;
+    }
+
+    .multi-bracket-container .preview-bracket.preview-active,
+    .multi-bracket-container .preview-bracket-0:not(.preview-hidden) {
+      display: flex !important;
+    }
+
+    .multi-bracket-container .preview-grand-final {
+      display: none !important;
+    }
+  }
+
   .tournament-page .bracket-round {
     display: flex;
     flex-direction: column;

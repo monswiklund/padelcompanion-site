@@ -386,57 +386,45 @@ export function renderMultiBracketPreview(
       <div style="text-align: center; margin-bottom: 12px;">
         <span style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${totalTeams} Teams → 2 Brackets</span>
       </div>
+      
+      <!-- Mobile Preview Tabs (visible on small screens via CSS) -->
+      <div class="preview-mobile-tabs" style="display: none; justify-content: center; gap: 8px; margin-bottom: 12px;">
+        <button class="preview-tab-btn active" data-preview="A" style="padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--accent); color: white; font-size: 0.8rem; cursor: pointer;">Side A</button>
+        <button class="preview-tab-btn" data-preview="Final" style="padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-muted); font-size: 0.8rem; cursor: pointer;">Final</button>
+        <button class="preview-tab-btn" data-preview="B" style="padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-muted); font-size: 0.8rem; cursor: pointer;">Side B</button>
+      </div>
+      
       <div class="dual-bracket-container" style="display: flex; align-items: stretch; justify-content: center; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
-        <div style="flex: 1; min-width: 200px;">${brackets[0]}</div>
-        ${finalHTML}
-        <div style="flex: 1; min-width: 200px;">${brackets[1]}</div>
+        <div class="preview-side preview-side-a" style="flex: 1; min-width: 200px;">${brackets[0]}</div>
+        <div class="preview-final">${finalHTML}</div>
+        <div class="preview-side preview-side-b" style="flex: 1; min-width: 200px;">${brackets[1]}</div>
       </div>
     `;
   }
 
-  // For 3+ brackets, group in pairs (A+B, C+D, E+F) each with their own final
-  const pairRows = [];
-  for (let i = 0; i < brackets.length; i += 2) {
-    const leftBracket = brackets[i];
-    const rightBracket = brackets[i + 1] || "";
-    const leftSide = sides[i];
-    const rightSide = sides[i + 1];
+  // For 3+ brackets, render each bracket individually with tab navigation
+  const bracketItems = [];
+  const bracketTabLabels = [];
 
-    // Paired final between this pair
-    const pairFinalHTML =
-      sharedFinal && rightSide
-        ? `
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px;">
-        <div style="font-size: 0.65rem; color: var(--success); font-weight: 600; text-align: center;">${
-          leftSide.name.split(" ")[1]
-        } vs ${rightSide.name.split(" ")[1]}<br/>Final</div>
-        <div style="width: 60px; height: 40px; background: linear-gradient(135deg, ${
-          leftSide.color
-        }, ${
-            rightSide.color
-          }); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
-          <span style="font-size: 1rem;">🏆</span>
-        </div>
-      </div>
-    `
-        : "";
+  for (let i = 0; i < brackets.length; i++) {
+    const side = sides[i];
+    const bracketLabel = side.name.split(" ")[1]; // "A", "B", "C", etc.
 
-    pairRows.push(`
-      <div class="bracket-pair" style="display: flex; align-items: stretch; justify-content: center; gap: 8px; grid-column: span 2;">
-        ${leftBracket}
-        ${pairFinalHTML}
-        ${rightBracket}
+    bracketTabLabels.push({ label: bracketLabel, index: i, color: side.color });
+
+    bracketItems.push(`
+      <div class="preview-bracket preview-bracket-${i}" data-bracket="${i}" style="display: flex; align-items: stretch; justify-content: center; gap: 8px; overflow-x: auto;">
+        ${brackets[i]}
       </div>
     `);
   }
 
   // Grand final between pair winners (only for exactly 2 pairs = 4 brackets)
-  // 3+ pairs would need semi-finals which is more complex
   const numPairs = Math.ceil(bracketCount / 2);
   const grandFinalHTML =
     sharedFinal && numPairs === 2
       ? `
-    <div style="grid-column: span 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 15px; margin-top: 10px; border-top: 1px solid var(--border-color);">
+    <div class="preview-grand-final preview-bracket preview-bracket-final" data-bracket="final" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 15px; margin-top: 10px; border-top: 1px solid var(--border-color);">
       <div style="font-size: 0.7rem; color: var(--success); font-weight: 700;">🏆 GRAND FINAL 🏆</div>
       <div style="width: 100px; height: 50px; background: linear-gradient(135deg, ${sides
         .filter((_, i) => i % 2 === 0)
@@ -459,12 +447,36 @@ export function renderMultiBracketPreview(
   `
       : "";
 
+  // Generate mobile tabs for each bracket
+  const bracketTabs = bracketTabLabels
+    .map(
+      (b, idx) =>
+        `<button class="preview-tab-btn ${
+          idx === 0 ? "active" : ""
+        }" data-preview-bracket="${
+          b.index
+        }" style="padding: 6px 12px; border-radius: 16px; border: 2px solid ${
+          b.color
+        }; background: ${idx === 0 ? b.color : "var(--bg-surface)"}; color: ${
+          idx === 0 ? "white" : b.color
+        }; font-size: 0.8rem; font-weight: 600; cursor: pointer;">${
+          b.label
+        }</button>`
+    )
+    .join("");
+
   return `
     <div style="text-align: center; margin-bottom: 12px;">
-      <span style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${totalTeams} Teams → ${bracketCount} Brackets (${numPairs} pairs)</span>
+      <span style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${totalTeams} Teams → ${bracketCount} Brackets</span>
     </div>
-    <div class="multi-bracket-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-      ${pairRows.join("")}
+    
+    <!-- Mobile Preview Tabs for each bracket -->
+    <div class="preview-mobile-tabs preview-bracket-tabs" style="display: none; justify-content: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+      ${bracketTabs}
+    </div>
+    
+    <div class="multi-bracket-container" style="display: flex; flex-direction: column; gap: 15px; overflow-x: auto;">
+      ${bracketItems.join("")}
       ${grandFinalHTML}
     </div>
   `;

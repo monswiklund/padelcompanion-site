@@ -158,10 +158,11 @@ export const bracketPage = {
           <p>Set up a single elimination tournament bracket.</p>
         </div>
         
-        <div class="players-section" style="max-width: 700px; margin: 0 auto;">
-          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- Section 1: Players/Teams List -->
+        <div class="bracket-setup-card" style="max-width: 700px; margin: 0 auto 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+          <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <h3>${getModeLabel()} <span id="bracketTeamCount">(${
+              <h3 style="margin: 0;">${getModeLabel()} <span id="bracketTeamCount">(${
       tempTeams.length
     })</span></h3>
               <button class="help-icon" id="bracketHelpBtn" style="width: 24px; height: 24px; font-size: 0.9rem; font-weight: bold;">?</button>
@@ -172,7 +173,7 @@ export const bracketPage = {
             </div>
           </div>
           
-          <div class="player-input-row" style="display: flex; gap: 12px; align-items: flex-end;">
+          <div class="player-input-row" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
             <div class="input-group" style="flex: 1;">
               <label for="bracketTeamInput" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">${getModeLabelSingular()} Name</label>
               <input type="text" id="bracketTeamInput" class="form-input" placeholder="${getModeInputPlaceholder()}" />
@@ -180,17 +181,15 @@ export const bracketPage = {
             <button class="btn btn-primary" id="addTeamBtn" style="height: 44px;">Add</button>
           </div>
           
-          <div class="team-list-container">
-          <ul id="bracketTeamsList" class="player-list custom-scrollbar-y" style="max-height: 400px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; padding: 4px; transition: max-height 0.3s ease-out !important;">
+          <ul id="bracketTeamsList" class="player-list custom-scrollbar-y" style="max-height: 300px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; padding: 4px; margin: 0;">
             ${this.renderTeamItems()}
           </ul>
           <button class="btn btn-sm btn-secondary" id="bracketToggleTeamsBtn" style="width: 100%; margin-top: 8px; display: none;">Show All (${
             tempTeams.length
           })</button>
           
-          
-          <p class="players-hint" id="bracketTeamsHint">${getTeamsHint()}</p>
-          <p class="form-hint" style="margin-top: 8px;">
+          <p class="players-hint" id="bracketTeamsHint" style="margin-top: 12px; text-align: center;">${getTeamsHint()}</p>
+          <p class="form-hint" style="margin-top: 8px; text-align: center;">
             Use 4, 8, 16, or 32 ${
               bracketMode === "players" ? "players" : "teams"
             } for perfect brackets. 
@@ -198,10 +197,9 @@ export const bracketPage = {
           </p>
         </div>
         
-        <div class="bracket-options" style="display: flex; flex-direction: column; gap: 16px; margin: 15px auto; max-width: 600px;">
-          
-          <!-- Format Section -->
-          <div class="settings-section" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+        <!-- Section 2: Settings -->
+        <div class="bracket-setup-card" style="max-width: 700px; margin: 0 auto 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+          <div class="settings-section" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
             <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
               <span style="color: ${
                 bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
@@ -255,10 +253,10 @@ export const bracketPage = {
           <!-- Pool Settings Section (only visible when Multi-Brackets enabled) -->
           <div id="poolSettingsSection" style="display: ${
             savedDualMode ? "flex" : "none"
-          }; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+          }; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); margin-top: 16px;">
             <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pool Settings</div>
             
-            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: center;">
               <!-- Number of Pools -->
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 0.85rem; color: var(--text-secondary);">Pools:</span>
@@ -323,15 +321,16 @@ export const bracketPage = {
           </div>
         </div>
         
+        <!-- Section 3: Preview (Full Width) -->
         <div id="bracketPreview" class="bracket-preview" style="margin: 20px auto; padding: 15px; background: var(--bg-tertiary); border-radius: var(--radius-md); display: ${
           tempTeams.length >= 2 ? "block" : "none"
-        }; width: fit-content; max-width: 100%;">
+        };">
           <div id="bracketPreviewContent"></div>
         </div>
         
         <button class="btn btn-primary" id="createBracketBtn" ${
           tempTeams.length < 2 ? "disabled" : ""
-        }>Create Bracket</button>
+        } style="display: block; margin: 0 auto;">Create Bracket</button>
       </div>
     `;
 
@@ -415,6 +414,9 @@ export const bracketPage = {
           bracketCount,
           sharedFinal
         );
+
+        // Attach preview tab event listeners
+        this.attachPreviewTabListeners(container);
       } else {
         // Single bracket preview
         previewContent.innerHTML = this.renderBracketPreview(
@@ -426,6 +428,81 @@ export const bracketPage = {
     } else {
       previewEl.style.display = "none";
     }
+  },
+
+  /**
+   * Attach event listeners for preview mobile tabs
+   */
+  attachPreviewTabListeners(container) {
+    const tabBtns = container.querySelectorAll(".preview-tab-btn");
+    const sideA = container.querySelector(".preview-side-a");
+    const sideB = container.querySelector(".preview-side-b");
+    const finalEl = container.querySelector(".preview-final");
+    const allBrackets = container.querySelectorAll(".preview-bracket");
+
+    tabBtns.forEach((btn) => {
+      addListener(btn, "click", () => {
+        const tab = btn.dataset.preview;
+        const bracketIndex = btn.dataset.previewBracket;
+        const btnColor = btn.style.borderColor || "var(--accent)";
+
+        // Update button styles - reset all
+        tabBtns.forEach((b) => {
+          b.classList.remove("active");
+          const bColor = b.style.borderColor || "var(--accent)";
+          b.style.background = "var(--bg-surface)";
+          b.style.color = bColor;
+        });
+        // Activate clicked button
+        btn.classList.add("active");
+        btn.style.background = btnColor;
+        btn.style.color = "white";
+
+        // Handle dual bracket tabs (A/B/Final)
+        if (tab) {
+          // Hide all
+          if (sideA) {
+            sideA.classList.remove("preview-active");
+            sideA.classList.add("preview-hidden");
+          }
+          if (sideB) {
+            sideB.classList.remove("preview-active");
+            sideB.classList.add("preview-hidden");
+          }
+          if (finalEl) {
+            finalEl.classList.remove("preview-active");
+          }
+
+          // Show selected
+          if (tab === "A" && sideA) {
+            sideA.classList.add("preview-active");
+            sideA.classList.remove("preview-hidden");
+          }
+          if (tab === "B" && sideB) {
+            sideB.classList.add("preview-active");
+            sideB.classList.remove("preview-hidden");
+          }
+          if (tab === "Final" && finalEl)
+            finalEl.classList.add("preview-active");
+        }
+
+        // Handle individual bracket tabs (A, B, C, D, etc.)
+        if (bracketIndex !== undefined) {
+          allBrackets.forEach((bracket) => {
+            bracket.classList.remove("preview-active");
+            bracket.classList.add("preview-hidden");
+          });
+
+          const selectedBracket = container.querySelector(
+            `.preview-bracket-${bracketIndex}`
+          );
+          if (selectedBracket) {
+            selectedBracket.classList.add("preview-active");
+            selectedBracket.classList.remove("preview-hidden");
+          }
+        }
+      });
+    });
   },
 
   /**
