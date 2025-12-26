@@ -60,20 +60,60 @@
     .tournament-page .page-nav-tabs {
       max-width: 100%;
       gap: 4px;
+      overflow-x: auto;
+      justify-content: flex-start; /* Allow scroll if needed */
+      padding: 6px 12px;
     }
 
     .tournament-page .page-nav-tab {
       padding: 8px 12px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      flex-shrink: 0;
     }
 
     .tournament-page .page-nav-tab .tab-label {
-      display: none;
+      display: inline-block; /* Keep text visible if fits */
     }
 
-    .tournament-page .page-nav-tab .tab-icon {
-      font-size: 1.3em;
+    .tournament-page .tool-header h1 {
+      font-size: 2.2rem;
     }
+  }
+
+  /* ===== Loading States ===== */
+  .tournament-page .loading-skeleton {
+    animation: shimmer 1.5s infinite linear;
+    background: linear-gradient(
+      to right,
+      var(--bg-surface) 4%,
+      var(--bg-tertiary) 25%,
+      var(--bg-surface) 36%
+    );
+    background-size: 1000px 100%;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .tournament-page .skeleton-header {
+    height: 40px;
+    width: 200px;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+  }
+
+  .tournament-page .skeleton-card {
+    height: 120px;
+    border-radius: var(--radius-lg);
+    background: var(--bg-surface);
+    margin-bottom: var(--space-md);
+    border: 1px solid var(--border-color);
   }
 
   /* ===== Page Container ===== */
@@ -403,8 +443,6 @@
   }
 
   .tournament-page .section-title,
-  .tournament-page .card-header-basic h3,
-  .tournament-page .card-header-advanced h3,
   .tournament-page .leaderboard-header h3 {
     opacity: 0;
     transform: translateY(20px);
@@ -418,8 +456,6 @@
   }
 
   .tournament-page .section-title.animate-in,
-  .tournament-page .card-header-basic h3.animate-in,
-  .tournament-page .card-header-advanced h3.animate-in,
   .tournament-page .leaderboard-header h3.animate-in {
     opacity: 1;
     transform: translateY(0);
@@ -465,92 +501,7 @@
     transform: translateY(-2px);
   }
 
-  /* ===== Setup Section ===== */
-  .tournament-page .setup-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
-    padding: var(--space-xl);
-    margin-bottom: var(--space-2xl);
-    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.2);
-    transition: all var(--transition-base);
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .tournament-page #generateBtn {
-    display: block;
-    max-width: 800px;
-    margin: var(--space-lg) auto var(--space-2xl);
-  }
-
-  .tournament-page .setup-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(59, 130, 246, 0.2);
-  }
-
-  .tournament-page .card-header-basic {
-    margin-bottom: var(--space-md);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: var(--space-sm);
-  }
-
-  .tournament-page .control-divider-horizontal {
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--accent) 20%,
-      var(--accent-light) 50%,
-      var(--accent) 80%,
-      transparent 100%
-    );
-    margin: var(--space-lg) 0;
-    width: 100%;
-    opacity: 0.6;
-  }
-
-  .tournament-page .card-header-basic h3,
-  .tournament-page .card-header-advanced h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: var(--accent-light);
-    font-style: italic;
-  }
-
-  .tournament-page .card-header-basic h3::first-letter,
-  .tournament-page .card-header-advanced h3::first-letter {
-    font-size: 1.3em;
-    color: var(--accent);
-  }
-
-  .tournament-page .setup-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-  }
-  .tournament-page .setup-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-  .tournament-page .setup-grid-3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-
-  @media (max-width: 480px) {
-    .tournament-page .setup-grid,
-    .tournament-page .setup-grid-2,
-    .tournament-page .setup-grid-3 {
-      grid-template-columns: 1fr;
-    }
-  }
+  /* Legacy .setup-card and .card-header-basic styles removed in cleanup */
 
   /* Players Section */
   .tournament-page .players-section {

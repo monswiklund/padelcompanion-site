@@ -17,6 +17,8 @@ import {
 } from "../bracketLogic.js";
 import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
 import { showToast } from "../../shared/utils.js";
+import { getHistoryTemplate } from "../ui/historyTemplate.js";
+import { initHistory, renderHistory } from "../history.js";
 
 // Track attached listeners for cleanup
 const listeners = [];
@@ -114,6 +116,15 @@ export const bracketPage = {
     }
 
     this.renderBracket(container);
+
+    // Append History Section
+    const historyContainer = document.createElement("div");
+    historyContainer.innerHTML = getHistoryTemplate();
+    container.appendChild(historyContainer);
+
+    // Initialize History
+    initHistory();
+    renderHistory();
   },
 
   /**

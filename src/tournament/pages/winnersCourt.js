@@ -17,6 +17,8 @@ import {
 import { showConfirmModal, showInputModal, showInfoModal } from "../modals.js";
 import { showToast } from "../../shared/utils.js";
 import { setupCustomSelects } from "../ui/customSelect.js";
+import { getHistoryTemplate } from "../ui/historyTemplate.js";
+import { initHistory, renderHistory } from "../history.js";
 
 // Track attached listeners for cleanup
 const listeners = [];
@@ -113,6 +115,15 @@ export const winnersCourtPage = {
 
     this.renderSetup(container.querySelector("#wcSetupContainer"));
     this.renderActiveGame(container.querySelector("#wcActiveContainer"));
+
+    // Append History Section
+    const historyContainer = document.createElement("div");
+    historyContainer.innerHTML = getHistoryTemplate();
+    container.appendChild(historyContainer);
+
+    // Initialize History
+    initHistory();
+    renderHistory();
   },
 
   /**

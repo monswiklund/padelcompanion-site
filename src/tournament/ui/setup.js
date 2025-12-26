@@ -65,52 +65,7 @@ export function updateSetupUI() {
       : "Enter name...";
   }
 
-  // Legacy setup-card is now removed; locking behavior handled by tournamentConfig
-  // The following code can be removed or adapted if tournament-config needs locking support
-  const setupCard = document.querySelector(".setup-card");
-  if (setupCard) {
-    // Disable Core Setup inputs when locked
-    const coreContainers = [
-      setupCard.querySelector(".setup-grid"),
-      setupCard.querySelector(".setup-grid-3"),
-      document.getElementById("customCourtNamesSection"),
-    ];
-
-    coreContainers.forEach((container) => {
-      if (!container) return;
-      const inputs = container.querySelectorAll("input, select, button");
-      inputs.forEach((input) => {
-        // Skip always-enabled elements
-        if (input.classList.contains("always-enabled")) return;
-
-        if (state.isLocked) {
-          input.disabled = true;
-          input.classList.add("locked");
-
-          // Handle Custom Selects
-          if (input.tagName === "SELECT") {
-            const wrapper = input.closest(".custom-select-wrapper");
-            if (wrapper) {
-              const customSelect = wrapper.querySelector(".custom-select");
-              if (customSelect) customSelect.classList.add("disabled");
-            }
-          }
-        } else {
-          input.disabled = false;
-          input.classList.remove("locked");
-
-          // Handle Custom Selects
-          if (input.tagName === "SELECT") {
-            const wrapper = input.closest(".custom-select-wrapper");
-            if (wrapper) {
-              const customSelect = wrapper.querySelector(".custom-select");
-              if (customSelect) customSelect.classList.remove("disabled");
-            }
-          }
-        }
-      });
-    });
-  }
+  // Legacy setup-card code removed - locking is now handled by tournament-config
 
   // Ensure Matchup Rules are NOT disabled
   const matchupContainer = document.getElementById("advancedSettingsContent");

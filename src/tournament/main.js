@@ -315,7 +315,7 @@ function injectPageNavigation() {
 // ===== Scroll Animations =====
 function initScrollAnimations() {
   const targets = document.querySelectorAll(
-    ".section-title, .card-header-basic h3, .card-header-advanced h3, .leaderboard-header h3, .players-header h3"
+    ".section-title, .leaderboard-header h3, .players-header h3"
   );
 
   // Immediately animate elements visible on load

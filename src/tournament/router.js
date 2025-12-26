@@ -75,15 +75,29 @@ function handleRoute() {
     }
   }
 
-  currentPage = page;
-
-  // Mount new page
+  // Show loading skeleton
   const container = document.getElementById("pageContainer");
-  if (container && currentPage.mount) {
-    try {
-      currentPage.mount(container, params);
-    } catch (e) {
-      console.error("[Router] Error mounting page:", e);
-    }
+  if (container) {
+    container.innerHTML = `
+      <div style="padding: 20px;">
+        <div class="loading-skeleton skeleton-header" style="width: 50%; height: 40px; margin-bottom: 30px;"></div>
+        <div class="loading-skeleton skeleton-card" style="height: 200px; margin-bottom: 20px;"></div>
+        <div class="loading-skeleton skeleton-card" style="height: 150px;"></div>
+      </div>
+    `;
   }
+
+  // Small delay to allow Paint (and optional visual feel of transition)
+  setTimeout(() => {
+    currentPage = page;
+
+    // Mount new page
+    if (container && currentPage.mount) {
+      try {
+        currentPage.mount(container, params);
+      } catch (e) {
+        console.error("[Router] Error mounting page:", e);
+      }
+    }
+  }, 50);
 }
