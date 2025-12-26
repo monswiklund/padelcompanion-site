@@ -3,8 +3,8 @@ import { getHistoryTemplate } from "./historyTemplate.js";
 export const getGeneratorTemplate = () => `
   <!-- Standard Header -->
   <div class="page-intro-header">
-    <h2 class="page-title">Americano Setup</h2>
-    <p class="page-subtitle">Add players and configure your tournament settings.</p>
+    <h2>Americano Setup</h2>
+    <p>Add players and configure your tournament settings.</p>
   </div>
 
   <!-- Setup Section -->

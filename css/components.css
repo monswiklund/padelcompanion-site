@@ -498,6 +498,13 @@
     margin-top: 4px;
     max-height: 250px;
     overflow-y: auto;
+    /* Hide scrollbar */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  .custom-options::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
   }
 
   .custom-select.open .custom-options,

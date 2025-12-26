@@ -399,7 +399,7 @@
 
   /* ===== Layout Overrides ===== */
   .tournament-page .container {
-    max-width: 1200px;
+    max-width: 100%; /* Allow full width for brackets */
     margin: 0 auto;
     padding: 0 var(--space-md);
   }

@@ -957,12 +957,13 @@ export const bracketPage = {
     const isComplete = isBracketComplete();
 
     container.innerHTML = `
-      <div class="bracket-header">
+      <div class="page-intro-header">
         <h2>Tournament Bracket</h2>
-        <div class="bracket-actions">
-          <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
-          <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
-        </div>
+        <p>Single elimination tournament bracket</p>
+      </div>
+      <div class="bracket-actions" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
+        <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
       </div>
       <div class="bracket-container">
         ${rounds
@@ -1044,12 +1045,13 @@ export const bracketPage = {
     const roundsB = groupByRound(matchesB);
 
     container.innerHTML = `
-      <div class="bracket-header">
+      <div class="page-intro-header">
         <h2>Dual Bracket Tournament</h2>
-        <div class="bracket-actions">
-          <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
-          <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
-        </div>
+        <p>Side A vs Side B • Winners meet in Grand Final</p>
+      </div>
+      <div class="bracket-actions" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+        <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
+        <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
       </div>
       
       <div class="dual-bracket-layout" style="display: flex; gap: 20px; align-items: flex-start; justify-content: center; flex-wrap: wrap; padding: 20px 0;">
