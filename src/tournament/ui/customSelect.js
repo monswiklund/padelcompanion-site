@@ -84,6 +84,16 @@ export function setupCustomSelects() {
     customSelect.appendChild(optionsDiv);
     wrapper.appendChild(customSelect);
 
+    // Clean up orphans first
+    const cleanOrphans = () => {
+      document.querySelectorAll("body > .custom-options").forEach((el) => {
+        if (el._owner && !document.body.contains(el._owner)) {
+          el.remove();
+        }
+      });
+    };
+    cleanOrphans();
+
     // Toggle logic
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -94,14 +104,19 @@ export function setupCustomSelects() {
       document.querySelectorAll(".custom-select.open").forEach((el) => {
         if (el !== customSelect) {
           el.classList.remove("open");
-          el.querySelector(".custom-options").classList.remove("show");
-          // Reset fixed positioning for others
-          const otherOpts = el.querySelector(".custom-options");
-          otherOpts.style.position = "";
-          otherOpts.style.top = "";
-          otherOpts.style.left = "";
-          otherOpts.style.width = "";
-          otherOpts.style.margin = "";
+          if (el.customOptions) {
+            el.customOptions.classList.remove("show");
+            // Return to parent if in body
+            if (el.customOptions.parentElement === document.body) {
+              el.appendChild(el.customOptions);
+            }
+            // Reset styles
+            el.customOptions.style.position = "";
+            el.customOptions.style.top = "";
+            el.customOptions.style.left = "";
+            el.customOptions.style.width = "";
+            el.customOptions.style.margin = "";
+          }
         }
       });
 
@@ -109,10 +124,12 @@ export function setupCustomSelects() {
         // Closing current
         customSelect.classList.remove("open");
         optionsDiv.classList.remove("show");
-        // Reset styles after transition?
-        // Better to reset immediately to avoid layout jumps if transitioned
-        // But transition relies on it being there.
-        // Let's just unset properties.
+
+        // Return to parent
+        if (optionsDiv.parentElement === document.body) {
+          customSelect.appendChild(optionsDiv);
+        }
+
         optionsDiv.style.position = "";
         optionsDiv.style.top = "";
         optionsDiv.style.left = "";
@@ -121,21 +138,28 @@ export function setupCustomSelects() {
       } else {
         // Opening current
         customSelect.classList.add("open");
+
+        // Move to body (Portal)
+        document.body.appendChild(optionsDiv);
         optionsDiv.classList.add("show");
 
         // Calculate fixed position
         const rect = customSelect.getBoundingClientRect();
         optionsDiv.style.position = "fixed";
-        optionsDiv.style.top = `${rect.bottom + 4}px`; // Add small gap manually
+        optionsDiv.style.top = `${rect.bottom + 4}px`;
         optionsDiv.style.left = `${rect.left}px`;
         optionsDiv.style.width = `${rect.width}px`;
         optionsDiv.style.zIndex = "9999";
-        optionsDiv.style.margin = "0"; // Prevent double spacing from CSS
+        optionsDiv.style.margin = "0";
       }
     });
 
     // Hide original select visually but keep it for logic
     select.style.display = "none";
+
+    // Link options to wrapper for global close
+    customSelect.customOptions = optionsDiv;
+    optionsDiv._owner = customSelect; // For orphan cleanup
   });
 
   // Global click outside to close
@@ -161,13 +185,19 @@ export function setupCustomSelects() {
   function closeAllSelects() {
     document.querySelectorAll(".custom-select.open").forEach((el) => {
       el.classList.remove("open");
-      const opts = el.querySelector(".custom-options");
-      opts.classList.remove("show");
-      opts.style.position = "";
-      opts.style.top = "";
-      opts.style.left = "";
-      opts.style.width = "";
-      opts.style.margin = "";
+      const opts = el.customOptions || el.querySelector(".custom-options");
+      if (opts) {
+        opts.classList.remove("show");
+        // Return to parent if in body
+        if (opts.parentElement === document.body) {
+          el.appendChild(opts);
+        }
+        opts.style.position = "";
+        opts.style.top = "";
+        opts.style.left = "";
+        opts.style.width = "";
+        opts.style.margin = "";
+      }
     });
   }
 }

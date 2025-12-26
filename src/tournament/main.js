@@ -1288,7 +1288,7 @@ window.removePlayer = (id) => {
   removePlayer(id);
   renderPlayers();
 };
-window.togglePlayerList = togglePlayerList;
+
 window.updatePreferredPair = (pairId, which, playerId) => {
   updatePreferredPair(pairId, which, playerId);
   renderPreferredPartners();

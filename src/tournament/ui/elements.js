@@ -33,7 +33,9 @@ export function initElements() {
     preferredPartnersList: document.getElementById("preferredPartnersList"),
     addPartnerPairBtn: document.getElementById("addPartnerPairBtn"),
     advancedSettingsContent: document.getElementById("advancedSettingsContent"),
-    playerList: document.getElementById("playerList"),
+    playerList:
+      document.getElementById("genPlayerList") ||
+      document.getElementById("playerList"),
     playerCount: document.getElementById("playerCount"),
     playersHint: document.getElementById("playersHint"),
     playerInputRow: document.getElementById("playerInputRow"),

@@ -8,7 +8,7 @@ export const getGeneratorTemplate = () => `
   </div>
 
   <!-- Setup Section -->
-  <div class="players-section">
+  <div class="players-section" style="max-width: 700px; margin: 0 auto;">
     <!-- Inner title removed -->
     
     <div class="section-header">
@@ -48,17 +48,18 @@ export const getGeneratorTemplate = () => `
       <button class="btn btn-primary" id="confirmAddBtn" style="height: 44px;">Add</button>
     </div>
 
-    <div class="player-list-wrapper expanded" id="playerListWrapper">
-      <ul class="player-list" id="playerList">
+    <div class="player-list-wrapper" id="playerListWrapper">
+      <ul class="player-list custom-scrollbar-y" id="genPlayerList" style="display: grid !important; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; gap: 10px !important; padding: 4px; max-height: 400px !important; overflow-y: auto !important; transition: max-height 0.3s ease-out !important;">
         <!-- Players will be added here -->
       </ul>
     </div>
-    <button class="expand-players-btn" id="expandPlayersBtn" data-action="toggle-player-list">Show Less ▲</button>
-
+    <button class="btn btn-sm btn-secondary" id="genExpandBtn" data-action="toggle-player-list" style="width: 100%; margin-top: 8px;">Show All Players</button>
+    
     <!-- Preferred Partners Section (Hidden by default or empty) -->
     <div id="preferredPartnersList" class="preferred-partners-list"></div>
     <div style="text-align: center; margin: 10px 0; display: none;">
       <button id="addPartnerPairBtn" class="btn btn-secondary btn-sm">Add Fixed Pair</button>
+    </div>
     </div>
 
     <p class="players-hint" id="playersHint">Add at least 4 players to generate a schedule</p>

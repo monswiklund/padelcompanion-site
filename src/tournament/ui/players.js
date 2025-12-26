@@ -110,6 +110,7 @@ export function renderPlayers() {
   updateAddPartnerPairButton();
   updatePlayerToggleBtn();
   validateCourts();
+  validateCourts();
   setupCustomSelects();
   renderTournamentConfig();
 }
@@ -119,13 +120,18 @@ export function renderPlayers() {
  */
 export function togglePlayerList() {
   const wrapper = document.getElementById("playerListWrapper");
-  const btn = document.getElementById("expandPlayersBtn");
+  const list =
+    document.getElementById("genPlayerList") ||
+    document.getElementById("playerList");
+  const btn = document.getElementById("genExpandBtn");
 
   if (wrapper.classList.contains("expanded")) {
     wrapper.classList.remove("expanded");
+    if (list) list.style.setProperty("max-height", "400px", "important");
     btn.innerHTML = `Show All Players (${state.players.length}) ▼`;
   } else {
     wrapper.classList.add("expanded");
+    if (list) list.style.setProperty("max-height", "2000px", "important"); // Large enough to show all
     btn.innerHTML = "Show Less ▲";
   }
 }
@@ -134,19 +140,28 @@ export function togglePlayerList() {
  * Update the player toggle button text and visibility
  */
 function updatePlayerToggleBtn() {
-  const btn = document.getElementById("expandPlayersBtn");
+  // Try multiple ways to find the button to be absolutely sure
+  let btn = document.getElementById("genExpandBtn");
+  if (!btn) {
+    console.warn("genExpandBtn not found by ID, trying querySelector");
+    btn = document.querySelector("#playerListWrapper .btn");
+  }
+
   const wrapper = document.getElementById("playerListWrapper");
-  if (!btn) return;
+  if (!btn) {
+    console.error("Expand button STILL not found");
+    return;
+  }
+  console.log("Found expand button:", btn);
 
   // Hide button if there are too few players to need expansion
-  // The collapsed height fits about 5-6 players, so hide if <= 5
-  const MIN_PLAYERS_FOR_EXPAND = 6;
-  if (state.players.length < MIN_PLAYERS_FOR_EXPAND) {
+  // Lower threshold to ensure it shows up more often for testing/consistency
+  const MIN_PLAYERS_FOR_EXPAND = 8;
+
+  if (state.players.length <= MIN_PLAYERS_FOR_EXPAND) {
     btn.style.display = "none";
-    // Make sure wrapper is expanded when button is hidden so all players show
-    if (wrapper) wrapper.classList.add("expanded");
   } else {
-    btn.style.display = "block";
+    btn.style.setProperty("display", "block", "important");
     if (!wrapper?.classList.contains("expanded")) {
       btn.innerHTML = `Show All Players (${state.players.length}) ▼`;
     }

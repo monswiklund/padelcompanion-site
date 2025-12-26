@@ -47,11 +47,29 @@ export function renderPlayerListItem(item, index, options = {}) {
     `;
   }
 
-  // Build Skill Badge HTML
+  // Build Skill Badge or Select HTML
   let skillHtml = "";
   if (showSkill) {
-    const skillText = skill === 0 ? "-" : skill;
-    skillHtml = `<span class="player-skill">${skillText}</span>`;
+    if (options.editableSkill) {
+      // Editable Select
+      const opts = Array.from({ length: 11 }, (_, i) => {
+        const val = i;
+        const label = i === 0 ? "-" : i;
+        return `<option value="${val}" ${
+          skill === val ? "selected" : ""
+        }>${label}</option>`;
+      }).join("");
+
+      skillHtml = `
+        <select class="form-select wc-skill-select compact-select skill-select" data-action="update-skill" data-index="${index}" style="margin-left:8px; width:50px; padding-right: 20px;">
+          ${opts}
+        </select>
+      `;
+    } else {
+      // Static Badge
+      const skillText = skill === 0 ? "-" : skill;
+      skillHtml = `<span class="player-skill">${skillText}</span>`;
+    }
   }
 
   // Main Item HTML

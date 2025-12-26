@@ -500,7 +500,8 @@
     overflow-y: auto;
   }
 
-  .custom-select.open .custom-options {
+  .custom-select.open .custom-options,
+  .custom-options.show {
     opacity: 1;
     visibility: visible;
     pointer-events: all;

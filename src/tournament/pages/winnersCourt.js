@@ -166,7 +166,7 @@ export const winnersCourtPage = {
           <!-- Players Section -->
           <div class="players-section" style="${
             isGameActive ? "border-color: var(--accent);" : ""
-          }">
+          } max-width: 700px; margin: 0 auto;">
             <div class="section-header">
               <h3>Players <span id="wcPlayerCount">(${
                 this.tempPlayers.length
@@ -198,27 +198,12 @@ export const winnersCourtPage = {
               <button class="btn btn-primary" id="addPlayerBtn" style="height: 44px;">Add</button>
             </div>
             
-            <ul class="player-list" id="wcPlayersList" style="max-height: ${
-              this.listExpanded ? "2000px" : isGameActive ? "200px" : "280px"
-            }; overflow-y: auto; transition: max-height 0.3s ease;">
+            <ul class="player-list custom-scrollbar-y" id="wcPlayersList" style="display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 4px; max-height: 400px !important; overflow-y: auto !important; transition: max-height 0.3s ease-out !important;">
               ${this.renderPlayerItems()}
             </ul>
-            
-            ${
-              this.tempPlayers.length > 5
-                ? `
-              <button class="btn btn-sm btn-secondary" id="wcTogglePlayersBtn" data-expanded="${
-                this.listExpanded
-              }" style="width: 100%; margin-top: 8px;">
-                ${
-                  this.listExpanded
-                    ? "Show Less"
-                    : `Show All (${this.tempPlayers.length})`
-                }
-              </button>
-            `
-                : ""
-            }
+             <button class="btn btn-sm btn-secondary" id="wcTogglePlayersBtn" style="width: 100%; margin-top: 8px; display: none;">Show All (${
+               this.tempPlayers.length
+             })</button>
             
             ${this.renderSideSummary()}
             
@@ -299,8 +284,10 @@ export const winnersCourtPage = {
    */
   renderPlayerItems() {
     // Shared options
+    // Shared options
     const options = {
       showSkill: true,
+      editableSkill: true,
       showSide: this.splitSidesEnabled,
     };
 
@@ -621,6 +608,47 @@ export const winnersCourtPage = {
       }
     });
 
+    // Toggle show all players
+    const toggleBtn = container.querySelector("#wcTogglePlayersBtn");
+    if (toggleBtn) {
+      // Logic to show/hide button based on count
+      if (this.tempPlayers.length > 10) {
+        toggleBtn.style.display = "block";
+        toggleBtn.innerHTML = this.listExpanded
+          ? "Show Less ▲"
+          : `Show All (${this.tempPlayers.length}) ▼`;
+      } else {
+        toggleBtn.style.display = "none";
+      }
+
+      addListener(toggleBtn, "click", () => {
+        const list = container.querySelector("#wcPlayersList");
+
+        this.listExpanded = !this.listExpanded;
+
+        if (this.listExpanded) {
+          list.style.setProperty("max-height", "2000px", "important");
+          toggleBtn.innerHTML = "Show Less ▲";
+        } else {
+          list.style.setProperty("max-height", "400px", "important");
+          toggleBtn.innerHTML = `Show All (${this.tempPlayers.length}) ▼`;
+        }
+      });
+    }
+
+    // Handle skill change
+    addListener(container.querySelector("#wcPlayersList"), "change", (e) => {
+      if (e.target.dataset.action === "update-skill") {
+        const index = parseInt(e.target.dataset.index);
+        const newSkill = parseInt(e.target.value);
+        if (this.tempPlayers[index]) {
+          this.tempPlayers[index].skill = newSkill;
+          this.saveSetup();
+          // No need to re-render, the select is already updated
+        }
+      }
+    });
+
     // Remove player (event delegation)
     addListener(container.querySelector("#wcPlayersList"), "click", (e) => {
       if (e.target.classList.contains("player-remove")) {
@@ -630,28 +658,6 @@ export const winnersCourtPage = {
         this.renderSetup(container);
       }
     });
-
-    // Toggle show all players
-    const toggleBtn = container.querySelector("#wcTogglePlayersBtn");
-    if (toggleBtn) {
-      addListener(toggleBtn, "click", () => {
-        const list = container.querySelector("#wcPlayersList");
-
-        // Toggle the expanded state
-        this.listExpanded = !this.listExpanded;
-
-        if (this.listExpanded) {
-          // Use scrollHeight for smooth animation
-          list.style.maxHeight = list.scrollHeight + "px";
-          toggleBtn.textContent = "Show Less";
-          toggleBtn.dataset.expanded = "true";
-        } else {
-          list.style.maxHeight = "280px";
-          toggleBtn.textContent = `Show All (${this.tempPlayers.length})`;
-          toggleBtn.dataset.expanded = "false";
-        }
-      });
-    }
 
     // Generate
     if (generateBtn) {

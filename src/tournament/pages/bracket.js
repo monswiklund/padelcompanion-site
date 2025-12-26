@@ -157,7 +157,7 @@ export const bracketPage = {
           <p>Set up a single elimination tournament bracket.</p>
         </div>
         
-        <div class="players-section" style="max-width: 500px; margin: 0 auto;">
+        <div class="players-section" style="max-width: 700px; margin: 0 auto;">
           <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <h3>${getModeLabel()} <span id="bracketTeamCount">(${
@@ -179,21 +179,14 @@ export const bracketPage = {
             <button class="btn btn-primary" id="addTeamBtn" style="height: 44px;">Add</button>
           </div>
           
-          <ul class="player-list" id="bracketTeamsList" style="max-height: ${
-            listExpanded ? "2000px" : "200px"
-          }; overflow-y: auto; transition: max-height 0.3s ease;">
+          <div class="team-list-container">
+          <ul id="bracketTeamsList" class="player-list custom-scrollbar-y" style="max-height: 400px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; padding: 4px; transition: max-height 0.3s ease-out !important;">
             ${this.renderTeamItems()}
           </ul>
+          <button class="btn btn-sm btn-secondary" id="bracketToggleTeamsBtn" style="width: 100%; margin-top: 8px; display: none;">Show All (${
+            tempTeams.length
+          })</button>
           
-          ${
-            tempTeams.length > 5
-              ? `
-            <button class="btn btn-sm btn-secondary" id="bracketToggleTeamsBtn" data-expanded="${listExpanded}" style="width: 100%; margin-top: 8px;">
-              ${listExpanded ? "Show Less" : `Show All (${tempTeams.length})`}
-            </button>
-          `
-              : ""
-          }
           
           <p class="players-hint" id="bracketTeamsHint">${getTeamsHint()}</p>
           <p class="form-hint" style="margin-top: 8px;">
@@ -204,84 +197,105 @@ export const bracketPage = {
           </p>
         </div>
         
-        <div class="bracket-options" style="display: flex; gap: 20px; justify-content: center; margin: 15px 0; flex-wrap: wrap;">
-          <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <span style="color: ${
-              bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
-            }; font-weight: ${
+        <div class="bracket-options" style="display: flex; flex-direction: column; gap: 16px; margin: 15px auto; max-width: 600px;">
+          
+          <!-- Format Section -->
+          <div class="settings-section" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+            <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <span style="color: ${
+                bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
+              }; font-weight: ${
       bracketMode === "teams" ? "600" : "400"
     };">Teams</span>
-            <input type="checkbox" id="bracketModeToggle" ${
-              bracketMode === "players" ? "checked" : ""
-            } />
-            <span class="slider round"></span>
-            <span style="color: ${
-              bracketMode === "players" ? "var(--accent)" : "var(--text-muted)"
-            }; font-weight: ${
+              <input type="checkbox" id="bracketModeToggle" ${
+                bracketMode === "players" ? "checked" : ""
+              } />
+              <span class="slider round"></span>
+              <span style="color: ${
+                bracketMode === "players"
+                  ? "var(--accent)"
+                  : "var(--text-muted)"
+              }; font-weight: ${
       bracketMode === "players" ? "600" : "400"
     };">Players</span>
-          </label>
-          <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" id="bracketDualMode" ${
-              savedDualMode ? "checked" : ""
-            } />
-            <span class="slider round"></span>
-            <span>Multi-Brackets</span>
-          </label>
-          <div id="bracketCountLabel" style="display: ${
-            savedDualMode ? "flex" : "none"
-          }; align-items: center; gap: 8px;">
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Brackets:</span>
-            <select id="bracketCount" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
-              ${[2, 3, 4, 5, 6]
-                .map(
-                  (n) =>
-                    `<option value="${n}" ${
-                      parseInt(localStorage.getItem("bracket_count") || "2") ===
-                      n
-                        ? "selected"
-                        : ""
-                    }>${n} (${String.fromCharCode(65)}...${String.fromCharCode(
-                      64 + n
-                    )})</option>`
-                )
-                .join("")}
-            </select>
+            </label>
+            <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="bracketDualMode" ${
+                savedDualMode ? "checked" : ""
+              } />
+              <span class="slider round"></span>
+              <span>Pool Play</span>
+            </label>
           </div>
-          <label class="wc-toggle" id="sharedFinalLabel" style="display: ${
+          
+          <!-- Pool Settings Section (only visible when Multi-Brackets enabled) -->
+          <div id="poolSettingsSection" style="display: ${
             savedDualMode ? "flex" : "none"
-          }; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" id="bracketSharedFinal" ${
-              localStorage.getItem("bracket_shared_final") !== "false"
-                ? "checked"
-                : ""
-            } />
-            <span class="slider round"></span>
-            <span>Grand Final 🏆</span>
-          </label>
-          <div id="sideAssignLabel" style="display: ${
-            savedDualMode ? "flex" : "none"
-          }; align-items: center; gap: 8px;">
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Assign:</span>
-            <select id="bracketSideAssign" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
-              <option value="random" ${
-                localStorage.getItem("bracket_side_assign") === "random" ||
-                !localStorage.getItem("bracket_side_assign")
-                  ? "selected"
-                  : ""
-              }>Random</option>
-              <option value="alternate" ${
-                localStorage.getItem("bracket_side_assign") === "alternate"
-                  ? "selected"
-                  : ""
-              }>Alternate (1-A, 2-B...)</option>
-              <option value="half" ${
-                localStorage.getItem("bracket_side_assign") === "half"
-                  ? "selected"
-                  : ""
-              }>Split by Pool</option>
-            </select>
-            <button type="button" id="assignHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
+          }; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md);">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pool Settings</div>
+            
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+              <!-- Number of Pools -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Pools:</span>
+                <select id="bracketCount" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+                  ${[2, 3, 4, 5, 6]
+                    .map(
+                      (n) =>
+                        `<option value="${n}" ${
+                          parseInt(
+                            localStorage.getItem("bracket_count") || "2"
+                          ) === n
+                            ? "selected"
+                            : ""
+                        }>${n} (${String.fromCharCode(
+                          65
+                        )}...${String.fromCharCode(64 + n)})</option>`
+                    )
+                    .join("")}
+                </select>
+              </div>
+              
+              <!-- Pair Finals Toggle -->
+              <label class="wc-toggle" id="sharedFinalLabel" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="bracketSharedFinal" ${
+                  localStorage.getItem("bracket_shared_final") !== "false"
+                    ? "checked"
+                    : ""
+                } />
+                <span class="slider round"></span>
+                <span>Pair Finals 🏆</span>
+              </label>
+
+              <!-- Assignment Method -->
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Assign:</span>
+                <select id="bracketSideAssign" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+                  <option value="random" ${
+                    localStorage.getItem("bracket_side_assign") === "random" ||
+                    !localStorage.getItem("bracket_side_assign")
+                      ? "selected"
+                      : ""
+                  }>Random</option>
+                  <option value="alternate" ${
+                    localStorage.getItem("bracket_side_assign") === "alternate"
+                      ? "selected"
+                      : ""
+                  }>Alternate</option>
+                  <option value="half" ${
+                    localStorage.getItem("bracket_side_assign") === "half"
+                      ? "selected"
+                      : ""
+                  }>Split by Pool</option>
+                  <option value="manual" ${
+                    localStorage.getItem("bracket_side_assign") === "manual"
+                      ? "selected"
+                      : ""
+                  }>Manual</option>
+                </select>
+                <button type="button" id="assignHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -305,37 +319,42 @@ export const bracketPage = {
   },
 
   /**
-   * Render team list items with A/B side toggle
+   * Render team list items with pool selection badge
    */
   renderTeamItems() {
     return tempTeams
       .map((team, i) => {
         const name = getTeamName(team);
         const side = team.side || null;
+        const sideConfig = side ? SIDE_CONFIGS[side] : null;
 
         return `
           <li class="player-item slide-in-up" data-index="${i}" style="animation-duration: 0.3s;">
             <span class="player-number">${i + 1}.</span>
             <span class="player-name text-truncate" title="${name}" style="text-align: left; flex: 1;">${name}</span>
             
-            <label class="side-toggle" data-index="${i}" style="display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.75rem; margin: 0 8px;">
-              <span style="color: ${
-                side !== "B" ? "var(--accent)" : "var(--text-muted)"
-              }; font-weight: ${side !== "B" ? "600" : "400"};">A</span>
-              <div class="toggle-track" style="width: 28px; height: 16px; background: ${
-                side === "B"
-                  ? "var(--warning)"
-                  : side === "A"
-                  ? "var(--accent)"
-                  : "var(--bg-tertiary)"
-              }; border-radius: 8px; position: relative; border: 1px solid var(--border-color);">
-                <div class="toggle-thumb" style="width: 12px; height: 12px; background: white; border-radius: 50%; position: absolute; top: 2px; left: ${
-                  side === "B" ? "14px" : side === "A" ? "2px" : "8px"
-                }; transition: left 0.2s;"></div>
+            <label class="side-toggle" data-index="${i}" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0 8px;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">Pool:</span>
+              <div class="pool-badge" style="
+                min-width: 28px; 
+                height: 28px; 
+                border-radius: 6px; 
+                background: ${
+                  sideConfig ? sideConfig.bgColor : "var(--bg-tertiary)"
+                }; 
+                border: 1px solid ${
+                  sideConfig ? sideConfig.color : "var(--border-color)"
+                };
+                color: ${sideConfig ? sideConfig.color : "var(--text-muted)"};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.85rem;
+                transition: all 0.2s;
+              ">
+                ${side || "-"}
               </div>
-              <span style="color: ${
-                side === "B" ? "var(--warning)" : "var(--text-muted)"
-              }; font-weight: ${side === "B" ? "600" : "400"};">B</span>
             </label>
             
             <button class="player-remove" data-index="${i}">×</button>
@@ -507,19 +526,28 @@ export const bracketPage = {
           return;
         }
 
-        // Side toggle
+        // Side toggle (cycle through pools based on bracket count)
         const sideToggle = e.target.closest(".side-toggle");
         if (sideToggle) {
           const index = parseInt(sideToggle.dataset.index);
           const team = tempTeams[index];
 
-          // Cycle through: null -> A -> B -> null
+          // Get available pools based on bracket count
+          const bracketCount = parseInt(
+            localStorage.getItem("bracket_count") || "2"
+          );
+          const pools = ["A", "B", "C", "D", "E", "F"].slice(0, bracketCount);
+
+          // Cycle through: null -> A -> B -> ... -> null
           if (team.side === null) {
-            team.side = "A";
-          } else if (team.side === "A") {
-            team.side = "B";
+            team.side = pools[0];
           } else {
-            team.side = null;
+            const currentIndex = pools.indexOf(team.side);
+            if (currentIndex >= 0 && currentIndex < pools.length - 1) {
+              team.side = pools[currentIndex + 1];
+            } else {
+              team.side = null;
+            }
           }
 
           saveTeams();
@@ -532,33 +560,43 @@ export const bracketPage = {
     // Toggle show all teams
     const toggleBtn = container.querySelector("#bracketToggleTeamsBtn");
     if (toggleBtn) {
+      // Logic to show/hide button based on count
+      const MIN_TEAMS_FOR_EXPAND = 10;
+      if (tempTeams.length > MIN_TEAMS_FOR_EXPAND) {
+        toggleBtn.style.display = "block";
+        toggleBtn.innerHTML = this.listExpanded
+          ? "Show Less ▲"
+          : `Show All (${tempTeams.length}) ▼`;
+      } else {
+        toggleBtn.style.display = "none";
+      }
+
       addListener(toggleBtn, "click", () => {
-        listExpanded = !listExpanded;
-        this.renderEmptyState(container);
+        const list = container.querySelector("#bracketTeamsList");
+
+        this.listExpanded = !this.listExpanded;
+
+        if (this.listExpanded) {
+          list.style.setProperty("max-height", "2000px", "important");
+          toggleBtn.innerHTML = "Show Less ▲";
+        } else {
+          list.style.setProperty("max-height", "400px", "important");
+          toggleBtn.innerHTML = `Show All (${tempTeams.length}) ▼`;
+        }
       });
     }
 
-    // Dual mode toggle
+    // Dual mode (Pool Play) toggle
     addListener(dualModeToggle, "change", () => {
-      const sharedFinalLabel = container.querySelector("#sharedFinalLabel");
-      const sideAssignLabel = container.querySelector("#sideAssignLabel");
-      const bracketCountLabel = container.querySelector("#bracketCountLabel");
+      const poolSettingsSection = container.querySelector(
+        "#poolSettingsSection"
+      );
       localStorage.setItem(
         "bracket_dual_mode",
         dualModeToggle.checked ? "true" : "false"
       );
-      if (bracketCountLabel) {
-        bracketCountLabel.style.display = dualModeToggle.checked
-          ? "flex"
-          : "none";
-      }
-      if (sharedFinalLabel) {
-        sharedFinalLabel.style.display = dualModeToggle.checked
-          ? "flex"
-          : "none";
-      }
-      if (sideAssignLabel) {
-        sideAssignLabel.style.display = dualModeToggle.checked
+      if (poolSettingsSection) {
+        poolSettingsSection.style.display = dualModeToggle.checked
           ? "flex"
           : "none";
       }
@@ -598,14 +636,15 @@ export const bracketPage = {
       addListener(assignHelpBtn, "click", (e) => {
         e.preventDefault();
         showInfoModal(
-          "Side Assignment Explained",
-          `<p><strong>How teams are divided between Side A and Side B:</strong></p>
+          "Pool Assignment Explained",
+          `<p><strong>How teams are distributed across pools:</strong></p>
           <ul style="margin: 10px 0; padding-left: 20px;">
-            <li><strong>🎲 Random</strong> – Teams are shuffled randomly between sides</li>
-            <li><strong>↔️ Alternate</strong> – Team 1→A, Team 2→B, Team 3→A, Team 4→B, etc.</li>
-            <li><strong>½ First Half A / Second Half B</strong> – Top half of your list goes to Side A, bottom half to Side B</li>
+            <li><strong>🎲 Random</strong> – Teams are shuffled randomly into pools</li>
+            <li><strong>↔️ Alternate</strong> – Team 1→A, Team 2→B, Team 3→C, etc.</li>
+            <li><strong>½ Split by Pool</strong> – Teams divided evenly (first third to A, second to B, etc.)</li>
+            <li><strong>✋ Manual</strong> – You set each team's pool using the A/B/C/D/E/F toggle on each team</li>
           </ul>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 10px;">Tip: Use 'First Half' if you've ordered teams by seed/skill and want to keep top seeds separated!</p>`
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 10px;">💡 With <strong>Pair Finals</strong> enabled, each pair of pools (A vs B, C vs D) has its own final match!</p>`
         );
       });
     }
