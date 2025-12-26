@@ -13,128 +13,17 @@ import { renderLeaderboard, getSortedLeaderboard } from "./leaderboard.js";
 import { setRenderScheduleCallback } from "./setup.js";
 import { showToast } from "../../shared/utils.js";
 import { showConfirmModal, showInputModal } from "../modals.js";
-import { MatchTimer } from "../timer.js";
-import {
-  generateMexicanoNextRound,
-  generateTeamMexicanoNextRound,
-  updatePlayerStats,
-  subtractPlayerStats,
-} from "../scoring.js";
+import { renderRoundCard } from "./components/roundCard.js";
+import { initTimer } from "./components/timerDisplay.js";
 
-let timer = null;
+// timer variable removed (managed by timerDisplay.js implicitly, or returned)
+// Actually timerDisplay.js module-level 'let timer' maintains the state across calls if we import the module.
+// But we should probably rely on `initTimer` executing the side effects.
 
 /**
  * Initialize match timer
  */
-function initTimer() {
-  const els = getElements();
-  if (!els.matchTimerContainer) return;
-
-  if (state.scoringMode !== "time") {
-    els.matchTimerContainer.style.display = "none";
-    if (timer) {
-      timer.pause();
-      timer = null;
-    }
-    return;
-  }
-
-  els.matchTimerContainer.style.display = "flex";
-
-  if (!timer) {
-    timer = new MatchTimer({
-      duration: state.pointsPerMatch || 12,
-      onTimeUpdate: (time) => {
-        if (els.timerDisplay) els.timerDisplay.textContent = time;
-        document.title = `${time} - Tournament`;
-      },
-      onStatusChange: (status) => {
-        if (status === "running") {
-          els.timerStartBtn.style.display = "none";
-          els.timerPauseBtn.style.display = "inline-block";
-          els.matchTimerContainer.classList.add("running");
-          els.matchTimerContainer.classList.remove("completed");
-
-          if (els.runningBadge) {
-            els.runningBadge.style.display = "inline-flex";
-            els.runningBadge.classList.add("running");
-          }
-        } else if (status === "paused" || status === "idle") {
-          els.timerStartBtn.style.display = "inline-block";
-          els.timerPauseBtn.style.display = "none";
-          els.matchTimerContainer.classList.remove("running");
-
-          if (els.runningBadge) {
-            els.runningBadge.style.display = "none";
-            els.runningBadge.classList.remove("running");
-          }
-
-          if (status === "idle")
-            els.matchTimerContainer.classList.remove("completed");
-          document.title = "Tournament Generator - Padel Companion";
-        } else if (status === "completed") {
-          els.matchTimerContainer.classList.remove("running");
-          els.matchTimerContainer.classList.add("completed");
-          document.title = "TIME UP!";
-
-          // Flash screen green
-          document.body.classList.add("timer-finished-flash");
-          setTimeout(() => {
-            document.body.classList.remove("timer-finished-flash");
-          }, 1000);
-        }
-      },
-    });
-
-    els.timerDisplay.textContent = timer.formatTime(state.pointsPerMatch * 60);
-
-    els.timerStartBtn.onclick = () => timer.start();
-    els.timerPauseBtn.onclick = () => timer.pause();
-    els.timerResetBtn.onclick = () => timer.reset();
-    els.timerAddBtn.onclick = () => timer.addTime(60);
-    if (els.timerSubBtn) els.timerSubBtn.onclick = () => timer.addTime(-60);
-
-    const editHandler = () => {
-      const openModal = () => {
-        showInputModal(
-          "Set Timer Duration",
-          "Enter minutes (e.g. 12)",
-          (val) => {
-            const minutes = parseInt(val);
-            if (minutes > 0) {
-              state.pointsPerMatch = minutes;
-              saveState();
-              timer.setDuration(minutes);
-              showToast(`Timer set to ${minutes} minutes`);
-            } else {
-              showToast("Invalid minutes", "error");
-            }
-          }
-        );
-      };
-
-      if (timer.isRunning) {
-        showConfirmModal(
-          "Pause Timer?",
-          "The timer is currently running. Pause to change duration?",
-          "Pause & Edit",
-          () => {
-            timer.pause();
-            openModal();
-          }
-        );
-      } else {
-        openModal();
-      }
-    };
-
-    els.timerDisplay.onclick = editHandler;
-  } else {
-    if (timer.duration !== state.pointsPerMatch) {
-      timer.setDuration(state.pointsPerMatch);
-    }
-  }
-}
+// initTimer moved to components/timerDisplay.js
 
 /**
  * Render schedule/rounds
@@ -142,183 +31,22 @@ function initTimer() {
 export function renderSchedule() {
   const els = getElements();
 
-  initTimer();
+  // Use extracted components
+  initTimer(state, saveState);
   renderGameDetails();
 
   const lastRoundIndex = state.schedule.length - 1;
 
   els.roundsContainer.innerHTML = state.schedule
-    .map((round, roundIndex) => {
-      const isLastRound = roundIndex === lastRoundIndex;
-      const isCompleted = round.completed;
-      const isCollapsed = isCompleted && !isLastRound;
-
-      const roundSummary = isCompleted
-        ? round.matches.map((m) => `${m.score1}-${m.score2}`).join(" · ")
-        : "";
-
-      return `
-    <div class="round ${isCompleted ? "completed" : "ongoing"} ${
-        isCollapsed ? "collapsed" : ""
-      }" 
-         id="round-${roundIndex}" 
-         data-round="${roundIndex}">
-      <div class="round-header" data-action="toggle-round" data-round="${roundIndex}">
-        <span class="round-title">
-          Round ${round.number}
-          ${
-            isCompleted
-              ? `<span class="round-status completed">✓ Completed</span>`
-              : `<span class="round-status ongoing">● Ongoing</span>`
-          }
-        </span>
-        ${
-          isCompleted
-            ? `<span class="round-summary" style="${
-                isCollapsed ? "" : "display: none"
-              }">${roundSummary}</span>`
-            : ""
-        }
-        ${
-          isCompleted
-            ? `<span class="collapse-icon">${isCollapsed ? "▶" : "▼"}</span>`
-            : ""
-        }
-      </div>
-      <div class="round-content">
-        <div class="matches-grid">
-          ${round.matches
-            .map(
-              (match, matchIndex) => `
-            <div class="match-card-wrapper">
-              <div class="match-card-header">
-                <span class="court-label">${getCourtName(match.court)}</span>
-                <span class="match-info-sub">
-                  ${
-                    state.scoringMode === "total"
-                      ? `Total ${state.pointsPerMatch}`
-                      : state.scoringMode === "race"
-                      ? `Race to ${state.pointsPerMatch}`
-                      : `${state.pointsPerMatch} mins`
-                  }
-                </span>
-                ${
-                  match.relaxedConstraint
-                    ? `<span class="constraint-badge" title="${
-                        match.relaxedConstraint === "repeats"
-                          ? "Repeat allowed (Priority: Pattern)"
-                          : match.relaxedConstraint === "pattern"
-                          ? "Pattern override (Priority: Repeats)"
-                          : "Constraint relaxed (Best effort)"
-                      }">i</span>`
-                    : ""
-                }
-              </div>
-              <div class="match-card">
-                <div class="match-teams">
-                  <div class="team">
-                    <span>${match.team1[0].name}</span>
-                    ${
-                      match.team1[1]
-                        ? `<span>${match.team1[1].name}</span>`
-                        : ""
-                    }
-                  </div>
-                  <div class="team">
-                    <span>${match.team2[0].name}</span>
-                    ${
-                      match.team2[1]
-                        ? `<span>${match.team2[1].name}</span>`
-                        : ""
-                    }
-                  </div>
-                </div>
-              </div>
-              <div class="match-card-footer">
-                ${
-                  !isCompleted
-                    ? `
-                <div class="score-input-row">
-                  <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-1" 
-                         min="0" max="${
-                           state.scoringMode === "total"
-                             ? state.pointsPerMatch
-                             : 999
-                         }" placeholder="0" 
-                         value="${match.score1 || ""}"
-                         data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="1">
-                  <span class="score-separator">-</span>
-                  <input type="number" class="score-input" id="score-${roundIndex}-${matchIndex}-2" 
-                         min="0" max="${
-                           state.scoringMode === "total"
-                             ? state.pointsPerMatch
-                             : 999
-                         }" placeholder="0"
-                         value="${match.score2 || ""}"
-                         data-action="autofill-score" data-round="${roundIndex}" data-match="${matchIndex}" data-team="2">
-                </div>
-                `
-                    : `
-                <div class="score-input-row">
-                  <span class="score-display">${match.score1} - ${match.score2}</span>
-                  <button class="btn btn-sm btn-ghost edit-score-btn" data-action="edit-round" data-round="${roundIndex}">Edit</button>
-                </div>
-                `
-                }
-              </div>
-            </div>
-          `
-            )
-            .join("")}
-        </div>
-        ${
-          round.byes && round.byes.length > 0
-            ? `
-        <div class="waiting-players">
-          <span class="waiting-label">Resting:</span>
-          <span class="waiting-names">${round.byes
-            .map((p) => p.name)
-            .join(", ")}</span>
-        </div>
-        `
-            : ""
-        }
-        ${
-          !isCompleted && isLastRound
-            ? `
-        <div class="bye-selector">
-          <div class="bye-selector-header">
-            <span class="bye-selector-label">Toggle who rests next round:</span>
-            <small class="bye-hint">(${
-              state.manualByes.length
-            } selected)</small>
-          </div>
-          <div class="bye-chips">
-            ${state.leaderboard
-              .map(
-                (p) => `
-              <button class="bye-chip ${
-                state.manualByes.includes(p.id) ? "selected" : ""
-              }" 
-                      data-action="toggle-bye" data-id="${p.id}">
-                ${p.name}
-                <span class="bye-count">(${p.byeCount || 0})</span>
-              </button>
-            `
-              )
-              .join("")}
-          </div>
-        </div>
-        <button class="btn btn-success complete-round-btn" data-action="complete-round">
-          Complete Round ${round.number}
-        </button>
-        `
-            : ""
-        }
-      </div>
-    </div>
-  `;
-    })
+    .map((round, roundIndex) =>
+      renderRoundCard(round, roundIndex, {
+        scoringMode: state.scoringMode,
+        pointsPerMatch: state.pointsPerMatch,
+        manualByes: state.manualByes,
+        leaderboard: state.leaderboard,
+        lastRoundIndex,
+      })
+    )
     .join("");
 
   updateSliderMax();
