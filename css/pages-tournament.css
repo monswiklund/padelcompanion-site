@@ -212,6 +212,33 @@
     margin-bottom: var(--space-lg);
   }
 
+  /* Mobile optimizations for bracket setup */
+  @media (max-width: 500px) {
+    .tournament-page .bracket-empty-state {
+      padding: var(--space-lg) var(--space-lg);
+    }
+
+    .tournament-page .bracket-empty-state .settings-section {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .tournament-page .bracket-empty-state .bracket-options {
+      gap: 12px;
+      padding: 0 var(--space-md);
+    }
+
+    .tournament-page .bracket-empty-state .players-section {
+      padding: 0 var(--space-md);
+    }
+
+    .tournament-page .bracket-empty-state .player-list li {
+      padding: 12px 16px;
+      gap: 8px;
+    }
+  }
+
   /* Game Details - Premium Design */
   .tournament-page .game-details {
     display: flex;
@@ -2101,12 +2128,17 @@
     min-height: 150px;
   }
 
+  /* ===== Bracket Visuals ===== */
   .tournament-page .bracket-container {
     display: flex;
     gap: var(--space-xl);
     overflow-x: auto;
     padding: var(--space-md);
     align-items: center;
+    /* Scale support */
+    transform: scale(var(--bracket-scale, 1));
+    transform-origin: top left;
+    /* Add logic to adjust width if scaled down? No, overflow handles it. */
   }
 
   /* Dual Bracket Layout - Full Width */
@@ -2118,11 +2150,16 @@
     padding: 20px 0;
     width: 100%;
     max-width: none !important;
+    /* Scale support */
+    transform: scale(var(--bracket-scale, 1));
+    transform-origin: top center;
   }
 
   .tournament-page .bracket-side {
     flex: 1;
     min-width: 0; /* Allow shrinking */
+    display: flex;
+    flex-direction: column;
   }
 
   .tournament-page .bracket-side .bracket-container {
@@ -2131,7 +2168,7 @@
   }
 
   .tournament-page .bracket-side.side-b .bracket-container {
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .tournament-page .bracket-final {
@@ -2163,12 +2200,96 @@
     }
   }
 
+  /* Side Headers */
+  .tournament-page .side-header {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tournament-page .side-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    white-space: nowrap;
+  }
+
+  .tournament-page .side-subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* Compact header on mobile to save space */
+  @media (max-width: 600px) {
+    .tournament-page .side-header {
+      margin-bottom: 12px;
+      gap: 6px;
+    }
+    .tournament-page .side-title {
+      font-size: 1rem;
+    }
+    .tournament-page .side-subtitle {
+      font-size: 0.8rem;
+    }
+    /* If it wraps, ensure it looks okay */
+  }
+
+  /* Mobile Tabs */
+  .mobile-bracket-tabs {
+    display: none;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .mobile-bracket-tabs .tab-btn {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mobile-bracket-tabs .tab-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
   @media (max-width: 900px) {
     .tournament-page .dual-bracket-layout {
       flex-direction: column;
     }
     .tournament-page .bracket-final {
       order: -1;
+    }
+
+    /* Mobile Toggle Logic */
+    .mobile-bracket-tabs {
+      display: flex;
+    }
+
+    .tournament-page .dual-bracket-layout .bracket-side,
+    .tournament-page .dual-bracket-layout .bracket-final {
+      display: none !important; /* Hide all by default on mobile */
+      width: 100%; /* Ensure full width when shown */
+    }
+
+    .tournament-page .dual-bracket-layout .bracket-side.mobile-active,
+    .tournament-page .dual-bracket-layout .bracket-final.mobile-active {
+      display: flex !important; /* Show active one */
+    }
+
+    /* Ensure final centers properly when active */
+    .tournament-page .dual-bracket-layout .bracket-final.mobile-active {
+      min-height: 300px; /* Give it some height */
     }
   }
 
@@ -2513,6 +2634,11 @@
 
   /* Responsive bracket */
   @media (max-width: 768px) {
+    /* 
+       REMOVED: Forced vertical stacking. 
+       We want horizontal scrolling for brackets on all sizes. 
+    */
+    /*
     .tournament-page .bracket-container {
       flex-direction: column;
       align-items: stretch;
@@ -2521,6 +2647,7 @@
     .tournament-page .bracket-round {
       min-width: 100%;
     }
+    */
 
     .tournament-page .podium {
       gap: var(--space-sm);

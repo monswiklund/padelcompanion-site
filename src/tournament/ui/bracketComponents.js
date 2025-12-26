@@ -377,7 +377,7 @@ export function renderMultiBracketPreview(
     return renderSideContainer(side, teamCount, bracketHTML, byes > 0);
   });
 
-  // For 2 brackets, render side by side with single final
+  // For 2 brackets, render side by side with single final in the middle
   if (bracketCount === 2) {
     const finalHTML = sharedFinal
       ? renderGrandFinalPreview(sides[0], sides[1])
@@ -386,10 +386,10 @@ export function renderMultiBracketPreview(
       <div style="text-align: center; margin-bottom: 12px;">
         <span style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">${totalTeams} Teams → 2 Brackets</span>
       </div>
-      <div class="dual-bracket-container" style="display: flex; align-items: stretch; justify-content: center; gap: 10px; flex-wrap: wrap;">
-        ${brackets[0]}
+      <div class="dual-bracket-container" style="display: flex; align-items: stretch; justify-content: center; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+        <div style="flex: 1; min-width: 200px;">${brackets[0]}</div>
         ${finalHTML}
-        ${brackets[1]}
+        <div style="flex: 1; min-width: 200px;">${brackets[1]}</div>
       </div>
     `;
   }

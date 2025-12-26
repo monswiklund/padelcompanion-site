@@ -24,6 +24,7 @@ export const state = {
   showPositionChanges: true, // Show up/down arrows in leaderboard
   gridColumns: 0, // 0 = auto, 1-6 = fixed columns
   textSize: 100, // Text size percentage (50-150)
+  bracketScale: 100, // Bracket view scale percentage (50-150)
   isLocked: false, // Lock settings after tournament starts
   tournamentName: "", // Custom tournament name
   tournamentNotes: "", // Optional notes
@@ -49,6 +50,7 @@ export const state = {
   ui: {
     currentRoute: "",
     selectedMatchId: null,
+    activeBracketTab: "A",
   },
 };
 
@@ -183,6 +185,7 @@ export function loadState() {
     state.manualByes = Array.isArray(data.manualByes) ? data.manualByes : [];
     state.gridColumns = Math.max(0, Math.min(10, data.gridColumns || 0));
     state.textSize = Math.max(50, Math.min(200, data.textSize || 100));
+    state.bracketScale = Math.max(50, Math.min(200, data.bracketScale || 100));
 
     // Load bracket tournament state (v1+)
     if (data.tournament) {
@@ -197,10 +200,14 @@ export function loadState() {
 
     // Load UI state (v1+)
     if (data.ui) {
-      state.ui = {
-        currentRoute: data.ui.currentRoute || "",
-        selectedMatchId: data.ui.selectedMatchId || null,
-      };
+      // Load UI state (v1+)
+      if (data.ui) {
+        state.ui = {
+          currentRoute: data.ui.currentRoute || "",
+          selectedMatchId: data.ui.selectedMatchId || null,
+          activeBracketTab: data.ui.activeBracketTab || "A", // "A", "B", or "Final"
+        };
+      }
     }
 
     // Load Winners Court state

@@ -132,7 +132,8 @@ export const bracketPage = {
       return;
     }
 
-    this.renderBracket(container);
+    // Use renderDualBracket which handles both single and dual formats
+    this.renderDualBracket(container);
 
     // Append History Section
     const historyContainer = document.createElement("div");
@@ -226,6 +227,29 @@ export const bracketPage = {
               <span class="slider round"></span>
               <span>Pool Play</span>
             </label>
+            
+            <!-- Score Type -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.85rem; color: var(--text-secondary);">Score:</span>
+              <select id="bracketScoreType" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+                <option value="points" ${
+                  localStorage.getItem("bracket_score_type") === "points" ||
+                  !localStorage.getItem("bracket_score_type")
+                    ? "selected"
+                    : ""
+                }>Points</option>
+                <option value="games" ${
+                  localStorage.getItem("bracket_score_type") === "games"
+                    ? "selected"
+                    : ""
+                }>Games</option>
+                <option value="sets" ${
+                  localStorage.getItem("bracket_score_type") === "sets"
+                    ? "selected"
+                    : ""
+                }>Sets</option>
+              </select>
+            </div>
           </div>
           
           <!-- Pool Settings Section (only visible when Multi-Brackets enabled) -->
@@ -424,6 +448,14 @@ export const bracketPage = {
         bracketMode = modeToggle.checked ? "players" : "teams";
         localStorage.setItem("bracket_mode", bracketMode);
         this.renderEmptyState(container);
+      });
+    }
+
+    // Score Type selector
+    const scoreTypeSelect = container.querySelector("#bracketScoreType");
+    if (scoreTypeSelect) {
+      addListener(scoreTypeSelect, "change", () => {
+        localStorage.setItem("bracket_score_type", scoreTypeSelect.value);
       });
     }
 
@@ -948,6 +980,24 @@ export const bracketPage = {
   },
 
   /**
+   * Update bracket scale CSS variable.
+   */
+  updateBracketScale(container, scale) {
+    const bracketContainer = container.querySelector(".bracket-container");
+    const dualLayout = container.querySelector(".dual-bracket-layout");
+
+    // Convert percentage to decimal (e.g. 100 -> 1)
+    const val = scale / 100;
+
+    if (bracketContainer) {
+      bracketContainer.style.setProperty("--bracket-scale", val);
+    }
+    if (dualLayout) {
+      dualLayout.style.setProperty("--bracket-scale", val);
+    }
+  },
+
+  /**
    * Render bracket visualization.
    */
   renderBracket(container) {
@@ -961,7 +1011,21 @@ export const bracketPage = {
         <h2>Tournament Bracket</h2>
         <p>Single elimination tournament bracket</p>
       </div>
-      <div class="bracket-actions" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <div class="bracket-actions" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        
+        <!-- Size Control -->
+        <div class="scale-control" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Size</span>
+          <input type="range" id="bracketScale" min="50" max="150" value="${
+            state.bracketScale
+          }" style="width: 100px; accent-color: var(--accent);">
+          <span id="bracketScaleLabel" style="font-size: 0.85rem; width: 36px;">${
+            state.bracketScale
+          }%</span>
+        </div>
+
+        <div style="width: 1px; height: 20px; background: var(--border-color);"></div>
+
         <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
         <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
       </div>
@@ -981,6 +1045,25 @@ export const bracketPage = {
       </div>
       ${isComplete ? this.renderChampions() : ""}
     `;
+
+    // Apply initial scale
+    this.updateBracketScale(container, state.bracketScale);
+
+    // Scale Slider
+    const scaleSlider = container.querySelector("#bracketScale");
+    const scaleLabel = container.querySelector("#bracketScaleLabel");
+    if (scaleSlider) {
+      addListener(scaleSlider, "input", (e) => {
+        const val = parseInt(e.target.value);
+        scaleLabel.textContent = `${val}%`;
+        this.updateBracketScale(container, val);
+      });
+      addListener(scaleSlider, "change", (e) => {
+        const val = parseInt(e.target.value);
+        state.bracketScale = val;
+        saveState();
+      });
+    }
 
     // Event delegation for match clicks
     const bracketContainer = container.querySelector(".bracket-container");
@@ -1049,15 +1132,44 @@ export const bracketPage = {
         <h2>Dual Bracket Tournament</h2>
         <p>Side A vs Side B • Winners meet in Grand Final</p>
       </div>
-      <div class="bracket-actions" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <div class="bracket-actions" style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        
+        <!-- Size Control -->
+        <div class="scale-control" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Size</span>
+          <input type="range" id="bracketScale" min="50" max="150" value="${
+            state.bracketScale
+          }" style="width: 100px; accent-color: var(--accent);">
+          <span id="bracketScaleLabel" style="font-size: 0.85rem; width: 36px;">${
+            state.bracketScale
+          }%</span>
+        </div>
+
+        <div style="width: 1px; height: 20px; background: var(--border-color);"></div>
+
         <button class="btn btn-secondary btn-sm" id="printBracketBtn">Print</button>
         <button class="btn btn-danger btn-sm" id="clearBracketBtn">Clear</button>
+      </div>
+
+      <!-- Mobile Tabs -->
+      <div class="mobile-bracket-tabs">
+        <button class="tab-btn ${
+          state.ui.activeBracketTab === "A" ? "active" : ""
+        }" data-tab="A">Side A</button>
+        <button class="tab-btn ${
+          state.ui.activeBracketTab === "Final" ? "active" : ""
+        }" data-tab="Final">Final</button>
+        <button class="tab-btn ${
+          state.ui.activeBracketTab === "B" ? "active" : ""
+        }" data-tab="B">Side B</button>
       </div>
       
       <div class="dual-bracket-layout" style="display: flex; gap: 20px; align-items: flex-start; justify-content: center; flex-wrap: wrap; padding: 20px 0;">
         
         <!-- Side A Bracket (Left) -->
-        <div class="bracket-side side-a" style="flex: 1; border: 2px solid var(--accent); border-radius: 12px; padding: 16px; background: rgba(59, 130, 246, 0.05);">
+        <div class="bracket-side side-a ${
+          state.ui.activeBracketTab === "A" ? "mobile-active" : ""
+        }" style="flex: 1; border: 2px solid var(--accent); border-radius: 12px; padding: 16px; background: rgba(59, 130, 246, 0.05);">
           <div style="text-align: center; margin-bottom: 16px;">
             <span style="font-weight: 700; font-size: 1.1rem; color: var(--accent);">Side A</span>
             <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${
@@ -1086,7 +1198,9 @@ export const bracketPage = {
         </div>
         
         <!-- Grand Final (Center) -->
-        <div class="bracket-final" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+        <div class="bracket-final ${
+          state.ui.activeBracketTab === "Final" ? "mobile-active" : ""
+        }" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
           <div style="font-size: 0.85rem; color: var(--success); font-weight: 700; margin-bottom: 8px;">🏆 GRAND FINAL 🏆</div>
           ${
             grandFinal
@@ -1111,20 +1225,38 @@ export const bracketPage = {
         </div>
         
         <!-- Side B Bracket (Right) -->
-        <div class="bracket-side side-b" style="flex: 1; border: 2px solid var(--warning); border-radius: 12px; padding: 16px; background: rgba(245, 158, 11, 0.05);">
+        <div class="bracket-side side-b ${
+          state.ui.activeBracketTab === "B" ? "mobile-active" : ""
+        }" style="flex: 1; border: 2px solid var(--warning); border-radius: 12px; padding: 16px; background: rgba(245, 158, 11, 0.05);">
           <div style="text-align: center; margin-bottom: 16px;">
             <span style="font-weight: 700; font-size: 1.1rem; color: var(--warning);">Side B</span>
             <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">(${
               tournament.teamsB?.length || 0
             } teams)</span>
           </div>
-          <div class="bracket-container" style="display: flex; gap: 12px; overflow-x: auto; flex-direction: row-reverse;">
-            ${roundsB
-              .map(
-                (roundMatches, i) => `
-              <div class="bracket-round" data-round="${i + 1}">
+          <div class="bracket-container" style="display: flex; gap: 12px; overflow-x: auto;">
+            ${[...roundsB]
+              .reverse()
+              .map((roundMatches, i) => {
+                /* 
+                    We are rendering rounds in reverse order (Final -> QF) 
+                    so that they align correctly visually from Left (Center) to Right.
+                    Original Round 1 is QF. Original Last Round is Final.
+                    Reversed: Index 0 is Final. Index Last is QF.
+                    
+                    If roundsB has 3 rounds:
+                    i=0 (Final) -> Original Round index = 2. Round Num = 3.
+                    i=1 (SF)    -> Original Round index = 1. Round Num = 2.
+                    i=2 (QF)    -> Original Round index = 0. Round Num = 1.
+                    
+                    Round Num = numRoundsB - i
+                  */
+                const roundNum = numRoundsB - i;
+
+                return `
+              <div class="bracket-round" data-round="${roundNum}">
                 <div class="round-header">${getRoundName(
-                  i + 1,
+                  roundNum,
                   numRoundsB
                 )}</div>
                 <div class="round-matches">
@@ -1133,14 +1265,43 @@ export const bracketPage = {
                     .join("")}
                 </div>
               </div>
-            `
-              )
+            `;
+              })
               .join("")}
           </div>
         </div>
         
       </div>
     `;
+
+    // Apply initial scale
+    this.updateBracketScale(container, state.bracketScale);
+
+    // Scale Slider
+    const scaleSlider = container.querySelector("#bracketScale");
+    const scaleLabel = container.querySelector("#bracketScaleLabel");
+    if (scaleSlider) {
+      addListener(scaleSlider, "input", (e) => {
+        const val = parseInt(e.target.value);
+        scaleLabel.textContent = `${val}%`;
+        this.updateBracketScale(container, val);
+      });
+      addListener(scaleSlider, "change", (e) => {
+        const val = parseInt(e.target.value);
+        state.bracketScale = val;
+        saveState();
+      });
+    }
+
+    // Mobile Tab Listeners
+    const tabBtns = container.querySelectorAll(".mobile-bracket-tabs .tab-btn");
+    tabBtns.forEach((btn) => {
+      addListener(btn, "click", () => {
+        state.ui.activeBracketTab = btn.dataset.tab;
+        saveState();
+        this.renderDualBracket(container);
+      });
+    });
 
     // Event delegation for match clicks
     const dualLayout = container.querySelector(".dual-bracket-layout");
@@ -1266,6 +1427,12 @@ export const bracketPage = {
     const match = state.tournament.matches.find((m) => m.id === matchId);
     if (!match || !match.team1 || !match.team2) return;
 
+    // Get saved score type
+    const savedScoreType =
+      localStorage.getItem("bracket_score_type") || "points";
+    const scoreTypeLabel =
+      savedScoreType.charAt(0).toUpperCase() + savedScoreType.slice(1);
+
     // Create custom modal for score entry
     const modal = document.createElement("div");
     modal.className = "modal-overlay";
@@ -1277,13 +1444,8 @@ export const bracketPage = {
           <button class="close-modal" id="closeScoreModal">Close</button>
         </div>
         <div class="modal-body">
-          <div class="score-type-selector">
-            <label>Score Type:</label>
-            <div class="score-type-buttons">
-              <button class="btn btn-sm score-type-btn active" data-type="points">Points</button>
-              <button class="btn btn-sm score-type-btn" data-type="games">Games</button>
-              <button class="btn btn-sm score-type-btn" data-type="sets">Sets</button>
-            </div>
+          <div class="score-type-label" style="text-align: center; margin-bottom: 12px; font-size: 0.85rem; color: var(--text-muted);">
+            Scoring: <strong style="color: var(--accent);">${scoreTypeLabel}</strong>
           </div>
           <div class="score-entry-cards">
             <div class="score-card">
@@ -1331,7 +1493,8 @@ export const bracketPage = {
 
       updateMatchResult(matchId, score1, score2);
       closeModal();
-      this.renderBracket(container);
+      // Re-render using the dual bracket entry point, which handles both single and dual formats correctly
+      this.renderDualBracket(container);
 
       // Check if tournament complete
       if (isBracketComplete()) {
@@ -1348,16 +1511,6 @@ export const bracketPage = {
     modal.querySelector("#saveScoreBtn").addEventListener("click", saveScore);
     modal.addEventListener("click", (e) => {
       if (e.target === modal) closeModal();
-    });
-
-    // Score type toggle (visual only for now)
-    modal.querySelectorAll(".score-type-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        modal
-          .querySelectorAll(".score-type-btn")
-          .forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-      });
     });
 
     // Focus first input
