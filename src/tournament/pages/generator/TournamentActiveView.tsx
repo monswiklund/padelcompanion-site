@@ -225,7 +225,7 @@ const TournamentActiveView: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-8 mb-12 w-full max-w-xl mx-auto px-4">
+      <div className="mt-16 mb-24 w-full mx-auto px-4 max-w-xl">
         <Leaderboard />
       </div>
     </div>

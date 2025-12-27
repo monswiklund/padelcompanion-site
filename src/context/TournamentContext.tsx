@@ -6,6 +6,10 @@ import React, {
   useCallback,
 } from "react";
 import { StorageService } from "@/shared/storage";
+import {
+  generateMexicanoNextRound,
+  generateTeamMexicanoNextRound,
+} from "@/tournament/scoring";
 
 // --- Types ---
 export interface Player {
@@ -345,16 +349,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             nextRoundIndex < prev.allRounds.length
           ) {
             nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
-          } else if (
-            prev.format === "mexicano" ||
-            prev.format === "teamMexicano"
-          ) {
-            // For Mexicano, we'll need to call the complex generator functions.
-            // For now, let's stick to Americano port or use window.generateNextRound if available
-            const legacyGenerate = (window as any).generateNextRound;
-            if (legacyGenerate) {
-              // This is risky, but works if we synced window.state
-            }
+          } else if (prev.format === "mexicano") {
+            nextRoundBase = generateMexicanoNextRound(newLeaderboard) as any;
+          } else if (prev.format === "teamMexicano") {
+            nextRoundBase = generateTeamMexicanoNextRound() as any;
           }
 
           if (nextRoundBase) {
