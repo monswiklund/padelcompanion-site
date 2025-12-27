@@ -4,7 +4,7 @@
  */
 
 import { state } from "../../core/state.js";
-import { showToast } from "../../../shared/utils.js";
+import { showToast } from "../../../shared/utils";
 
 /**
  * Export tournament data to CSV.

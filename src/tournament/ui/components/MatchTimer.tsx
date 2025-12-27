@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/Button";
-import { showToast } from "@/shared/utils.js";
+import { showToast } from "@/shared/utils";
 
 export const MatchTimer: React.FC = () => {
   const { state, dispatch } = useTournament();

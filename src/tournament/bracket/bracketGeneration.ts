@@ -3,28 +3,51 @@
  * Handles single bracket generation and seeding.
  */
 
+export interface BracketTeam {
+  id: string;
+  name: string;
+  side?: "A" | "B";
+}
+
+export interface BracketMatch {
+  id: number;
+  round: number;
+  position: number;
+  team1Id: string | null;
+  team2Id: string | null;
+  team1Name: string | null;
+  team2Name: string | null;
+  score1: number | null;
+  score2: number | null;
+  winnerId: string | null;
+  completed: boolean;
+  nextMatchId: number | null;
+  isBye: boolean;
+  prevMatch1Id?: number;
+  prevMatch2Id?: number;
+}
+
+export interface Bracket {
+  teams: BracketTeam[];
+  matches: BracketMatch[];
+  numRounds: number;
+  bracketSize: number;
+}
+
 /**
  * Generate a single elimination bracket from teams.
- * @param {Array<{id: string, name: string}>} teams - Team list
- * @returns {Object} Bracket structure with rounds and matches
  */
-export function generateBracket(teams) {
+export function generateBracket(teams: BracketTeam[]): Bracket {
   const teamCount = teams.length;
 
-  // Calculate bracket size (next power of 2)
   let bracketSize = 1;
   while (bracketSize < teamCount) {
     bracketSize *= 2;
   }
 
-  // Seed teams
   const seeded = seedTeams(teams, bracketSize);
-
-  // Calculate number of rounds
   const numRounds = Math.log2(bracketSize);
-
-  // Create matches array
-  const matches = [];
+  const matches: BracketMatch[] = [];
   let matchId = 1;
 
   // First round
@@ -59,7 +82,7 @@ export function generateBracket(teams) {
       const prevMatch1 = matches[prevRoundStart + i * 2];
       const prevMatch2 = matches[prevRoundStart + i * 2 + 1];
 
-      const newMatch = {
+      const newMatch: BracketMatch = {
         id: matchId++,
         round,
         position: i,
@@ -77,7 +100,6 @@ export function generateBracket(teams) {
         prevMatch2Id: prevMatch2.id,
       };
 
-      // Link previous matches to this one
       prevMatch1.nextMatchId = newMatch.id;
       prevMatch2.nextMatchId = newMatch.id;
 
@@ -85,7 +107,7 @@ export function generateBracket(teams) {
     }
   }
 
-  // Auto-advance byes in first round
+  // Auto-advance byes
   matches
     .filter((m) => m.round === 1 && m.isBye)
     .forEach((m) => {
@@ -100,42 +122,32 @@ export function generateBracket(teams) {
       }
     });
 
-  return {
-    teams,
-    matches,
-    numRounds,
-    bracketSize,
-  };
+  return { teams, matches, numRounds, bracketSize };
 }
 
 /**
  * Seed teams for bracket based on side assignments.
- * @param {Array} teams - Team list
- * @param {number} bracketSize - Bracket size
- * @returns {Array} Seeded teams
  */
-export function seedTeams(teams, bracketSize) {
-  const seeded = new Array(bracketSize).fill(null);
+export function seedTeams(
+  teams: BracketTeam[],
+  bracketSize: number
+): (BracketTeam | null)[] {
+  const seeded = new Array<BracketTeam | null>(bracketSize).fill(null);
 
-  // Separate by side
   const sideA = teams.filter((t) => t.side === "A");
   const sideB = teams.filter((t) => t.side === "B");
   const noSide = teams.filter(
     (t) => !t.side || (t.side !== "A" && t.side !== "B")
   );
 
-  // Place Side A in top half
   const topHalf = [...sideA];
-  // Place Side B in bottom half
   const bottomHalf = [...sideB];
 
-  // Distribute no-side teams evenly
   noSide.forEach((t, i) => {
     if (i % 2 === 0) topHalf.push(t);
     else bottomHalf.push(t);
   });
 
-  // Simple sequential placement
   const halfSize = bracketSize / 2;
   topHalf.forEach((t, i) => {
     if (i < halfSize) seeded[i] = t;
@@ -149,21 +161,19 @@ export function seedTeams(teams, bracketSize) {
 
 /**
  * Get team by ID from teams array.
- * @param {Array} teams - Team list
- * @param {string} id - Team ID
- * @returns {Object|undefined} Team object
  */
-export function getTeamById(teams, id) {
+export function getTeamById(
+  teams: BracketTeam[],
+  id: string
+): BracketTeam | undefined {
   return teams.find((t) => t.id === id);
 }
 
-/**
- * Advance winner to next match.
- * @param {Array} matches - All matches
- * @param {Object} match - Completed match
- * @param {Array} teams - All teams
- */
-function advanceWinner(matches, match, teams) {
+function advanceWinner(
+  matches: BracketMatch[],
+  match: BracketMatch,
+  teams: BracketTeam[]
+): void {
   if (!match.nextMatchId || !match.winnerId) return;
 
   const nextMatch = matches.find((m) => m.id === match.nextMatchId);
@@ -172,7 +182,6 @@ function advanceWinner(matches, match, teams) {
   const winner = getTeamById(teams, match.winnerId);
   if (!winner) return;
 
-  // Determine if this is team1 or team2 in next match
   if (nextMatch.prevMatch1Id === match.id) {
     nextMatch.team1Id = winner.id;
     nextMatch.team1Name = winner.name;
@@ -184,11 +193,8 @@ function advanceWinner(matches, match, teams) {
 
 /**
  * Get round name (Final, Semi-final, etc.).
- * @param {number} round - Round number
- * @param {number} totalRounds - Total rounds
- * @returns {string} Round name
  */
-export function getRoundName(round, totalRounds) {
+export function getRoundName(round: number, totalRounds: number): string {
   const fromEnd = totalRounds - round;
   if (fromEnd === 0) return "Final";
   if (fromEnd === 1) return "Semi-Finals";

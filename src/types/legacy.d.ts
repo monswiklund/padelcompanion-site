@@ -1,5 +1,5 @@
-declare module "@/shared/storage.js";
-declare module "@/shared/utils.js";
+declare module "@/shared/storage";
+declare module "@/shared/utils";
 declare module "../../ui/bracket/index.js";
 declare module "../../bracket/index.js";
 declare module "../../ui/components/playerList.js";

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { initTheme, toggleTheme, updateThemeIcon } from "@/shared/theme.js";
+import { initTheme, toggleTheme, updateThemeIcon } from "@/shared/theme";
 
 const Header: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);

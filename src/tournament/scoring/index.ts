@@ -4,22 +4,22 @@
  */
 
 // Player Stats
-export { updatePlayerStats, subtractPlayerStats } from "./playerStats.js";
+export { updatePlayerStats, subtractPlayerStats } from "./playerStats";
 
 // Americano Generators
 export {
   generateAmericanoSchedule,
   generateTeamSchedule,
-} from "./americanoGenerator.js";
+} from "./americanoGenerator";
 
 // Team Mexicano Generators
 export {
   generateTeamMexicanoFirstRound,
   generateTeamMexicanoNextRound,
-} from "./teamMexicanoGenerator.js";
+} from "./teamMexicanoGenerator";
 
 // Mexicano Generators
 export {
   generateMexicanoFirstRound,
   generateMexicanoNextRound,
-} from "./mexicanoGenerator.js";
+} from "./mexicanoGenerator";

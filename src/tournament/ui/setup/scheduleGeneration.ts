@@ -4,7 +4,7 @@
  * Refactored to work with React context - no DOM dependencies.
  */
 
-import { state, saveState, pushHistory } from "../../core/state.js";
+import { state, saveState, pushHistory } from "../../core/state";
 import { showToast } from "../../../shared/utils";
 import {
   showConfirmModal,

@@ -1,6 +1,24 @@
+type TimerStatus = "idle" | "running" | "paused" | "completed";
+
+interface MatchTimerOptions {
+  duration?: number;
+  onTimeUpdate?: (time: string) => void;
+  onStatusChange?: (status: TimerStatus) => void;
+  onComplete?: () => void;
+}
+
 export class MatchTimer {
-  constructor(options = {}) {
-    this.duration = options.duration || 12; // Minutes
+  private duration: number;
+  private remainingSeconds: number;
+  private isRunning: boolean;
+  private intervalId: ReturnType<typeof setInterval> | null;
+  private audioContext: AudioContext | null;
+  private onTimeUpdate: (time: string) => void;
+  private onStatusChange: (status: TimerStatus) => void;
+  private onComplete: () => void;
+
+  constructor(options: MatchTimerOptions = {}) {
+    this.duration = options.duration || 12;
     this.onTimeUpdate = options.onTimeUpdate || (() => {});
     this.onStatusChange = options.onStatusChange || (() => {});
     this.onComplete = options.onComplete || (() => {});
@@ -11,7 +29,7 @@ export class MatchTimer {
     this.audioContext = null;
   }
 
-  start() {
+  start(): void {
     if (this.isRunning) return;
 
     if (this.remainingSeconds <= 0) {
@@ -25,40 +43,39 @@ export class MatchTimer {
       this.tick();
     }, 1000);
 
-    this.playBeep(880, 0.1); // High pitch start beep
+    this.playBeep(880, 0.1);
   }
 
-  pause() {
+  pause(): void {
     if (!this.isRunning) return;
 
     this.isRunning = false;
-    clearInterval(this.intervalId);
+    if (this.intervalId) clearInterval(this.intervalId);
     this.onStatusChange("paused");
   }
 
-  reset() {
+  reset(): void {
     this.pause();
     this.remainingSeconds = this.duration * 60;
     this.onTimeUpdate(this.formatTime(this.remainingSeconds));
     this.onStatusChange("idle");
   }
 
-  setDuration(minutes) {
+  setDuration(minutes: number): void {
     this.duration = minutes;
     this.reset();
   }
 
-  addTime(seconds) {
+  addTime(seconds: number): void {
     this.remainingSeconds += seconds;
     this.onTimeUpdate(this.formatTime(this.remainingSeconds));
   }
 
-  tick() {
+  private tick(): void {
     this.remainingSeconds--;
 
-    // Critical time warnings (Audio)
     if (this.remainingSeconds <= 3 && this.remainingSeconds > 0) {
-      this.playBeep(440, 0.2); // Low pitch warning
+      this.playBeep(440, 0.2);
     }
 
     if (this.remainingSeconds <= 0) {
@@ -68,27 +85,26 @@ export class MatchTimer {
     }
   }
 
-  complete() {
+  private complete(): void {
     this.remainingSeconds = 0;
     this.pause();
     this.onTimeUpdate("00:00");
     this.onStatusChange("completed");
-    this.playBeep(880, 1.0); // Long finish beep
+    this.playBeep(880, 1.0);
     this.onComplete();
   }
 
-  formatTime(seconds) {
+  private formatTime(seconds: number): string {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   }
 
-  // Simple Audio Context Beep
-  playBeep(frequency = 440, duration = 0.5) {
+  private playBeep(frequency = 440, duration = 0.5): void {
     try {
       if (!this.audioContext) {
         this.audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
+          (window as any).webkitAudioContext)();
       }
 
       if (this.audioContext.state === "suspended") {
@@ -106,7 +122,6 @@ export class MatchTimer {
 
       oscillator.start();
 
-      // Fade out to avoid clicking
       gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(
         0.001,

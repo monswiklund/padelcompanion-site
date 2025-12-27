@@ -1,16 +1,32 @@
 // Player Management Module
 // CRUD operations for tournament players
 
-import { state, saveState } from "./core/state.js";
-import { showToast, createId } from "../shared/utils.js";
-import { showConfirmModal } from "./core/modals.js";
+import { state, saveState } from "./core/state";
+import { showToast, createId } from "../shared/utils";
+import { showConfirmModal } from "./core/modals";
+
+interface Player {
+  id: string | number;
+  name: string;
+  points: number;
+  wins: number;
+  losses: number;
+  pointsLost: number;
+  played: number;
+  byeCount?: number;
+  playedWith?: (string | number)[];
+}
+
+interface PreferredPair {
+  id: string | number;
+  player1Id: string | number;
+  player2Id: string | number;
+}
 
 /**
  * Add a new player to the tournament
- * @param {string} name - Player name
- * @returns {boolean} True if player was added
  */
-export function addPlayer(name) {
+export function addPlayer(name: string): boolean {
   if (!name.trim()) return false;
 
   const trimmedName = name.trim();
@@ -20,10 +36,9 @@ export function addPlayer(name) {
     return false;
   }
 
-  // Check for duplicates (case-insensitive)
   if (
     state.players.some(
-      (p) => p.name.toLowerCase() === trimmedName.toLowerCase()
+      (p: Player) => p.name.toLowerCase() === trimmedName.toLowerCase()
     )
   ) {
     showToast(`Player "${trimmedName}" already exists`);
@@ -40,7 +55,6 @@ export function addPlayer(name) {
     played: 0,
   });
 
-  // Auto-increment courts every 4 players
   if (state.players.length % 4 === 0) {
     state.courts = state.players.length / 4;
   }
@@ -51,49 +65,44 @@ export function addPlayer(name) {
 
 /**
  * Remove a player by ID
- * @param {number} id - Player ID
  */
-export function removePlayer(id) {
-  state.players = state.players.filter((p) => p.id !== id);
+export function removePlayer(id: string | number): void {
+  state.players = state.players.filter((p: Player) => p.id !== id);
   saveState();
 }
 
 /**
  * Remove all players with confirmation
- * @param {Function} onCleared - Callback after players are cleared
  */
-export function removeAllPlayers(onCleared) {
-  console.log("removeAllPlayers called, players:", state.players.length);
-  if (state.players.length === 0) {
-    console.log("No players to remove");
-    return;
-  }
+export function removeAllPlayers(onCleared?: () => void): void {
+  if (state.players.length === 0) return;
 
   showConfirmModal(
     "Remove All Players?",
     "Are you sure you want to clear the entire player list? This action cannot be undone.",
     "Yes, Remove All",
     () => {
-      console.log("Confirm callback executed");
       state.players = [];
       state.preferredPartners = [];
       saveState();
-      console.log("Players cleared, state:", state.players);
       if (onCleared) onCleared();
     },
-    true // isDanger
+    true
   );
+}
+
+interface ImportResult {
+  added: number;
+  duplicates: number;
+  hitLimit: boolean;
 }
 
 /**
  * Import multiple players from text
- * @param {string} text - Newline or comma-separated names
- * @returns {{ added: number, duplicates: number, hitLimit: boolean }}
  */
-export function importPlayers(text) {
+export function importPlayers(text: string): ImportResult {
   if (!text.trim()) return { added: 0, duplicates: 0, hitLimit: false };
 
-  // Split by newline or comma
   const rawNames = text
     .split(/[\n,]+/)
     .map((n) => n.trim())
@@ -107,15 +116,15 @@ export function importPlayers(text) {
   let hitLimit = false;
 
   for (const name of rawNames) {
-    // Check global limit
     if (state.players.length >= 24) {
       hitLimit = true;
       break;
     }
 
-    // Check duplicate (case-insensitive)
     if (
-      state.players.some((p) => p.name.toLowerCase() === name.toLowerCase())
+      state.players.some(
+        (p: Player) => p.name.toLowerCase() === name.toLowerCase()
+      )
     ) {
       duplicates++;
       continue;
@@ -133,8 +142,6 @@ export function importPlayers(text) {
     addedCount++;
   }
 
-  // Auto-increment courts based on total players after import
-  // But let's only do it if it increases the court count to avoid surprising reductions
   const suggestedCourts = Math.floor(state.players.length / 4);
   if (suggestedCourts > state.courts) {
     state.courts = suggestedCourts;
@@ -146,11 +153,9 @@ export function importPlayers(text) {
 
 /**
  * Add a late-joining player to an ongoing tournament
- * @param {string} name - Player name
- * @returns {boolean} True if added successfully
  */
-export function addLatePlayer(name) {
-  const newPlayer = {
+export function addLatePlayer(name: string): boolean {
+  const newPlayer: Player = {
     id: createId(),
     name: name,
     points: 0,
@@ -171,21 +176,20 @@ export function addLatePlayer(name) {
 
 /**
  * Get players available for pairing (not already in a preferred pair)
- * @returns {Array} Available players
  */
-export function getAvailablePlayersForPairing() {
-  const pairedPlayerIds = new Set();
-  state.preferredPartners.forEach((pair) => {
+export function getAvailablePlayersForPairing(): Player[] {
+  const pairedPlayerIds = new Set<string | number>();
+  state.preferredPartners.forEach((pair: PreferredPair) => {
     pairedPlayerIds.add(pair.player1Id);
     pairedPlayerIds.add(pair.player2Id);
   });
-  return state.players.filter((p) => !pairedPlayerIds.has(p.id));
+  return state.players.filter((p: Player) => !pairedPlayerIds.has(p.id));
 }
 
 /**
  * Add a new preferred partner pair
  */
-export function addPreferredPair() {
+export function addPreferredPair(): void {
   const available = getAvailablePlayersForPairing();
   if (available.length < 2) return;
 
@@ -200,23 +204,25 @@ export function addPreferredPair() {
 
 /**
  * Remove a preferred partner pair
- * @param {number} pairId - Pair ID
  */
-export function removePreferredPair(pairId) {
+export function removePreferredPair(pairId: string | number): void {
   state.preferredPartners = state.preferredPartners.filter(
-    (p) => p.id !== pairId
+    (p: PreferredPair) => p.id !== pairId
   );
   saveState();
 }
 
 /**
  * Update a preferred partner pair
- * @param {number} pairId - Pair ID
- * @param {1|2} which - Which player in the pair
- * @param {number} playerId - New player ID
  */
-export function updatePreferredPair(pairId, which, playerId) {
-  const pair = state.preferredPartners.find((p) => p.id === pairId);
+export function updatePreferredPair(
+  pairId: string | number,
+  which: 1 | 2,
+  playerId: string | number
+): void {
+  const pair = state.preferredPartners.find(
+    (p: PreferredPair) => p.id === pairId
+  );
   if (pair) {
     if (which === 1) pair.player1Id = playerId;
     else pair.player2Id = playerId;

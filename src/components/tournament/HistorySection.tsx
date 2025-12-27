@@ -7,7 +7,7 @@ import {
   deleteFromHistory,
 } from "@/tournament/history/repository.js";
 import { exportTournamentData } from "@/tournament/ui/setup/exportShare.js";
-import { showToast } from "@/shared/utils.js";
+import { showToast } from "@/shared/utils";
 import { showConfirmModal } from "@/tournament/core/modals.js";
 
 interface HistoryItem {

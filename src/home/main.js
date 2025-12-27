@@ -1,5 +1,5 @@
 import { injectLayout } from "../shared/layout.js";
-import { initTheme, toggleTheme, updateThemeIcon } from "../shared/theme.js";
+import { initTheme, toggleTheme, updateThemeIcon } from "../shared/theme";
 
 console.log("Padel Companion Site: Main script loaded");
 

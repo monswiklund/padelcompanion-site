@@ -3,21 +3,37 @@
  * Dynamic pairing for Team Mexicano format.
  */
 
-import { state } from "../core/state.js";
-import { shuffleArray } from "../../shared/utils.js";
+import { state } from "../core/state";
+import { shuffleArray } from "../../shared/utils";
+
+interface Player {
+  id: string | number;
+  name: string;
+  points?: number;
+}
+
+interface Match {
+  court: number;
+  team1: Player[];
+  team2: Player[];
+}
+
+interface Round {
+  number: number;
+  matches: Match[];
+  byes: Player[];
+}
 
 /**
  * Generate Team Mexicano first round.
- * Fixed teams with random initial pairing.
- * @returns {Array} Array with single round object
  */
-export function generateTeamMexicanoFirstRound() {
-  const teams = [...state.players];
+export function generateTeamMexicanoFirstRound(): Round[] {
+  const teams: Player[] = [...state.players];
   shuffleArray(teams);
 
   const courts = state.courts;
-  const matches = [];
-  const playersInMatches = new Set();
+  const matches: Match[] = [];
+  const playersInMatches = new Set<string | number>();
 
   for (let i = 0; i < teams.length - 1 && matches.length < courts; i += 2) {
     matches.push({
@@ -36,10 +52,11 @@ export function generateTeamMexicanoFirstRound() {
 
 /**
  * Generate Team Mexicano next round based on standings.
- * @returns {Object} Round object
  */
-export function generateTeamMexicanoNextRound() {
-  const sorted = [...state.leaderboard].sort((a, b) => b.points - a.points);
+export function generateTeamMexicanoNextRound(): Round {
+  const sorted: Player[] = [...state.leaderboard].sort(
+    (a: Player, b: Player) => (b.points || 0) - (a.points || 0)
+  );
   const courts = state.courts;
 
   const available = sorted.filter((t) => !state.manualByes.includes(t.id));
@@ -47,8 +64,8 @@ export function generateTeamMexicanoNextRound() {
     state.manualByes.includes(t.id)
   );
 
-  const matches = [];
-  const playersInMatches = new Set();
+  const matches: Match[] = [];
+  const playersInMatches = new Set<string | number>();
 
   for (let i = 0; i < available.length - 1 && matches.length < courts; i += 2) {
     matches.push({

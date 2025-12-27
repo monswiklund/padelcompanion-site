@@ -1,52 +1,140 @@
 // Tournament Generator - State Management
 // Central state object with reactive updates
 
-// Current state version - increment when schema changes
+import { StorageService } from "../../shared/storage";
+
 const STATE_VERSION = 1;
 
-export const state = {
-  version: STATE_VERSION,
+export interface Player {
+  id: string | number;
+  name: string;
+  points?: number;
+  wins?: number;
+  losses?: number;
+  pointsLost?: number;
+  played?: number;
+  byeCount?: number;
+  playedWith?: (string | number)[];
+  lockedCourt?: number;
+  isBye?: boolean;
+}
 
-  // ===== Existing Americano/Mexicano fields =====
+export interface PreferredPartner {
+  id?: string | number;
+  player1Id: string | number;
+  player2Id: string | number;
+}
+
+export interface Match {
+  court: number;
+  team1: Player[];
+  team2: Player[];
+  score1?: number;
+  score2?: number;
+}
+
+export interface Round {
+  number: number;
+  matches: Match[];
+  byes: Player[];
+}
+
+export interface BracketMeta {
+  name: string;
+  notes: string;
+  createdAt: string | null;
+}
+
+export interface BracketState {
+  format: "single" | "double";
+  teams: Player[];
+  matches: any[];
+  standings: any[];
+  meta: BracketMeta;
+}
+
+export interface UIState {
+  currentRoute: string;
+  selectedMatchId: string | number | null;
+  activeBracketTab: string;
+}
+
+export interface WinnersCourtState {
+  players: Player[];
+  courts: any[];
+  courtCount: number;
+  twist: boolean;
+  round: number;
+}
+
+export interface TournamentState {
+  version: number;
+  players: Player[];
+  format: string;
+  courts: number;
+  scoringMode: string;
+  pointsPerMatch: number;
+  rankingCriteria: string;
+  courtFormat: string;
+  customCourtNames: string[];
+  maxRepeats: number;
+  pairingStrategy: string;
+  strictStrategy?: boolean;
+  preferredPartners: PreferredPartner[];
+  manualByes: (string | number)[];
+  hideLeaderboard: boolean;
+  showPositionChanges: boolean;
+  gridColumns: number;
+  textSize: number;
+  bracketScale: number;
+  isLocked: boolean;
+  tournamentName: string;
+  tournamentNotes: string;
+  schedule: Round[];
+  currentRound: number;
+  leaderboard: Player[];
+  allRounds: Round[] | null;
+  maxCourts: number;
+  bracket: BracketState;
+  winnersCourt: WinnersCourtState | null;
+  ui: UIState;
+}
+
+export const state: TournamentState = {
+  version: STATE_VERSION,
   players: [],
   format: "americano",
   courts: 2,
-  scoringMode: "total", // "total", "race", "time"
+  scoringMode: "total",
   pointsPerMatch: 24,
-  rankingCriteria: "points", // "points", "wins", "winRatio", "pointRatio"
-  courtFormat: "court", // "number", "court", "custom"
-  customCourtNames: [], // Array of custom names when courtFormat is "custom"
-  maxRepeats: 99, // 0 = never, 1+ = max times, 99 = unlimited
-  pairingStrategy: "optimal", // "oneTwo", "oneThree", "oneFour", "optimal"
-  preferredPartners: [], // Array of {player1Id, player2Id} pairs
-  manualByes: [], // Array of player IDs manually selected to rest
-  hideLeaderboard: true, // Toggle to hide standings during tournament (default: hidden)
-  showPositionChanges: true, // Show up/down arrows in leaderboard
-  gridColumns: 0, // 0 = auto, 1-6 = fixed columns
-  textSize: 100, // Text size percentage (50-150)
-  bracketScale: 100, // Bracket view scale percentage (50-150)
-  isLocked: false, // Lock settings after tournament starts
-  tournamentName: "", // Custom tournament name
-  tournamentNotes: "", // Optional notes
+  rankingCriteria: "points",
+  courtFormat: "court",
+  customCourtNames: [],
+  maxRepeats: 99,
+  pairingStrategy: "optimal",
+  preferredPartners: [],
+  manualByes: [],
+  hideLeaderboard: true,
+  showPositionChanges: true,
+  gridColumns: 0,
+  textSize: 100,
+  bracketScale: 100,
+  isLocked: false,
+  tournamentName: "",
+  tournamentNotes: "",
   schedule: [],
   currentRound: 0,
   leaderboard: [],
   allRounds: null,
   maxCourts: 2,
-
-  // ===== Bracket Tournament (namespaced) =====
   bracket: {
-    format: "single", // 'single' | 'double'
+    format: "single",
     teams: [],
     matches: [],
     standings: [],
     meta: { name: "", notes: "", createdAt: null },
   },
-
-  // ===== Winners Court Mode =====
-  winnersCourt: null, // { players, courts, courtCount, twist, round }
-
-  // ===== UI State =====
+  winnersCourt: null,
   ui: {
     currentRoute: "",
     selectedMatchId: null,
@@ -55,18 +143,18 @@ export const state = {
 };
 
 // Undo History
-const historyStack = [];
+const historyStack: TournamentState[] = [];
 const MAX_HISTORY = 20;
 
-function updateUndoButton() {
+function updateUndoButton(): void {
   const undoBtn = document.getElementById("undoBtn");
   if (undoBtn) {
-    undoBtn.disabled = historyStack.length === 0;
+    (undoBtn as HTMLButtonElement).disabled = historyStack.length === 0;
   }
 }
 
-export function pushHistory() {
-  const snapshot = JSON.parse(JSON.stringify(state));
+export function pushHistory(): void {
+  const snapshot = JSON.parse(JSON.stringify(state)) as TournamentState;
   historyStack.push(snapshot);
   if (historyStack.length > MAX_HISTORY) {
     historyStack.shift();
@@ -74,32 +162,23 @@ export function pushHistory() {
   updateUndoButton();
 }
 
-export function undoLastAction() {
+export function undoLastAction(): boolean {
   if (historyStack.length === 0) return false;
-  const previousState = historyStack.pop();
-
+  const previousState = historyStack.pop()!;
   restoreState(previousState);
   updateUndoButton();
   return true;
 }
 
-export function canUndo() {
+export function canUndo(): boolean {
   return historyStack.length > 0;
 }
 
-import { StorageService } from "../../shared/storage.js";
-
-// LocalStorage key
 const STORAGE_KEY = "tournament-state";
 
-/**
- * Save state to localStorage
- */
-export function saveState() {
+export function saveState(): void {
   StorageService.setItem(STORAGE_KEY, {
-    // Version for migrations
     version: state.version,
-    // Settings
     players: state.players,
     format: state.format,
     courts: state.courts,
@@ -113,7 +192,6 @@ export function saveState() {
     preferredPartners: state.preferredPartners,
     tournamentName: state.tournamentName,
     tournamentNotes: state.tournamentNotes,
-    // Active tournament state
     schedule: state.schedule,
     currentRound: state.currentRound,
     leaderboard: state.leaderboard,
@@ -123,31 +201,22 @@ export function saveState() {
     manualByes: state.manualByes,
     gridColumns: state.gridColumns,
     textSize: state.textSize,
-    // Bracket tournament (v1+)
     bracket: state.bracket,
-    // UI state (v1+)
     ui: state.ui,
-    // Winners Court (v1+)
     winnersCourt: state.winnersCourt,
   });
 }
 
-/**
- * Load state from localStorage
- * @returns {boolean} True if state was loaded
- */
-export function loadState() {
-  let data = StorageService.getItem(STORAGE_KEY);
+export function loadState(): boolean {
+  let data = StorageService.getItem<any>(STORAGE_KEY);
   if (!data) return false;
 
   try {
-    // Migrate old state versions
     data = migrateState(data);
 
-    // Load settings with validation
     state.players = Array.isArray(data.players)
       ? data.players.slice(0, 200)
-      : []; // Max 200 players
+      : [];
     state.format = data.format || "americano";
     state.courts = Math.max(1, Math.min(50, data.courts || 2));
     state.scoringMode = data.scoringMode || "total";
@@ -171,7 +240,6 @@ export function loadState() {
     state.tournamentName = data.tournamentName || "";
     state.tournamentNotes = data.tournamentNotes || "";
 
-    // Load active tournament state
     state.schedule = Array.isArray(data.schedule) ? data.schedule : [];
     state.currentRound = Math.max(0, Math.min(100, data.currentRound || 0));
     state.leaderboard = Array.isArray(data.leaderboard) ? data.leaderboard : [];
@@ -184,7 +252,6 @@ export function loadState() {
     state.textSize = Math.max(50, Math.min(200, data.textSize || 100));
     state.bracketScale = Math.max(50, Math.min(200, data.bracketScale || 100));
 
-    // Load bracket tournament state (v1+)
     if (data.bracket) {
       state.bracket = {
         format: data.bracket.format || "single",
@@ -194,23 +261,17 @@ export function loadState() {
         meta: data.bracket.meta || { name: "", notes: "", createdAt: null },
       };
     } else if (data.tournament) {
-      // Compatibility for older browser storage that used "tournament"
       state.bracket = data.tournament;
     }
 
-    // Load UI state (v1+)
     if (data.ui) {
-      // Load UI state (v1+)
-      if (data.ui) {
-        state.ui = {
-          currentRoute: data.ui.currentRoute || "",
-          selectedMatchId: data.ui.selectedMatchId || null,
-          activeBracketTab: data.ui.activeBracketTab || "A", // "A", "B", or "Final"
-        };
-      }
+      state.ui = {
+        currentRoute: data.ui.currentRoute || "",
+        selectedMatchId: data.ui.selectedMatchId || null,
+        activeBracketTab: data.ui.activeBracketTab || "A",
+      };
     }
 
-    // Load Winners Court state
     state.winnersCourt = data.winnersCourt || null;
 
     return true;
@@ -220,18 +281,12 @@ export function loadState() {
   }
 }
 
-/**
- * Migrate state from older versions.
- * @param {Object} data - Saved state data
- * @returns {Object} Migrated state data
- */
-function migrateState(data) {
+function migrateState(data: any): any {
   const savedVersion = data.version || 0;
 
   if (savedVersion < STATE_VERSION) {
     console.log(`[State] Migrating from v${savedVersion} to v${STATE_VERSION}`);
 
-    // v0 -> v1: Add bracket and ui namespaces
     if (savedVersion < 1) {
       data.bracket = data.bracket ||
         data.tournament || {
@@ -247,19 +302,13 @@ function migrateState(data) {
       };
     }
 
-    // Future migrations go here:
-    // if (savedVersion < 2) { ... }
-
     data.version = STATE_VERSION;
   }
 
   return data;
 }
 
-/**
- * Reset tournament state (keep players)
- */
-export function resetTournamentState() {
+export function resetTournamentState(): void {
   state.schedule = [];
   state.currentRound = 0;
   state.leaderboard = [];
@@ -269,10 +318,7 @@ export function resetTournamentState() {
   state.manualByes = [];
 }
 
-/**
- * Initialize leaderboard from players
- */
-export function initLeaderboard() {
+export function initLeaderboard(): void {
   state.leaderboard = state.players.map((p) => ({
     ...p,
     points: 0,
@@ -285,28 +331,19 @@ export function initLeaderboard() {
   }));
 }
 
-/**
- * Get a full snapshot of the current state
- */
-export function getStateSnapshot() {
+export function getStateSnapshot(): TournamentState {
   return JSON.parse(JSON.stringify(state));
 }
 
-/**
- * Restore state from a snapshot object
- * @param {Object} snapshot
- */
-export function restoreState(snapshot) {
+export function restoreState(snapshot: Partial<TournamentState>): void {
   if (!snapshot) return;
 
-  // Restore all keys from snapshot to state
-  Object.keys(state).forEach((key) => {
-    if (snapshot.hasOwnProperty(key)) {
-      state[key] = snapshot[key];
+  (Object.keys(state) as (keyof TournamentState)[]).forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(snapshot, key)) {
+      (state as any)[key] = (snapshot as any)[key];
     }
   });
 
-  // Ensure type safety for critical numeric values if needed
   state.players = state.players || [];
   state.schedule = state.schedule || [];
   state.leaderboard = state.leaderboard || [];

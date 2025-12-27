@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { StorageService } from "@/shared/storage.js";
+import { StorageService } from "@/shared/storage";
 
 // --- Types ---
 export interface Player {

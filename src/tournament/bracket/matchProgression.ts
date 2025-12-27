@@ -3,22 +3,24 @@
  * Handles match result updates and downstream effects.
  */
 
-import { state, saveState } from "../core/state.js";
-import { getTeamById } from "./bracketGeneration.js";
+import { state, saveState } from "../core/state";
+import { getTeamById, BracketMatch, BracketTeam } from "./bracketGeneration";
 
 /**
  * Update match result and advance winner.
- * @param {number} matchId - Match ID
- * @param {number} score1 - Team 1 score
- * @param {number} score2 - Team 2 score
  */
-export function updateMatchResult(matchId, score1, score2) {
+export function updateMatchResult(
+  matchId: number,
+  score1: number | null,
+  score2: number | null
+): void {
   if (!state.bracket?.matches) return;
 
-  const match = state.bracket.matches.find((m) => m.id === matchId);
+  const match = (state.bracket.matches as BracketMatch[]).find(
+    (m) => m.id === matchId
+  );
   if (!match) return;
 
-  // If re-editing a completed match, reset downstream
   if (match.completed) {
     resetDownstreamMatches(match);
   }
@@ -26,18 +28,19 @@ export function updateMatchResult(matchId, score1, score2) {
   match.score1 = score1;
   match.score2 = score2;
 
-  // Determine winner
   if (score1 !== null && score2 !== null && score1 !== score2) {
     match.winnerId = score1 > score2 ? match.team1Id : match.team2Id;
     match.completed = true;
 
-    // Advance winner
     if (match.nextMatchId) {
-      const nextMatch = state.bracket.matches.find(
+      const nextMatch = (state.bracket.matches as BracketMatch[]).find(
         (m) => m.id === match.nextMatchId
       );
-      if (nextMatch) {
-        const winner = getTeamById(state.bracket.teams, match.winnerId);
+      if (nextMatch && match.winnerId) {
+        const winner = getTeamById(
+          state.bracket.teams as BracketTeam[],
+          match.winnerId
+        );
         if (winner) {
           if (nextMatch.prevMatch1Id === match.id) {
             nextMatch.team1Id = winner.id;
@@ -59,17 +62,15 @@ export function updateMatchResult(matchId, score1, score2) {
 
 /**
  * Reset downstream matches when re-editing an earlier result.
- * @param {Object} match - The match being edited
  */
-export function resetDownstreamMatches(match) {
+export function resetDownstreamMatches(match: BracketMatch): void {
   if (!match.nextMatchId || !state.bracket?.matches) return;
 
-  const nextMatch = state.bracket.matches.find(
+  const nextMatch = (state.bracket.matches as BracketMatch[]).find(
     (m) => m.id === match.nextMatchId
   );
   if (!nextMatch) return;
 
-  // Clear this team's slot
   if (nextMatch.prevMatch1Id === match.id) {
     nextMatch.team1Id = null;
     nextMatch.team1Name = null;
@@ -78,7 +79,6 @@ export function resetDownstreamMatches(match) {
     nextMatch.team2Name = null;
   }
 
-  // If next match was completed, recursively reset
   if (nextMatch.completed) {
     nextMatch.score1 = null;
     nextMatch.score2 = null;
@@ -90,17 +90,16 @@ export function resetDownstreamMatches(match) {
 
 /**
  * Get matches organized by rounds.
- * @returns {Array<Array<Object>>} 2D array of matches per round
  */
-export function getBracketRounds() {
+export function getBracketRounds(): BracketMatch[][] {
   if (!state.bracket?.matches) return [];
 
-  const rounds = [];
-  const numRounds = state.bracket.numRounds;
+  const rounds: BracketMatch[][] = [];
+  const numRounds = (state.bracket as any).numRounds || 0;
 
   for (let r = 1; r <= numRounds; r++) {
     rounds.push(
-      state.bracket.matches
+      (state.bracket.matches as BracketMatch[])
         .filter((m) => m.round === r)
         .sort((a, b) => a.position - b.position)
     );
@@ -111,52 +110,57 @@ export function getBracketRounds() {
 
 /**
  * Check if bracket is complete.
- * @returns {boolean} True if final match is complete
  */
-export function isBracketComplete() {
+export function isBracketComplete(): boolean {
   if (!state.bracket?.matches) return false;
 
-  const finalMatch = state.bracket.matches.find(
-    (m) => m.round === state.bracket.numRounds
+  const numRounds = (state.bracket as any).numRounds || 0;
+  const finalMatch = (state.bracket.matches as BracketMatch[]).find(
+    (m) => m.round === numRounds
   );
   return finalMatch?.completed || false;
 }
 
+interface Standing {
+  place: number;
+  team: BracketTeam;
+}
+
 /**
  * Get final standings (1st, 2nd, 3rd/4th).
- * @returns {Array} Standings array
  */
-export function getFinalStandings() {
+export function getFinalStandings(): Standing[] {
   if (!state.bracket?.matches) return [];
 
-  const standings = [];
-  const finalMatch = state.bracket.matches.find(
-    (m) => m.round === state.bracket.numRounds
-  );
+  const standings: Standing[] = [];
+  const numRounds = (state.bracket as any).numRounds || 0;
+  const matches = state.bracket.matches as BracketMatch[];
+  const teams = state.bracket.teams as BracketTeam[];
 
-  if (finalMatch?.completed) {
-    // 1st place
-    const winner = getTeamById(state.bracket.teams, finalMatch.winnerId);
+  const finalMatch = matches.find((m) => m.round === numRounds);
+
+  if (finalMatch?.completed && finalMatch.winnerId) {
+    const winner = getTeamById(teams, finalMatch.winnerId);
     if (winner) standings.push({ place: 1, team: winner });
 
-    // 2nd place
     const loserId =
       finalMatch.winnerId === finalMatch.team1Id
         ? finalMatch.team2Id
         : finalMatch.team1Id;
-    const loser = getTeamById(state.bracket.teams, loserId);
-    if (loser) standings.push({ place: 2, team: loser });
+    if (loserId) {
+      const loser = getTeamById(teams, loserId);
+      if (loser) standings.push({ place: 2, team: loser });
+    }
 
-    // 3rd/4th from semi-finals
-    const semiFinals = state.bracket.matches.filter(
-      (m) => m.round === state.bracket.numRounds - 1
-    );
+    const semiFinals = matches.filter((m) => m.round === numRounds - 1);
     semiFinals.forEach((sf) => {
-      if (sf.completed) {
+      if (sf.completed && sf.winnerId) {
         const sfLoserId = sf.winnerId === sf.team1Id ? sf.team2Id : sf.team1Id;
-        const sfLoser = getTeamById(state.bracket.teams, sfLoserId);
-        if (sfLoser && sfLoser.id !== loserId) {
-          standings.push({ place: 3, team: sfLoser });
+        if (sfLoserId) {
+          const sfLoser = getTeamById(teams, sfLoserId);
+          if (sfLoser && sfLoser.id !== loserId) {
+            standings.push({ place: 3, team: sfLoser });
+          }
         }
       }
     });

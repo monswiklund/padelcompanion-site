@@ -1,12 +1,12 @@
 // Confetti Engine as ES Module
 // Simple canvas-based confetti animation
 
-let canvas;
-let ctx;
-let w;
-let h;
-let particles = [];
-let animationId;
+let canvas: HTMLCanvasElement | null = null;
+let ctx: CanvasRenderingContext2D | null = null;
+let w = 0;
+let h = 0;
+let particles: ConfettiParticle[] = [];
+let animationId: number | null = null;
 let isActive = false;
 
 const colors = [
@@ -28,51 +28,62 @@ const colors = [
   "#ff5722",
 ];
 
-function randomFromTo(from, to) {
+function randomFromTo(from: number, to: number): number {
   return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
-function ConfettiParticle() {
-  this.x = Math.random() * w;
-  this.y = Math.random() * h - h;
-  this.r = randomFromTo(10, 30);
-  this.d = Math.random() * 150 + 10;
-  this.color = colors[randomFromTo(0, colors.length - 1)];
-  this.tilt = Math.floor(Math.random() * 10) - 10;
-  this.tiltAngleIncremental = Math.random() * 0.07 + 0.05;
-  this.tiltAngle = 0;
+class ConfettiParticle {
+  x: number;
+  y: number;
+  r: number;
+  d: number;
+  color: string;
+  tilt: number;
+  tiltAngleIncremental: number;
+  tiltAngle: number;
 
-  this.draw = function () {
+  constructor() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h - h;
+    this.r = randomFromTo(10, 30);
+    this.d = Math.random() * 150 + 10;
+    this.color = colors[randomFromTo(0, colors.length - 1)];
+    this.tilt = Math.floor(Math.random() * 10) - 10;
+    this.tiltAngleIncremental = Math.random() * 0.07 + 0.05;
+    this.tiltAngle = 0;
+  }
+
+  draw(): void {
+    if (!ctx) return;
     ctx.beginPath();
     ctx.lineWidth = this.r / 2;
     ctx.strokeStyle = this.color;
     ctx.moveTo(this.x + this.tilt + this.r / 4, this.y);
     ctx.lineTo(this.x + this.tilt, this.y + this.tilt + this.r / 4);
-    return ctx.stroke();
-  };
+    ctx.stroke();
+  }
 }
 
-function renderConfetti() {
-  if (!isActive) return;
+function renderConfetti(): void {
+  if (!isActive || !ctx) return;
 
   ctx.clearRect(0, 0, w, h);
 
-  for (let i = 0; i < particles.length; i++) {
-    particles[i].draw();
+  for (const particle of particles) {
+    particle.draw();
   }
 
   updateConfetti();
   animationId = requestAnimationFrame(renderConfetti);
 }
 
-function updateConfetti() {
+function updateConfetti(): void {
   for (let i = 0; i < particles.length; i++) {
     const particle = particles[i];
     particle.tiltAngle += particle.tiltAngleIncremental;
     particle.y += (Math.cos(particle.d) + 3 + particle.r / 2) / 2;
     particle.tilt = Math.sin(particle.tiltAngle - i / 3) * 15;
 
-    // Recycle particles that go off screen
     if (particle.x > w + 20 || particle.x < -20 || particle.y > h) {
       if (isActive) {
         particle.x = Math.random() * w;
@@ -86,10 +97,9 @@ function updateConfetti() {
 /**
  * Start the confetti animation
  */
-export function startConfetti() {
+export function startConfetti(): void {
   if (isActive) return;
 
-  // Create canvas if needed
   if (!canvas) {
     canvas = document.createElement("canvas");
     canvas.id = "confetti-canvas";
@@ -109,12 +119,13 @@ export function startConfetti() {
   canvas.width = w;
   canvas.height = h;
 
-  // Resize handler
   window.addEventListener("resize", () => {
     w = window.innerWidth;
     h = window.innerHeight;
-    canvas.width = w;
-    canvas.height = h;
+    if (canvas) {
+      canvas.width = w;
+      canvas.height = h;
+    }
   });
 
   isActive = true;
@@ -128,7 +139,7 @@ export function startConfetti() {
 /**
  * Stop the confetti animation
  */
-export function stopConfetti() {
+export function stopConfetti(): void {
   isActive = false;
   if (ctx) ctx.clearRect(0, 0, w, h);
   if (animationId) cancelAnimationFrame(animationId);
@@ -139,7 +150,7 @@ export function stopConfetti() {
 /**
  * Launch a timed confetti burst (5 seconds)
  */
-export function launchConfetti() {
+export function launchConfetti(): void {
   startConfetti();
   setTimeout(stopConfetti, 5000);
 }

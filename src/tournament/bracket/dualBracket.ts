@@ -3,20 +3,41 @@
  * Handles Side A vs Side B bracket generation.
  */
 
-import { state, saveState } from "../core/state.js";
-import { generateBracket } from "./bracketGeneration.js";
+import { state, saveState } from "../core/state";
+import {
+  generateBracket,
+  Bracket,
+  BracketMatch,
+  BracketTeam,
+} from "./bracketGeneration";
+
+interface GrandFinalMatch extends BracketMatch {
+  isGrandFinal: boolean;
+  prevBracketAFinalId: number;
+  prevBracketBFinalId: number;
+}
+
+interface DualBracket {
+  bracketA: Bracket;
+  bracketB: Bracket;
+  grandFinal: GrandFinalMatch;
+  teams: BracketTeam[];
+  matches: BracketMatch[];
+  numRoundsA: number;
+  numRoundsB: number;
+  isDualBracket: boolean;
+}
 
 /**
  * Generate a dual bracket (Side A vs Side B with Grand Final).
- * @param {Array} teamsA - Side A teams
- * @param {Array} teamsB - Side B teams
- * @returns {Object} Dual bracket structure
  */
-export function generateDualBracket(teamsA, teamsB) {
+export function generateDualBracket(
+  teamsA: BracketTeam[],
+  teamsB: BracketTeam[]
+): DualBracket {
   const bracketA = generateBracket(teamsA);
   const bracketB = generateBracket(teamsB);
 
-  // Offset bracketB match IDs
   const maxIdA = Math.max(...bracketA.matches.map((m) => m.id));
   bracketB.matches.forEach((m) => {
     m.id += maxIdA;
@@ -25,8 +46,7 @@ export function generateDualBracket(teamsA, teamsB) {
     if (m.prevMatch2Id) m.prevMatch2Id += maxIdA;
   });
 
-  // Create grand final match
-  const grandFinal = {
+  const grandFinal: GrandFinalMatch = {
     id: maxIdA + bracketB.matches.length + 1,
     round: Math.max(bracketA.numRounds, bracketB.numRounds) + 1,
     position: 0,
@@ -45,7 +65,6 @@ export function generateDualBracket(teamsA, teamsB) {
     prevBracketBFinalId: bracketB.matches[bracketB.matches.length - 1].id,
   };
 
-  // Link finals to grand final
   bracketA.matches[bracketA.matches.length - 1].nextMatchId = grandFinal.id;
   bracketB.matches[bracketB.matches.length - 1].nextMatchId = grandFinal.id;
 
@@ -63,28 +82,30 @@ export function generateDualBracket(teamsA, teamsB) {
 
 /**
  * Initialize bracket tournament with teams.
- * @param {Array} teamNames - Team names or objects
  */
-export function initBracketTournament(teamNames) {
-  const teams = teamNames.map((t, i) => {
+export function initBracketTournament(
+  teamNames: (string | { id?: string; name: string; side?: "A" | "B" })[]
+): void {
+  const teams: BracketTeam[] = teamNames.map((t, i) => {
     if (typeof t === "string") {
       return { id: `team-${i}`, name: t };
     }
     return { id: t.id || `team-${i}`, name: t.name, side: t.side };
   });
 
-  state.bracket = generateBracket(teams);
-  state.bracketFormat = "single";
+  (state.bracket as any) = generateBracket(teams);
+  (state as any).bracketFormat = "single";
   saveState();
 }
 
 /**
  * Initialize a dual bracket tournament.
- * @param {Array} teamNames - Team objects with name and side
- * @param {boolean} sharedFinal - Whether to have a shared grand final
  */
-export function initDualBracketTournament(teamNames, sharedFinal = true) {
-  const teams = teamNames.map((t, i) => ({
+export function initDualBracketTournament(
+  teamNames: { id?: string; name: string; side?: "A" | "B" }[],
+  sharedFinal = true
+): void {
+  const teams: BracketTeam[] = teamNames.map((t, i) => ({
     id: t.id || `team-${i}`,
     name: t.name,
     side: t.side || (i < teamNames.length / 2 ? "A" : "B"),
@@ -94,9 +115,8 @@ export function initDualBracketTournament(teamNames, sharedFinal = true) {
   const teamsB = teams.filter((t) => t.side === "B");
 
   if (sharedFinal) {
-    state.bracket = generateDualBracket(teamsA, teamsB);
+    (state.bracket as any) = generateDualBracket(teamsA, teamsB);
   } else {
-    // Separate brackets without grand final
     const bracketA = generateBracket(teamsA);
     const bracketB = generateBracket(teamsB);
 
@@ -108,7 +128,7 @@ export function initDualBracketTournament(teamNames, sharedFinal = true) {
       if (m.prevMatch2Id) m.prevMatch2Id += maxIdA;
     });
 
-    state.bracket = {
+    (state.bracket as any) = {
       bracketA,
       bracketB,
       teams,
@@ -120,16 +140,16 @@ export function initDualBracketTournament(teamNames, sharedFinal = true) {
     };
   }
 
-  state.bracketFormat = "dual";
+  (state as any).bracketFormat = "dual";
   saveState();
 }
 
 /**
  * Clear bracket tournament.
  */
-export function clearBracket() {
-  state.bracket = null;
-  state.bracketFormat = null;
-  state.bracketTeams = [];
+export function clearBracket(): void {
+  (state.bracket as any) = null;
+  (state as any).bracketFormat = null;
+  (state as any).bracketTeams = [];
   saveState();
 }

@@ -5,8 +5,8 @@ import { Card } from "@/components/ui/Card";
 import { WCCourt } from "./WCCourt";
 import { recordCourtResult, nextRound, clearWinnersCourt } from "./logic.js";
 import { showConfirmModal } from "../../core/modals.js";
-import { showToast } from "@/shared/utils.js";
-import { state as legacyState } from "../../core/state.js";
+import { showToast } from "@/shared/utils";
+import { state as legacyState } from "../../core/state";
 
 export const WinnersCourtActiveView: React.FC = () => {
   const { state, dispatch } = useTournament();

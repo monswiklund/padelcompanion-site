@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { showToast, createId } from "@/shared/utils.js";
+import { showToast, createId } from "@/shared/utils";
 import {
   TournamentConfig,
   TournamentConfigState,
@@ -11,7 +11,7 @@ import { PreferredPartners } from "@/components/tournament/PreferredPartners";
 import { useTournament } from "@/context/TournamentContext";
 // Import legacy functions
 import { generateSchedule } from "../../ui/setup/scheduleGeneration.js";
-import { state as legacyState } from "../../core/state.js";
+import { state as legacyState } from "../../core/state";
 
 interface GeneratorPlayer {
   id: string;

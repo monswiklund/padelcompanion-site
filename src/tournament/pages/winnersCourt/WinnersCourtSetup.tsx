@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { StorageService } from "@/shared/storage.js";
-import { showToast } from "@/shared/utils.js";
+import { StorageService } from "@/shared/storage";
+import { showToast } from "@/shared/utils";
 // Functions from logic.js (we'll import these)
 import { initWinnersCourt, clearWinnersCourt } from "./logic.js";
 import { HELP_SKILL_LEVELS, HELP_WINNERS_INTRO } from "../../content/help.js";
@@ -13,7 +13,7 @@ import {
   showConfirmModal,
 } from "../../core/modals.js";
 import { useTournament } from "@/context/TournamentContext";
-import { state as legacyState } from "../../core/state.js";
+import { state as legacyState } from "../../core/state";
 
 interface WCPlayer {
   name: string;

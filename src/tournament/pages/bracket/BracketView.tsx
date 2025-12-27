@@ -12,7 +12,7 @@ import {
   getRoundName,
 } from "../../bracket/index.js";
 import { showConfirmModal } from "../../core/modals.js";
-import { state as legacyState } from "../../core/state.js";
+import { state as legacyState } from "../../core/state";
 
 export const BracketView: React.FC = () => {
   const { state, dispatch } = useTournament();

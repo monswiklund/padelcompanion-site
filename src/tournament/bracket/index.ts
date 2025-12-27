@@ -9,7 +9,7 @@ export {
   seedTeams,
   getTeamById,
   getRoundName,
-} from "./bracketGeneration.js";
+} from "./bracketGeneration";
 
 // Match Progression
 export {
@@ -18,7 +18,7 @@ export {
   getBracketRounds,
   isBracketComplete,
   getFinalStandings,
-} from "./matchProgression.js";
+} from "./matchProgression";
 
 // Dual Bracket
 export {
@@ -26,4 +26,4 @@ export {
   initBracketTournament,
   initDualBracketTournament,
   clearBracket,
-} from "./dualBracket.js";
+} from "./dualBracket";

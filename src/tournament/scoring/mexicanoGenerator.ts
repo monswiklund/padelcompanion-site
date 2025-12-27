@@ -3,32 +3,61 @@
  * Dynamic pairing for Mexicano format with preferred partners.
  */
 
-import { state } from "../core/state.js";
-import { shuffleArray } from "../../shared/utils.js";
+import { state } from "../core/state";
+import { shuffleArray } from "../../shared/utils";
 
-/**
- * Get the preferred partner ID for a player.
- * @param {number} pid - Player ID
- * @returns {number|null} Partner ID or null
- */
-function getPreferredPartnerId(pid) {
+interface Player {
+  id: string | number;
+  name: string;
+  points?: number;
+  byeCount?: number;
+  played?: number;
+  playedWith?: (string | number)[];
+  lockedCourt?: number;
+}
+
+interface PreferredPartner {
+  player1Id: string | number;
+  player2Id: string | number;
+}
+
+interface Entity {
+  type: "single" | "pair";
+  players: Player[];
+}
+
+interface Match {
+  court: number;
+  team1: Player[];
+  team2: Player[];
+}
+
+interface TeamObj {
+  players: Player[];
+  points?: number;
+}
+
+interface Round {
+  number: number;
+  matches: Match[];
+  byes: Player[];
+}
+
+function getPreferredPartnerId(pid: string | number): string | number | null {
   if (!state.preferredPartners) return null;
   const pair = state.preferredPartners.find(
-    (pp) => pp.player1Id === pid || pp.player2Id === pid
+    (pp: PreferredPartner) => pp.player1Id === pid || pp.player2Id === pid
   );
   if (!pair) return null;
   return pair.player1Id === pid ? pair.player2Id : pair.player1Id;
 }
 
-/**
- * Build available entities (singles and pairs) from players.
- * @param {Array} players - Player list
- * @param {Set} excludeIds - IDs to exclude
- * @returns {Array} Array of entities
- */
-function buildEntities(players, excludeIds = new Set()) {
-  const entities = [];
-  const processedIds = new Set();
+function buildEntities(
+  players: Player[],
+  excludeIds: Set<string | number> = new Set()
+): Entity[] {
+  const entities: Entity[] = [];
+  const processedIds = new Set<string | number>();
 
   players.forEach((p) => {
     if (processedIds.has(p.id)) return;
@@ -56,23 +85,19 @@ function buildEntities(players, excludeIds = new Set()) {
   return entities;
 }
 
-/**
- * Assign courts to matches, respecting locked courts.
- * @param {Array} teamsWithLocks - Matches with court locks
- * @param {Array} normalTeams - Matches without locks
- * @param {number} courts - Number of courts
- * @returns {{ matches: Array, pInMatch: Set }}
- */
-function assignCourts(teamsWithLocks, normalTeams, courts) {
-  const matches = [];
-  const pInMatch = new Set();
-  const assignedCourts = new Set();
+function assignCourts(
+  teamsWithLocks: { t1: TeamObj; t2: TeamObj; lockedCourt: number }[],
+  normalTeams: { t1: TeamObj; t2: TeamObj }[],
+  courts: number
+): { matches: Match[]; pInMatch: Set<string | number> } {
+  const matches: Match[] = [];
+  const pInMatch = new Set<string | number>();
+  const assignedCourts = new Set<number>();
 
-  // Assign locked matches first
   teamsWithLocks.forEach((m) => {
     if (matches.length >= courts) return;
 
-    let court = m.lockedCourt;
+    let court: number | null = m.lockedCourt;
     if (assignedCourts.has(court) || court > courts) court = null;
 
     if (court) {
@@ -89,7 +114,6 @@ function assignCourts(teamsWithLocks, normalTeams, courts) {
     }
   });
 
-  // Assign normal matches
   normalTeams.forEach((m) => {
     if (matches.length >= courts) return;
 
@@ -113,23 +137,16 @@ function assignCourts(teamsWithLocks, normalTeams, courts) {
   return { matches, pInMatch };
 }
 
-/**
- * Generate Mexicano first round.
- * Dynamic pairing with random initial teams.
- * @returns {Array} Array with single round object
- */
-export function generateMexicanoFirstRound() {
+export function generateMexicanoFirstRound(): Round[] {
   const courts = state.courts;
   const playersNeeded = courts * 4;
 
   const availableEntities = buildEntities(state.players);
-  const byes = [];
+  const byes: Player[] = [];
 
-  // Shuffle for first round
   shuffleArray(availableEntities);
 
-  // Select entities
-  const selectedEntities = [];
+  const selectedEntities: Entity[] = [];
   let currentCount = 0;
 
   for (const entity of availableEntities) {
@@ -141,9 +158,8 @@ export function generateMexicanoFirstRound() {
     }
   }
 
-  // Form Teams
-  const teams = [];
-  const singles = [];
+  const teams: Player[][] = [];
+  const singles: Player[] = [];
 
   selectedEntities.forEach((e) => {
     if (e.type === "pair") {
@@ -153,18 +169,16 @@ export function generateMexicanoFirstRound() {
     }
   });
 
-  // Pair singles randomly
   shuffleArray(singles);
   for (let i = 0; i < singles.length - 1; i += 2) {
     teams.push([singles[i], singles[i + 1]]);
   }
 
-  // Match Teams
   shuffleArray(teams);
 
-  // Separate locked and normal matches
-  const teamsWithLocks = [];
-  const normalTeams = [];
+  const teamsWithLocks: { t1: TeamObj; t2: TeamObj; lockedCourt: number }[] =
+    [];
+  const normalTeams: { t1: TeamObj; t2: TeamObj }[] = [];
 
   for (let i = 0; i < teams.length - 1; i += 2) {
     const t1 = teams[i];
@@ -175,7 +189,7 @@ export function generateMexicanoFirstRound() {
       teamsWithLocks.push({
         t1: { players: t1 },
         t2: { players: t2 },
-        lockedCourt: lock.lockedCourt,
+        lockedCourt: lock.lockedCourt!,
       });
     } else {
       normalTeams.push({ t1: { players: t1 }, t2: { players: t2 } });
@@ -184,7 +198,6 @@ export function generateMexicanoFirstRound() {
 
   const { matches } = assignCourts(teamsWithLocks, normalTeams, courts);
 
-  // Handle odd team count
   if (teams.length % 2 !== 0 && matches.length < teams.length / 2) {
     byes.push(...teams[teams.length - 1]);
   }
@@ -192,23 +205,16 @@ export function generateMexicanoFirstRound() {
   return [{ number: 1, matches, byes }];
 }
 
-/**
- * Generate Mexicano next round based on standings.
- * @param {Array} leaderboard - Current standings
- * @returns {Object} Round object
- */
-export function generateMexicanoNextRound(leaderboard) {
+export function generateMexicanoNextRound(leaderboard: Player[]): Round {
   const courts = state.courts;
   const playersNeeded = courts * 4;
-  const manualByIds = new Set(state.manualByes);
+  const manualByIds = new Set<string | number>(state.manualByes);
   const allPlayers = [...leaderboard];
 
-  // Build entities
   const availableEntities = buildEntities(allPlayers, manualByIds);
 
-  // Sort by priority (bye count, then played count)
   availableEntities.sort((a, b) => {
-    const getMetrics = (e) => {
+    const getMetrics = (e: Entity) => {
       const totBye = e.players.reduce((sum, p) => sum + (p.byeCount || 0), 0);
       const totPlay = e.players.reduce((sum, p) => sum + (p.played || 0), 0);
       return {
@@ -223,9 +229,8 @@ export function generateMexicanoNextRound(leaderboard) {
     return mA.play - mB.play;
   });
 
-  // Select entities
-  const selectedPlayers = [];
-  const selectedEntities = [];
+  const selectedPlayers: Player[] = [];
+  const selectedEntities: Entity[] = [];
   let currentCount = 0;
 
   for (const entity of availableEntities) {
@@ -236,13 +241,11 @@ export function generateMexicanoNextRound(leaderboard) {
     }
   }
 
-  // Byes
   const selectedIds = new Set(selectedPlayers.map((p) => p.id));
   const byes = allPlayers.filter((p) => !selectedIds.has(p.id));
 
-  // Form teams
-  const teams = [];
-  const singles = [];
+  const teams: Player[][] = [];
+  const singles: Player[] = [];
 
   selectedEntities.forEach((e) => {
     if (e.type === "pair") {
@@ -252,11 +255,9 @@ export function generateMexicanoNextRound(leaderboard) {
     }
   });
 
-  // Pair singles using strategy
-  singles.sort((a, b) => b.points - a.points);
+  singles.sort((a, b) => (b.points || 0) - (a.points || 0));
   pairSinglesWithStrategy(singles, teams, leaderboard);
 
-  // Handle remaining singles
   const remainingSingles = singles.filter(
     (s) => !teams.some((t) => t.includes(s))
   );
@@ -264,17 +265,16 @@ export function generateMexicanoNextRound(leaderboard) {
     teams.push([remainingSingles[i], remainingSingles[i + 1]]);
   }
 
-  // Calculate team strength and match
-  const teamObjs = teams.map((t) => ({
+  const teamObjs: TeamObj[] = teams.map((t) => ({
     players: t,
-    points: t.reduce((sum, p) => sum + p.points, 0),
+    points: t.reduce((sum, p) => sum + (p.points || 0), 0),
   }));
 
-  teamObjs.sort((a, b) => b.points - a.points);
+  teamObjs.sort((a, b) => (b.points || 0) - (a.points || 0));
 
-  // Separate locked and normal matches
-  const teamsWithLocks = [];
-  const normalTeams = [];
+  const teamsWithLocks: { t1: TeamObj; t2: TeamObj; lockedCourt: number }[] =
+    [];
+  const normalTeams: { t1: TeamObj; t2: TeamObj }[] = [];
 
   for (let j = 0; j < teamObjs.length - 1; j += 2) {
     const t1 = teamObjs[j];
@@ -282,7 +282,7 @@ export function generateMexicanoNextRound(leaderboard) {
 
     const lock = [...t1.players, ...t2.players].find((p) => p.lockedCourt);
     if (lock) {
-      teamsWithLocks.push({ t1, t2, lockedCourt: lock.lockedCourt });
+      teamsWithLocks.push({ t1, t2, lockedCourt: lock.lockedCourt! });
     } else {
       normalTeams.push({ t1, t2 });
     }
@@ -294,7 +294,6 @@ export function generateMexicanoNextRound(leaderboard) {
     courts
   );
 
-  // Update byes
   teamObjs.forEach((t) => {
     if (!t.players.some((p) => pInMatch.has(p.id))) {
       t.players.forEach((p) => byes.push(p));
@@ -304,13 +303,17 @@ export function generateMexicanoNextRound(leaderboard) {
   return { number: state.schedule.length + 1, matches, byes };
 }
 
-/**
- * Pair singles using the configured strategy.
- * @param {Array} singles - Sorted singles
- * @param {Array} teams - Teams array (mutated)
- * @param {Array} leaderboard - Current leaderboard
- */
-function pairSinglesWithStrategy(singles, teams, leaderboard) {
+interface Pairing {
+  name: string;
+  team1: Player[];
+  team2: Player[];
+}
+
+function pairSinglesWithStrategy(
+  singles: Player[],
+  teams: Player[][],
+  leaderboard: Player[]
+): void {
   let i = 0;
   for (; i < singles.length - 3; i += 4) {
     const p1 = singles[i],
@@ -318,7 +321,7 @@ function pairSinglesWithStrategy(singles, teams, leaderboard) {
       p3 = singles[i + 2],
       p4 = singles[i + 3];
 
-    const pairings = [
+    const pairings: Pairing[] = [
       { name: "oneThree", team1: [p1, p3], team2: [p2, p4] },
       { name: "oneTwo", team1: [p1, p2], team2: [p3, p4] },
       { name: "oneFour", team1: [p1, p4], team2: [p2, p3] },
@@ -329,24 +332,17 @@ function pairSinglesWithStrategy(singles, teams, leaderboard) {
     teams.push(selectedPairing.team2);
   }
 
-  // Handle remaining 2 singles
   if (i < singles.length - 1) {
     teams.push([singles[i], singles[i + 1]]);
   }
 }
 
-/**
- * Select the best pairing based on strategy and constraints.
- * @param {Array} pairings - Possible pairings
- * @param {Array} leaderboard - Current leaderboard
- * @returns {Object} Selected pairing
- */
-function selectPairing(pairings, leaderboard) {
+function selectPairing(pairings: Pairing[], leaderboard: Player[]): Pairing {
   const patternHard =
     state.pairingStrategy !== "optimal" && state.strictStrategy;
   const maxRep = state.maxRepeats !== undefined ? state.maxRepeats : 99;
 
-  const getRepeatCount = (pid1, pid2) => {
+  const getRepeatCount = (pid1: string | number, pid2: string | number) => {
     const player = leaderboard.find((p) => p.id === pid1);
     if (!player?.playedWith) return 0;
     return player.playedWith.filter((id) => id === pid2).length;
@@ -357,18 +353,20 @@ function selectPairing(pairings, leaderboard) {
       getRepeatCount(pairing.team1[0].id, pairing.team1[1].id) +
       getRepeatCount(pairing.team2[0].id, pairing.team2[1].id);
 
-    const team1Rank = pairing.team1[0].points + pairing.team1[1].points;
-    const team2Rank = pairing.team2[0].points + pairing.team2[1].points;
+    const team1Rank =
+      (pairing.team1[0].points || 0) + (pairing.team1[1].points || 0);
+    const team2Rank =
+      (pairing.team2[0].points || 0) + (pairing.team2[1].points || 0);
     const rankingImbalance = Math.abs(team1Rank - team2Rank);
 
     const violatesRepeats = maxRep < 99 && repeatPenalty > maxRep;
     const isPreferred = pairing.name === state.pairingStrategy;
 
     const tieBreaker =
-      pairing.team1[0].id * 1000000 +
-      pairing.team1[1].id * 10000 +
-      pairing.team2[0].id * 100 +
-      pairing.team2[1].id;
+      Number(pairing.team1[0].id) * 1000000 +
+      Number(pairing.team1[1].id) * 10000 +
+      Number(pairing.team2[0].id) * 100 +
+      Number(pairing.team2[1].id);
 
     return {
       ...pairing,

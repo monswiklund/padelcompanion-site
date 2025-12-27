@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { StorageService } from "@/shared/storage.js";
-import { showToast } from "@/shared/utils.js";
+import { StorageService } from "@/shared/storage";
+import { showToast } from "@/shared/utils";
 
 interface BracketScoreModalProps {
   match: any;

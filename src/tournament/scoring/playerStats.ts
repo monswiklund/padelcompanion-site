@@ -3,26 +3,33 @@
  * Handles updating and subtracting player statistics.
  */
 
-import { state } from "../core/state.js";
+import { state } from "../core/state";
+
+interface LeaderboardPlayer {
+  id: string | number;
+  name: string;
+  points: number;
+  played: number;
+  pointsLost: number;
+  wins: number;
+  losses: number;
+  playedWith?: (string | number)[];
+}
 
 /**
  * Update player stats after a match.
- * @param {number} playerId - Player ID
- * @param {number} pointsFor - Points scored
- * @param {number} pointsAgainst - Points conceded
- * @param {boolean} isWin - Whether player won
- * @param {boolean} isDraw - Whether match was a draw
- * @param {number|null} partnerId - Partner's ID (for tracking)
  */
 export function updatePlayerStats(
-  playerId,
-  pointsFor,
-  pointsAgainst,
-  isWin,
-  isDraw,
-  partnerId = null
-) {
-  const player = state.leaderboard.find((p) => p.id === playerId);
+  playerId: string | number,
+  pointsFor: number,
+  pointsAgainst: number,
+  isWin: boolean,
+  isDraw: boolean,
+  partnerId: string | number | null = null
+): void {
+  const player = state.leaderboard.find(
+    (p: LeaderboardPlayer) => p.id === playerId
+  );
   if (player) {
     player.points += pointsFor;
     player.played += 1;
@@ -31,7 +38,6 @@ export function updatePlayerStats(
     if (isWin) player.wins = (player.wins || 0) + 1;
     else if (!isDraw) player.losses = (player.losses || 0) + 1;
 
-    // Track partner for optimal pairing
     if (partnerId && !player.playedWith) {
       player.playedWith = [];
     }
@@ -43,20 +49,17 @@ export function updatePlayerStats(
 
 /**
  * Subtract player stats (for editing rounds).
- * @param {number} playerId - Player ID
- * @param {number} pointsFor - Points scored
- * @param {number} pointsAgainst - Points conceded
- * @param {boolean} isWin - Whether player won
- * @param {boolean} isDraw - Whether match was a draw
  */
 export function subtractPlayerStats(
-  playerId,
-  pointsFor,
-  pointsAgainst,
-  isWin,
-  isDraw
-) {
-  const player = state.leaderboard.find((p) => p.id === playerId);
+  playerId: string | number,
+  pointsFor: number,
+  pointsAgainst: number,
+  isWin: boolean,
+  isDraw: boolean
+): void {
+  const player = state.leaderboard.find(
+    (p: LeaderboardPlayer) => p.id === playerId
+  );
   if (player) {
     player.points -= pointsFor;
     player.played -= 1;

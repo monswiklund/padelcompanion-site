@@ -7,9 +7,9 @@ import {
   initBracketTournament,
   initDualBracketTournament,
 } from "../../bracket/index.js";
-import { showToast, createId } from "@/shared/utils.js";
+import { showToast, createId } from "@/shared/utils";
 import { useTournament } from "@/context/TournamentContext";
-import { state as legacyState } from "../../core/state.js";
+import { state as legacyState } from "../../core/state";
 
 interface Team {
   name: string;

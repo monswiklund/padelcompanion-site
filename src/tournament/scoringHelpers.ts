@@ -3,17 +3,49 @@
  * Reusable functions for tournament scheduling logic.
  */
 
-import { state } from "./core/state.js";
+import { state } from "./core/state";
+
+interface Player {
+  id: string | number;
+  name: string;
+  byeCount?: number;
+  played?: number;
+  points?: number;
+  playedWith?: (string | number)[];
+}
+
+interface PreferredPartner {
+  player1Id: string | number;
+  player2Id: string | number;
+}
+
+interface Entity {
+  type: "single" | "pair";
+  players: Player[];
+}
+
+interface MatchCandidate {
+  team1: Player[];
+  team2: Player[];
+  lockedCourt?: number;
+}
+
+interface Match {
+  court: number;
+  team1: Player[];
+  team2: Player[];
+}
 
 /**
  * Get the preferred partner ID for a player.
- * @param {number} playerId - The player ID to find partner for
- * @returns {number|null} Partner ID or null if no preferred partner
  */
-export function getPreferredPartnerId(playerId) {
+export function getPreferredPartnerId(
+  playerId: string | number
+): string | number | null {
   if (!state.preferredPartners) return null;
   const pair = state.preferredPartners.find(
-    (pp) => pp.player1Id === playerId || pp.player2Id === playerId
+    (pp: PreferredPartner) =>
+      pp.player1Id === playerId || pp.player2Id === playerId
   );
   if (!pair) return null;
   return pair.player1Id === playerId ? pair.player2Id : pair.player1Id;
@@ -21,12 +53,12 @@ export function getPreferredPartnerId(playerId) {
 
 /**
  * Get repeat count for how many times two players have partnered.
- * @param {number} pid1 - First player ID
- * @param {number} pid2 - Second player ID
- * @param {Array} leaderboard - Current leaderboard with playedWith data
- * @returns {number} Number of times they've played together
  */
-export function getRepeatCount(pid1, pid2, leaderboard) {
+export function getRepeatCount(
+  pid1: string | number,
+  pid2: string | number,
+  leaderboard: Player[]
+): number {
   const player = leaderboard.find((p) => p.id === pid1);
   if (!player?.playedWith) return 0;
   return player.playedWith.filter((id) => id === pid2).length;
@@ -34,13 +66,13 @@ export function getRepeatCount(pid1, pid2, leaderboard) {
 
 /**
  * Build available entities from players (singles and pairs).
- * @param {Array} players - Array of player objects
- * @param {Set} excludeIds - Set of IDs to exclude (e.g., manual byes)
- * @returns {Array} Array of entity objects { type: 'single'|'pair', players: [] }
  */
-export function buildAvailableEntities(players, excludeIds = new Set()) {
-  const entities = [];
-  const processedIds = new Set();
+export function buildAvailableEntities(
+  players: Player[],
+  excludeIds: Set<string | number> = new Set()
+): Entity[] {
+  const entities: Entity[] = [];
+  const processedIds = new Set<string | number>();
 
   players.forEach((p) => {
     if (processedIds.has(p.id)) return;
@@ -51,10 +83,8 @@ export function buildAvailableEntities(players, excludeIds = new Set()) {
       const partner = players.find((pl) => pl.id === partnerId);
       if (partner) {
         if (excludeIds.has(partner.id)) {
-          // Partner excluded, treat player as single
           entities.push({ type: "single", players: [p] });
         } else {
-          // Valid pair
           entities.push({ type: "pair", players: [p, partner] });
           processedIds.add(partner.id);
         }
@@ -72,12 +102,10 @@ export function buildAvailableEntities(players, excludeIds = new Set()) {
 
 /**
  * Sort entities by priority for selection (bye count, then played count).
- * @param {Array} entities - Array of entity objects
- * @returns {Array} Sorted entities (mutates in place for efficiency)
  */
-export function sortEntitiesByPriority(entities) {
+export function sortEntitiesByPriority(entities: Entity[]): Entity[] {
   return entities.sort((a, b) => {
-    const getMetrics = (e) => {
+    const getMetrics = (e: Entity) => {
       const totBye = e.players.reduce((sum, p) => sum + (p.byeCount || 0), 0);
       const totPlay = e.players.reduce((sum, p) => sum + (p.played || 0), 0);
       return {
@@ -88,22 +116,20 @@ export function sortEntitiesByPriority(entities) {
     const mA = getMetrics(a);
     const mB = getMetrics(b);
 
-    // Higher bye count = more priority (played less)
     if (Math.abs(mB.bye - mA.bye) > 0.1) return mB.bye - mA.bye;
-    // Less played = more priority
     return mA.play - mB.play;
   });
 }
 
 /**
  * Select entities to fill a target count of players.
- * @param {Array} entities - Sorted entities
- * @param {number} targetCount - Number of players needed
- * @returns {{ selected: Array, remaining: Array }} Selected and remaining entities
  */
-export function selectEntitiesToFill(entities, targetCount) {
-  const selected = [];
-  const remaining = [];
+export function selectEntitiesToFill(
+  entities: Entity[],
+  targetCount: number
+): { selected: Entity[]; remaining: Entity[] } {
+  const selected: Entity[] = [];
+  const remaining: Entity[] = [];
   let currentCount = 0;
 
   for (const entity of entities) {
@@ -120,12 +146,13 @@ export function selectEntitiesToFill(entities, targetCount) {
 
 /**
  * Form teams from selected entities (pairs stay as teams, singles get paired).
- * @param {Array} entities - Selected entities
- * @returns {{ teams: Array, leftover: Array }} Array of teams and any unpaired players
  */
-export function formTeamsFromEntities(entities) {
-  const teams = [];
-  const singles = [];
+export function formTeamsFromEntities(entities: Entity[]): {
+  teams: Player[][];
+  singles: Player[];
+} {
+  const teams: Player[][] = [];
+  const singles: Player[] = [];
 
   entities.forEach((e) => {
     if (e.type === "pair") {
@@ -135,34 +162,29 @@ export function formTeamsFromEntities(entities) {
     }
   });
 
-  // Sort singles by points for pairing
-  singles.sort((a, b) => b.points - a.points);
+  singles.sort((a, b) => (b.points || 0) - (a.points || 0));
 
-  // Pair singles (handled by caller for strategy-based pairing)
   return { teams, singles };
 }
 
 /**
  * Assign court numbers to matches, respecting locked courts.
- * @param {Array} matchCandidates - Array of { team1, team2, lockedCourt? }
- * @param {number} maxCourts - Maximum number of courts available
- * @returns {Array} Array of matches with court assignments
  */
-export function assignCourtsToMatches(matchCandidates, maxCourts) {
-  const matches = [];
-  const assignedCourts = new Set();
+export function assignCourtsToMatches(
+  matchCandidates: MatchCandidate[],
+  maxCourts: number
+): Match[] {
+  const matches: Match[] = [];
+  const assignedCourts = new Set<number>();
 
-  // Separate locked and normal matches
   const locked = matchCandidates.filter((m) => m.lockedCourt);
   const normal = matchCandidates.filter((m) => !m.lockedCourt);
 
-  // Assign locked matches first
   for (const match of locked) {
     if (matches.length >= maxCourts) break;
 
-    let court = match.lockedCourt;
+    const court = match.lockedCourt!;
     if (assignedCourts.has(court) || court > maxCourts) {
-      // Lock failed, treat as normal
       normal.push(match);
       continue;
     }
@@ -175,7 +197,6 @@ export function assignCourtsToMatches(matchCandidates, maxCourts) {
     });
   }
 
-  // Assign normal matches to remaining courts
   for (const match of normal) {
     if (matches.length >= maxCourts) break;
 
@@ -192,7 +213,6 @@ export function assignCourtsToMatches(matchCandidates, maxCourts) {
     }
   }
 
-  // Sort by court number
   matches.sort((a, b) => a.court - b.court);
 
   return matches;
