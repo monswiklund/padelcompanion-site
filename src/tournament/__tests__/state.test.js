@@ -68,7 +68,7 @@ describe("State Management", () => {
   it("should fail gracefully if localStorage is corrupt", () => {
     localStorage.getItem.mockReturnValue("{ invalid json");
 
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const success = loadState();
 
     expect(success).toBe(false);

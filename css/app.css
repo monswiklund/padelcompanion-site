@@ -2,11 +2,11 @@
 
 @import "./tokens.css";
 @import "./base.css";
-@import "./components.css";
+@import "./components/index.css";
 
 /* pages */
-@import "./pages-home.css";
-@import "./pages-tournament.css";
+@import "./home/index.css";
+@import "./tournament/index.css";
 @import "./pages-support.css";
 @import "./pages-legal.css";
 

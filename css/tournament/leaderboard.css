@@ -1,0 +1,152 @@
+@layer pages {
+  /* ===== Leaderboard ===== */
+  .tournament-page .leaderboard-section {
+    width: 95%;
+    max-width: 600px;
+    margin: 0 auto var(--space-3xl);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-base);
+  }
+
+  .tournament-page .leaderboard-section:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.2);
+  }
+
+  .tournament-page .leaderboard-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-md);
+  }
+  .tournament-page .leaderboard-controls .btn,
+  #togglePositionBtn,
+  #toggleVisibilityBtn {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 80px !important;
+    max-width: 80px !important;
+    min-width: 80px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 12px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 32px !important;
+    text-align: center;
+    position: relative;
+  }
+  .tournament-page .controls-left {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .tournament-page .controls-right {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  /* Constrain custom-select in leaderboard controls */
+  .tournament-page .leaderboard-controls .custom-select-wrapper {
+    width: auto;
+    min-width: auto;
+  }
+  .tournament-page .leaderboard-controls .btn.toggle-on,
+  #togglePositionBtn.toggle-on,
+  #toggleVisibilityBtn.toggle-on {
+    background-color: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
+  }
+
+  /* Active/Hover/Focus states - fixed size, no outline */
+  .tournament-page .leaderboard-controls .btn:active,
+  .tournament-page .leaderboard-controls .btn:hover,
+  .tournament-page .leaderboard-controls .btn:focus,
+  .tournament-page .leaderboard-controls .btn:focus-visible,
+  #togglePositionBtn:active,
+  #togglePositionBtn:hover,
+  #togglePositionBtn:focus,
+  #togglePositionBtn:focus-visible,
+  #toggleVisibilityBtn:active,
+  #toggleVisibilityBtn:hover,
+  #toggleVisibilityBtn:focus,
+  #toggleVisibilityBtn:focus-visible {
+    width: 80px !important;
+    max-width: 80px !important;
+    min-width: 80px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 12px !important;
+    transform: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  #togglePositionBtn.toggle-on:active,
+  #togglePositionBtn.toggle-on:hover,
+  #toggleVisibilityBtn.toggle-on:active,
+  #toggleVisibilityBtn.toggle-on:hover {
+    background-color: var(--accent-light) !important;
+    color: white !important;
+  }
+
+  #togglePositionBtn.toggle-off:active,
+  #togglePositionBtn.toggle-off:hover,
+  #toggleVisibilityBtn.toggle-off:active,
+  #toggleVisibilityBtn.toggle-off:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .tournament-page .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tournament-page .leaderboard-table th,
+  .tournament-page .leaderboard-table td {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .tournament-page .leaderboard-table th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .tournament-page .leaderboard-table tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .tournament-page .rank-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 0.8rem;
+  }
+  .tournament-page .rank-up {
+    color: var(--success);
+  }
+  .tournament-page .rank-down {
+    color: var(--error);
+  }
+
+}

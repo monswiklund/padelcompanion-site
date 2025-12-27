@@ -27,7 +27,8 @@ import {
   autoFillScore,
 } from "../ui/index.js";
 import { showFinalStandings } from "../core/modals.js";
-import { state } from "../core/state.js";
+import { state, saveState } from "../core/state.js";
+import { updateCustomCourtName } from "../ui/courts.js";
 
 /**
  * Initialize event delegation for dynamically rendered content.
@@ -137,6 +138,17 @@ export function initEventDelegation(
       const value = target.value;
       autoFillScore(roundIndex, matchIndex, team, value);
     }
+
+    // Handle Player Court Lock
+    if (action === "update-court-lock") {
+      const playerId = parseInt(target.dataset.playerId);
+      const value = target.value;
+      const player = state.players.find((p) => p.id === playerId);
+      if (player) {
+        player.lockedCourt = value ? parseInt(value) : null;
+        saveState();
+      }
+    }
   });
 
   // Global input listener to limit score inputs to 2 digits
@@ -160,5 +172,14 @@ export function initEventDelegation(
     const value = target.value;
 
     autoFillScore(roundIndex, matchIndex, team, value);
+  });
+
+  // Handle Custom Court Names
+  addListener(container, "input", (e) => {
+    const target = e.target.closest('[data-action="update-custom-court-name"]');
+    if (target) {
+      const index = parseInt(target.dataset.index);
+      updateCustomCourtName(index, target.value);
+    }
   });
 }

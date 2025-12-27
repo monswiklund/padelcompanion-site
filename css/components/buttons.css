@@ -1,0 +1,223 @@
+@layer components {
+  /* ===== Buttons ===== */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    min-height: var(--control-height);
+    padding: var(--control-padding);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Ripple Effect */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    background-color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .btn:disabled,
+  .btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: var(--shadow-md), 0 0 30px var(--accent-glow);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg), 0 0 50px var(--accent-glow);
+    filter: brightness(1.1);
+  }
+
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-secondary);
+  }
+
+  .btn-dashed {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px dashed var(--primary-color, #3b82f6);
+    color: var(--primary-color, #3b82f6);
+  }
+
+  .btn-dashed:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: var(--primary-hover, #2563eb);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 8px 16px;
+    box-shadow: none;
+  }
+
+  .btn-ghost:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: #f87171;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .btn-success {
+    background: #22c55e;
+    color: white;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+  }
+
+  .btn-success:hover {
+    background: #16a34a;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: black; /* Better contrast on orange */
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+    border: none;
+  }
+
+  .btn-warning:hover {
+    background: #d97706;
+    color: white;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-sm {
+    min-height: var(--control-height-sm);
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    border-radius: var(--radius-full);
+  }
+
+  .btn-lg {
+    width: 100%;
+    padding: var(--space-md) var(--space-xl);
+    font-size: 1.1rem;
+  }
+
+  .btn-full {
+    width: 100%;
+  }
+
+  /* Light theme button adjustments */
+  [data-theme="light"] .btn-secondary {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  [data-theme="light"] .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+
+  [data-theme="light"] .btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  [data-theme="light"] .btn-danger:hover {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: #dc2626;
+  }
+
+  /* Button Active States - ensure scale wins over hover transforms */
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+  .btn-outline:active {
+    transform: scale(0.98);
+  }
+  .btn-warning:active {
+    transform: scale(0.98);
+  }
+  .btn-dashed:active {
+    transform: scale(0.98);
+  }
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+  .btn-danger:active {
+    transform: scale(0.98);
+  }
+  .btn-success:active {
+    transform: scale(0.98);
+  }
+
+}

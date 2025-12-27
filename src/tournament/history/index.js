@@ -262,10 +262,16 @@ export function duplicateTournament(id) {
  * Download tournament as CSV.
  * @param {string} id - Tournament ID
  */
+import { exportTournamentData } from "../ui/setup/exportShare.js";
+
+/**
+ * Download tournament as CSV.
+ * @param {string} id - Tournament ID
+ */
 export function downloadHistoryItem(id) {
   const item = getHistoryItem(id);
-  if (item && item.data && window.exportTournamentData) {
-    window.exportTournamentData(item.data);
+  if (item && item.data) {
+    exportTournamentData(item.data);
   }
 }
 

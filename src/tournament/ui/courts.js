@@ -106,7 +106,9 @@ export function renderCustomCourtNames() {
                /"/g,
                "&quot;"
              )}"
-             oninput="window.updateCustomCourtName(${i}, this.value)"
+             oninput=""
+             data-action="update-custom-court-name"
+             data-index="${i}"
              placeholder="Court ${i + 1}">
     </div>
   `

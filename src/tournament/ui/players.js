@@ -51,7 +51,8 @@ export function renderPlayers() {
       
       <select 
         class="court-lock-select form-select btn-sm" 
-        onchange="window.updatePlayerCourtLock(${player.id}, this.value)"
+        data-action="update-court-lock"
+        data-player-id="${player.id}"
         onclick="event.stopPropagation()"
         title="Lock to specific court"
       >
@@ -64,17 +65,6 @@ export function renderPlayers() {
   `;
     })
     .join("");
-
-  // Re-attach global handler if not exists
-  if (!window.updatePlayerCourtLock) {
-    window.updatePlayerCourtLock = (id, value) => {
-      const player = state.players.find((p) => p.id === id);
-      if (player) {
-        player.lockedCourt = value ? parseInt(value) : null;
-        saveState();
-      }
-    };
-  }
 
   els.playerCount.textContent = `(${state.players.length})`;
   els.generateBtn.disabled = state.players.length < 4;

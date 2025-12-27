@@ -1,11 +1,7 @@
-import { injectLayout } from "../src/shared/layout.js";
-import {
-  initTheme,
-  toggleTheme,
-  updateThemeIcon,
-} from "../src/shared/theme.js";
+import { injectLayout } from "../shared/layout.js";
+import { initTheme, toggleTheme, updateThemeIcon } from "../shared/theme.js";
 
-console.log('Padel Companion Site: Main script loaded');
+console.log("Padel Companion Site: Main script loaded");
 
 // Determine active page
 const path = window.location.pathname;
@@ -132,3 +128,87 @@ window.switchMockupTab = (tab) => {
     blueScore.textContent = POINTS[blueIdx];
   };
 })();
+
+// ===== Cookie Banner Logic =====
+function initCookieBanner() {
+  const cookieBanner = document.getElementById("cookieBanner");
+  const acceptBtn = document.getElementById("acceptCookies");
+
+  if (cookieBanner && !localStorage.getItem("padelcompanion-cookies")) {
+    setTimeout(() => {
+      cookieBanner.classList.add("show");
+    }, 1000);
+  }
+
+  if (acceptBtn) {
+    acceptBtn.addEventListener("click", () => {
+      localStorage.setItem("padelcompanion-cookies", "accepted");
+      cookieBanner.classList.remove("show");
+    });
+  }
+}
+
+// ===== Beta Form Logic =====
+function initBetaForm() {
+  const betaForm = document.getElementById("betaForm");
+  if (!betaForm) return;
+
+  const removeError = () => {
+    const existingError = betaForm.parentElement.querySelector(".form-error");
+    if (existingError) existingError.remove();
+  };
+
+  const showError = (message) => {
+    removeError();
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "form-error";
+    errorDiv.textContent = message;
+    betaForm.insertAdjacentElement("afterend", errorDiv);
+    setTimeout(removeError, 4000);
+  };
+
+  betaForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    removeError();
+
+    const email = document.getElementById("betaEmail").value.trim();
+    const platform = document.getElementById("betaPlatform").value;
+
+    if (!email) {
+      showError("Please enter your email address");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError("Please enter a valid email address");
+      return;
+    }
+
+    if (!platform) {
+      showError("Please select a platform (iOS or Android)");
+      return;
+    }
+
+    const subject = encodeURIComponent("Beta Testing Signup");
+    const body = encodeURIComponent(
+      `Hi Team,\n\nI'm excited to join the Padel Companion beta for ${platform}!\n\nMy email is: ${email}\n\nLooking forward to testing it out!`
+    );
+
+    window.location.href = `mailto:wiklund.labs@gmail.com?subject=${subject}&body=${body}`;
+
+    const btn = betaForm.querySelector("button");
+    const originalText = btn.textContent;
+    btn.textContent = "Opening Email...";
+    setTimeout(() => {
+      btn.textContent = originalText;
+      betaForm.reset();
+    }, 2000);
+  });
+}
+
+// Initialize extracted modules
+document.addEventListener("DOMContentLoaded", () => {
+  initCookieBanner();
+  initBetaForm();
+});
