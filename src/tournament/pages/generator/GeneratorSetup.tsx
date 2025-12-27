@@ -92,41 +92,36 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
 
   const renderPlayerItem = (p: GeneratorPlayer, i: number) => {
     return (
-      <li
-        key={p.id}
-        className="player-item flex justify-between items-center p-2 rounded mb-2 bg-bg-tertiary"
-      >
-        <div className="flex items-center gap-3 flex-1 overflow-hidden">
-          <span className="text-text-muted text-xs w-6">{i + 1}.</span>
-          <span className="font-medium truncate flex-1">{p.name}</span>
+      <li key={p.id} className="player-item">
+        <span className="player-number">{i + 1}.</span>
+        <span className="player-name">{p.name}</span>
 
-          {courts > 1 && (
-            <select
-              className="bg-black/20 text-xs p-1 rounded border border-white/10 outline-none w-20"
-              value={p.lockedCourt || ""}
-              onChange={(e) => {
-                const val = e.target.value ? parseInt(e.target.value) : null;
-                const newPlayers = [...players];
-                newPlayers[i] = { ...newPlayers[i], lockedCourt: val };
-                dispatch({
-                  type: "SET_STATE",
-                  payload: { players: newPlayers },
-                });
-              }}
-              title="Lock to Court"
-            >
-              <option value="">Auto</option>
-              {Array.from({ length: courts }, (_, c) => c + 1).map((c) => (
-                <option key={c} value={c}>
-                  Court {c}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+        {courts > 1 && (
+          <select
+            className="court-lock-select"
+            value={p.lockedCourt || ""}
+            onChange={(e) => {
+              const val = e.target.value ? parseInt(e.target.value) : null;
+              const newPlayers = [...players];
+              newPlayers[i] = { ...newPlayers[i], lockedCourt: val };
+              dispatch({
+                type: "SET_STATE",
+                payload: { players: newPlayers },
+              });
+            }}
+            title="Lock to Court"
+          >
+            <option value="">Auto</option>
+            {Array.from({ length: courts }, (_, c) => c + 1).map((c) => (
+              <option key={c} value={c}>
+                Court {c}
+              </option>
+            ))}
+          </select>
+        )}
 
         <button
-          className="text-text-muted hover:text-red-400 px-2 font-bold ml-2"
+          className="player-remove"
           onClick={() => {
             dispatch({ type: "REMOVE_PLAYER", playerId: p.id });
           }}
@@ -138,12 +133,10 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   };
 
   return (
-    <div className="tournament-setup-view container animate-fade-in py-8">
-      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
-        <h2 className="text-3xl mb-1 text-white">Americano Setup</h2>
-        <p className="text-text-muted">
-          Add players and configure your tournament settings.
-        </p>
+    <div className="tournament-setup-view container animate-fade-in">
+      <div className="page-intro-header">
+        <h2>Americano Setup</h2>
+        <p>Add players and configure your tournament settings.</p>
       </div>
 
       <div className="setup-grid">
@@ -182,11 +175,12 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
               }}
               renderItem={renderPlayerItem}
               hintText={
-                <div className="text-center text-xs text-text-muted mt-2">
-                  {players.length} ready | {courts} courts ({courts * 4}{" "}
-                  playing).
+                <div className="players-hint">
+                  {players.length} ready | {courts} courts ({courts * 4} playing).
                   {players.length % 4 !== 0 && (
-                    <span className="text-orange-400 ml-1">Queue enabled.</span>
+                    <span style={{ color: "var(--warning)", marginLeft: "4px" }}>
+                      Queue enabled.
+                    </span>
                   )}
                 </div>
               }
@@ -237,7 +231,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center pb-12">
+      <div className="tournament-actions" style={{ textAlign: "center" }}>
         <Button
           size="lg"
           disabled={players.length < 4}

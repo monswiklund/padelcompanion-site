@@ -2,7 +2,7 @@ import React from "react";
 import { useTournament } from "@/context/TournamentContext";
 import { GeneratorSetup } from "./GeneratorSetup";
 import TournamentActiveView from "./TournamentActiveView";
-
+import { TournamentNav } from "@/components/tournament/TournamentNav";
 import { HistorySection } from "@/components/tournament/HistorySection";
 
 const GeneratorPage: React.FC = () => {
@@ -10,7 +10,8 @@ const GeneratorPage: React.FC = () => {
   const isGameActive = state.schedule && state.schedule.length > 0;
 
   return (
-    <div className="generator-page-wrapper">
+    <div className="generator-page-wrapper tournament-page">
+      <TournamentNav />
       {isGameActive ? (
         <TournamentActiveView />
       ) : (

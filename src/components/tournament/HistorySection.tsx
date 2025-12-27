@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
 import {
@@ -79,73 +78,70 @@ export const HistorySection: React.FC = () => {
   if (history.length === 0) return null;
 
   return (
-    <section className="history-section mt-12 mb-20 animate-fade-in px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <section className="history-section animate-fade-in" style={{ padding: "0 var(--space-md)" }}>
+      <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-md)" }}>
         <div>
-          <h3 className="text-xl font-bold text-white mb-1">
+          <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", color: "var(--text-primary)", marginBottom: "4px" }}>
             Tournament History
           </h3>
-          <p className="text-text-muted text-sm">
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
             Your past {history.length} tournaments
           </p>
         </div>
 
-        <div className="relative w-full md:w-64">
+        <div style={{ position: "relative", width: "100%", maxWidth: "250px" }}>
           <input
             type="text"
             placeholder="Search history..."
-            className="w-full bg-bg-secondary border border-white/10 rounded-lg px-4 py-2 text-sm outline-none focus:border-blue-500 transition-colors"
+            className="form-input"
+            style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)" }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-white/5 bg-bg-secondary/30">
-        <table className="w-full text-left text-sm whitespace-nowrap">
+      <div className="history-table-wrapper">
+        <table className="history-table">
           <thead>
-            <tr className="bg-white/5 text-text-muted font-medium border-b border-white/5">
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4">Tournament</th>
-              <th className="px-6 py-4">Format</th>
-              <th className="px-6 py-4">Winner</th>
-              <th className="px-6 py-4">Players</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+            <tr>
+              <th>Date</th>
+              <th>Tournament</th>
+              <th>Format</th>
+              <th>Winner</th>
+              <th>Players</th>
+              <th className="text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody>
             {filteredHistory.map((item) => (
-              <tr
-                key={item.id}
-                className="hover:bg-white/5 transition-colors group"
-              >
-                <td className="px-6 py-4">
+              <tr key={item.id}>
+                <td>
                   {new Date(item.savedAt).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4">
-                  <span className="font-semibold text-white">
+                <td>
+                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                     {item.summary.name || "Untitled Tournament"}
                   </span>
                 </td>
-                <td className="px-6 py-4 capitalize text-text-muted">
+                <td style={{ textTransform: "capitalize", color: "var(--text-muted)" }}>
                   {item.summary.format}
                 </td>
-                <td className="px-6 py-4">
-                  <span className="text-blue-400 font-medium">
+                <td>
+                  <span style={{ color: "var(--accent-light)", fontWeight: 500 }}>
                     🏆 {item.summary.winner}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-text-muted">
+                <td style={{ color: "var(--text-muted)" }}>
                   {item.summary.playerCount} players · {item.summary.roundCount}{" "}
                   rounds
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2">
+                <td className="text-right">
+                  <div className="action-buttons desktop-only">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleLoad(item)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       Load
                     </Button>
@@ -161,11 +157,12 @@ export const HistorySection: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(item.id, item.summary.name)}
-                      className="text-red-400 hover:text-red-300"
+                      style={{ color: "var(--error)" }}
                     >
                       ×
                     </Button>
                   </div>
+                  {/* Mobile Actions could be added here if needed, but for now desktop-only class handles hiding */}
                 </td>
               </tr>
             ))}
@@ -173,7 +170,7 @@ export const HistorySection: React.FC = () => {
         </table>
 
         {filteredHistory.length === 0 && (
-          <div className="p-12 text-center text-text-muted">
+          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
             No history found matching "{search}"
           </div>
         )}

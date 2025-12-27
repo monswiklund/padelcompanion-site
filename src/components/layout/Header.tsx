@@ -49,39 +49,13 @@ const Header: React.FC = () => {
             >
               Features
             </a>
-            <div className="nav-dropdown">
-              <span
-                className={`nav-dropdown-trigger ${
-                  location.pathname.startsWith("/tournament") ? "active" : ""
-                }`}
-              >
-                Tournament
-                <span className="dropdown-arrow">▾</span>
-              </span>
-              <div className="nav-dropdown-menu">
-                <Link
-                  to="/tournament/generator"
-                  className="nav-dropdown-item"
-                  onClick={closeNav}
-                >
-                  Generator
-                </Link>
-                <Link
-                  to="/tournament/bracket"
-                  className="nav-dropdown-item"
-                  onClick={closeNav}
-                >
-                  Bracket
-                </Link>
-                <Link
-                  to="/tournament/winners-court"
-                  className="nav-dropdown-item"
-                  onClick={closeNav}
-                >
-                  Winners
-                </Link>
-              </div>
-            </div>
+            <Link
+              to="/tournament/generator"
+              className={isActive("/tournament")}
+              onClick={closeNav}
+            >
+              Tournament
+            </Link>
             <Link
               to="/support"
               className={isActive("/support")}
