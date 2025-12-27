@@ -44,7 +44,7 @@ export function PlayerManager({
   const actualToggleBtnId = toggleBtnId || `${listId}-toggle`;
 
   return `
-    <div class="player-manager">
+    <div class="player-manager-content" style="text-align: left;">
       <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <h3 style="margin: 0;">${label} <span class="count-badge">(${count})</span></h3>

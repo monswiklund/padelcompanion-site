@@ -143,7 +143,6 @@ export function renderSetup(container, pageState, addListener, onReRender) {
 
   const settingsCardHtml = SettingsCard({
     content: settingsHtml,
-    style: "text-align: center;",
   });
 
   // --- 4. Main Actions ---
@@ -188,7 +187,9 @@ export function renderSetup(container, pageState, addListener, onReRender) {
   // I will check index.js content again.
 
   container.innerHTML = `
-    <div class="wc-setup ${isGameActive ? "compact" : ""}">
+    <div class="tournament-setup-view wc-setup ${
+      isGameActive ? "compact" : ""
+    }">
       ${headerHtml}
       
       ${/* Player Manager Card */ ""}
@@ -480,9 +481,18 @@ function attachSetupListeners(container, pageState, addListener, onReRender) {
   // Clear all
   if (clearBtn) {
     addListener(clearBtn, "click", () => {
-      pageState.tempPlayers = [];
-      pageState.saveSetup();
-      renderSetup(container, pageState, addListener, onReRender);
+      showConfirmModal(
+        "Clear All Players?",
+        "Are you sure you want to remove all players?",
+        "Clear All",
+        () => {
+          pageState.tempPlayers = [];
+          pageState.saveSetup();
+          renderSetup(container, pageState, addListener, onReRender);
+          showToast("All players removed");
+        },
+        true // isDanger
+      );
     });
   }
 

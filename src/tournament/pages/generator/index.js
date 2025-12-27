@@ -4,10 +4,10 @@
  * This is the default page shown at /tournament/ and /tournament/#/generator
  */
 
-import { getGeneratorTemplate } from "../../ui/generatorTemplates.js";
-import { state } from "../../core/state.js";
-import { initHistory, renderHistory } from "../../history/index.js";
+import { getGeneratorActiveTemplate } from "../../ui/generatorTemplates.js";
+import { renderSetup } from "./setup.js";
 import {
+  generateSchedule,
   initElements,
   getElements,
   updateSetupUI,
@@ -21,6 +21,9 @@ import {
   setupCustomSelects,
   endTournament,
 } from "../../ui/index.js";
+import { getHistoryTemplate } from "../../ui/historyTemplate.js";
+import { state } from "../../core/state.js";
+import { initHistory, renderHistory } from "../../history/index.js";
 
 // Listener modules
 import { attachFormListeners } from "./formListeners.js";
@@ -73,21 +76,48 @@ export const generatorPage = {
    */
   mount(container, params) {
     console.log("[GeneratorPage] Mounting...");
-    if (!container) {
-      console.error("[GeneratorPage] Mount failed: Container is null");
-      return;
+    if (!container) return;
+
+    // Structure: Setup (New) + Active (Legacy Template) + History
+    // We toggle visibility based on state
+    const isGameActive = state.schedule && state.schedule.length > 0;
+
+    container.innerHTML = `
+        <div id="genSetupContainer" style="display: ${
+          isGameActive ? "none" : "block"
+        }"></div>
+        <div id="genActiveContainer" style="display: ${
+          isGameActive ? "block" : "none"
+        }" class="tournament-active-view">
+             ${getGeneratorActiveTemplate()}
+        </div>
+        ${getHistoryTemplate()}
+    `;
+
+    // --- Setup View ---
+    if (!isGameActive) {
+      renderSetup(document.getElementById("genSetupContainer"), () => {
+        // Generate clicked
+        generateSchedule();
+        // After generation, switch visibility if successful
+        if (state.schedule.length > 0) {
+          document.getElementById("genSetupContainer").style.display = "none";
+          document.getElementById("genActiveContainer").style.display = "block";
+          // Trigger active view renders
+          renderSchedule();
+          renderLeaderboard();
+        }
+      });
     }
 
-    // Render the template
-    container.innerHTML = getGeneratorTemplate();
-
-    // Re-initialize element references
+    // --- Active View & General ---
+    // Re-initialize element references (vital for getElements to work on Active container)
     initElements();
 
     // Attach all event listeners
     attachListeners();
 
-    // Initialize event delegation for dynamically rendered content
+    // Initialize event delegation
     initEventDelegation(
       container,
       addListener,
@@ -98,39 +128,20 @@ export const generatorPage = {
     // Setup legacy window functions
     setupLegacyWindowFunctions(endTournament, promptAddLatePlayer);
 
-    // Initialize UI State
-    updateSetupUI();
-    updateScoringLabel();
-    renderTournamentConfig();
-    renderPlayers();
-    renderPreferredPartners();
-
-    // Trigger animations for section headers
-    const playersHeader = document.querySelector(".players-header h3");
-    if (playersHeader) playersHeader.classList.add("animate-in");
-
-    // Setup UI components
-    setupCustomSelects();
+    // Initialize UI State for Active View
+    if (isGameActive) {
+      updateScoringLabel();
+      renderSchedule();
+      renderLeaderboard();
+      // renderPreferredPartners only relevant if element exists,
+      // but active template might not have it. it's fine.
+    }
 
     // History
     initHistory();
     const historySection = document.getElementById("historySectionPage");
     if (historySection) {
       renderHistory();
-    }
-
-    // Restore active tournament view if needed
-    if (state.schedule.length > 0) {
-      const els = getElements();
-      if (els.scheduleSection) els.scheduleSection.style.display = "block";
-      if (els.leaderboardSection)
-        els.leaderboardSection.style.display = "block";
-      const actions = document.getElementById("tournamentActionsSection");
-      if (actions) actions.style.display = "block";
-
-      renderSchedule();
-      renderLeaderboard();
-      updateGridColumns();
     }
 
     console.log("[GeneratorPage] Mounted successfully");

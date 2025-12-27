@@ -217,19 +217,25 @@
     justify-content: center; /* Center the input group */
   }
 
-  .tournament-page #playerNameInput {
-    flex: 0 1 320px;
+  /* Shared Player Manager Inputs */
+  .tournament-page .manager-input {
+    flex: 1;
     min-width: 0;
+    height: 50px;
   }
 
-  .tournament-page #confirmAddBtn,
-  .tournament-page #cancelAddBtn {
-    min-height: 44px;
+  .tournament-page .manager-add-btn {
+    min-width: 100px;
+    justify-content: center;
+    height: 50px;
     padding: 0 32px;
     font-weight: 700;
     font-size: 1.05rem;
     border-radius: var(--radius-lg);
   }
+
+  /* Legacy ID overrides (can be removed if all migrated, but keeping for safety if needed temporarily) */
+  /* .tournament-page #wcNameInput, .tournament-page #addPlayerBtn styles replaced by above */
 
   .tournament-page .player-list-wrapper {
     /* Default state (which seems to be expanded in code context? No, logic toggles it) */
@@ -343,18 +349,8 @@
     line-height: normal; /* Fix vertical alignment */
   }
 
-  /* Winners Court specific input styling */
-  .tournament-page #wcNameInput {
-    flex: 1;
-    min-width: 0;
-    height: 50px;
-  }
-
-  .tournament-page #addPlayerBtn {
-    min-width: 100px;
-    justify-content: center;
-    height: 50px;
-  }
+  /* Winners Court specific input styling - NOW HANDLED BY .manager-input and .manager-add-btn */
+  /* Kept implicitly for reference but specific IDs removed to avoid conflicts */
 
   .tournament-page .custom-select-wrapper.compact-select .custom-options {
     max-height: 500px !important; /* Force no scrollbar */
@@ -602,5 +598,4 @@
     pointer-events: auto;
     margin-top: var(--space-md);
   }
-
 }

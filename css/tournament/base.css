@@ -1,4 +1,25 @@
 @layer pages {
+  /* ===== Shared Setup Components ===== */
+  .tournament-page .setup-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    max-width: 700px;
+    margin: 0 auto var(--space-lg);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.05); /* Subtle shadow like players.css */
+    transition: all var(--transition-base);
+  }
+
+  .tournament-page .setup-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Compact mode for inner sections if needed */
+  .tournament-page .setup-card.compact {
+    padding: var(--space-md);
+  }
   .tournament-page {
     --bg-body: var(--bg-primary);
     --bg-surface: var(--bg-secondary);
@@ -8,6 +29,19 @@
     padding-top: 100px;
     padding-bottom: 120px;
     min-height: 100vh;
+  }
+
+  /* ===== Unified Setup Container ===== */
+  .tournament-page .tournament-setup-view {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-lg);
+    text-align: left;
+  }
+
+  .tournament-page .tournament-setup-view.compact {
+    padding: var(--space-md);
   }
 
   /* ===== Page Navigation Tabs ===== */
@@ -202,7 +236,7 @@
 
   .tournament-page .bracket-empty-state h2,
   .tournament-page .winners-court h2 {
-    font-size: 1.5rem;
+    /* Font size handled by PageHeader */
     margin-bottom: var(--space-sm);
   }
 
@@ -423,5 +457,4 @@
     min-width: 200px;
     justify-content: center;
   }
-
 }

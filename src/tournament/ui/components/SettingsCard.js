@@ -10,7 +10,7 @@
  */
 export function SettingsCard({ content, className = "", style = "" }) {
   return `
-    <div class="settings-card ${className}" style="max-width: 700px; margin: 0 auto 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); ${style}">
+    <div class="setup-card ${className}" style="${style}">
       ${content}
     </div>
   `;

@@ -162,10 +162,7 @@
     padding: var(--space-lg);
   }
 
-  .tournament-page .wc-setup h2,
-  .tournament-page .wc-view h2 {
-    margin-bottom: var(--space-sm);
-  }
+  /* Header styles handled by PageHeader */
 
   .tournament-page .wc-description {
     color: var(--text-muted);

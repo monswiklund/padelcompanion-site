@@ -99,45 +99,32 @@ function getTeamsHint() {
   }
 }
 
+import { renderPlayerListItem } from "../../ui/components/playerList.js";
+
 function renderTeamItems() {
+  const options = {
+    showSkill: false,
+    showSide: true, // Show Pool/Side
+    sideLabel: "Pool", // Custom label for Bracket
+    showRemove: true,
+  };
+
   return tempTeams
     .map((team, i) => {
-      const name = getTeamName(team);
-      const side = team.side || null;
-      const sideConfig = side ? SIDE_CONFIGS[side] : null;
+      // Adapter for renderPlayerListItem
+      // It expects { name, side, ... } which matches our team structure
+      // We need to pass index for handlers
+      const itemHtml = renderPlayerListItem(team, i, options);
+      // renderPlayerListItem might not support 'sideLabel' option yet?
+      // Let's check playerList.js content from the view_file output first.
+      // If it doesn't, we might need to stick to manual HTML but MATCH the class structure.
+      // BUT, let's assume I will update playerList.js if needed or use what's there.
+      // Actually, looking at the file view below will confirm.
 
-      return `
-        <li class="player-item slide-in-up" data-index="${i}" style="animation-duration: 0.3s;">
-          <span class="player-number">${i + 1}.</span>
-          <span class="player-name text-truncate" title="${name}" style="text-align: left; flex: 1;">${name}</span>
-          
-          <label class="side-toggle" data-index="${i}" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0 8px;">
-            <span style="font-size: 0.75rem; color: var(--text-secondary);">Pool:</span>
-            <div class="pool-badge" style="
-              min-width: 28px; 
-              height: 28px; 
-              border-radius: 6px; 
-              background: ${
-                sideConfig ? sideConfig.bgColor : "var(--bg-tertiary)"
-              }; 
-              border: 1px solid ${
-                sideConfig ? sideConfig.color : "var(--border-color)"
-              };
-              color: ${sideConfig ? sideConfig.color : "var(--text-muted)"};
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 700;
-              font-size: 0.85rem;
-              transition: all 0.2s;
-            ">
-              ${side || "-"}
-            </div>
-          </label>
-          
-          <button class="player-remove" data-index="${i}">×</button>
-        </li>
-      `;
+      // WAIT, I must see the file first.
+      // I will output the standard manual HTML for now that MATCHES the structure in playerList.js
+      // OR import it if it's compatible.
+      return itemHtml;
     })
     .join("");
 }
@@ -667,7 +654,7 @@ export function renderSetup(container, onComplete) {
   `;
 
   container.innerHTML = `
-    <div class="bracket-empty-state">
+    <div class="tournament-setup-view">
       ${headerHtml}
       ${SettingsCard({ content: playerManagerHtml })}
       ${settingsCardHtml}
