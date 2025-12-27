@@ -3,7 +3,7 @@
  * Handles skill-based court placement and round advancement.
  */
 
-import { state, saveState } from "./state.js";
+import { state, saveState } from "../../core/state.js";
 
 /**
  * Generate initial court placements based on player skill ratings.

@@ -26,8 +26,8 @@ import {
   shareResults,
   autoFillScore,
 } from "../ui/index.js";
-import { showFinalStandings } from "../modals.js";
-import { state } from "../state.js";
+import { showFinalStandings } from "../core/modals.js";
+import { state } from "../core/state.js";
 
 /**
  * Initialize event delegation for dynamically rendered content.

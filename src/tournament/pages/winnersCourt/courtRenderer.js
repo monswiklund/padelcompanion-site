@@ -3,7 +3,7 @@
  * Renders individual court components for Winners Court.
  */
 
-import { createTeams } from "../../winnersCourtLogic.js";
+import { createTeams } from "./logic.js";
 
 /**
  * Render a single court.

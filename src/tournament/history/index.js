@@ -4,10 +4,10 @@
  * Uses event delegation instead of inline onclick handlers.
  */
 
-import { getStateSnapshot, restoreState, saveState } from "../state.js";
+import { getStateSnapshot, restoreState, saveState } from "../core/state.js";
 import { showToast } from "../../shared/utils.js";
 import { renderSchedule, renderLeaderboard } from "../ui/index.js";
-import { showConfirmModal } from "../modals.js";
+import { showConfirmModal } from "../core/modals.js";
 
 // Sub-modules
 import {

@@ -1,7 +1,7 @@
 // Courts Module
 // Court validation, naming, and custom court names
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { getElements } from "./elements.js";
 
 /**

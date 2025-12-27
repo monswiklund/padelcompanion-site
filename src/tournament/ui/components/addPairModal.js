@@ -3,7 +3,7 @@
  * Handles the UI for managing fixed pairs (preferred partners).
  */
 
-import { state, saveState } from "../../state.js";
+import { state, saveState } from "../../core/state.js";
 import { createId } from "../../../shared/utils.js";
 import { removePreferredPair } from "../../players.js";
 

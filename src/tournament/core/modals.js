@@ -1,7 +1,7 @@
 // Modal Management Module
 // Confirm, Input, Final standings, and Completion modals
 
-import { launchConfetti } from "./confetti.js";
+import { launchConfetti } from "../confetti.js";
 import {
   createModal,
   animateIn,

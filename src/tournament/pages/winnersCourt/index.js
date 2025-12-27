@@ -4,8 +4,8 @@
  * Shown at /tournament/#/winners-court
  */
 
-import { getWinnersCourtState } from "../../winnersCourtLogic.js";
-import { showInfoModal } from "../../modals.js";
+import { getWinnersCourtState } from "./logic.js";
+import { showInfoModal } from "../../core/modals.js";
 import { HELP_WINNERS_INTRO } from "../../content/help.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
 import { initHistory, renderHistory } from "../../history/index.js";

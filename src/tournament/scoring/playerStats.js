@@ -3,7 +3,7 @@
  * Handles updating and subtracting player statistics.
  */
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 
 /**
  * Update player stats after a match.

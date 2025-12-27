@@ -1,9 +1,9 @@
 // Player Management Module
 // CRUD operations for tournament players
 
-import { state, saveState } from "./state.js";
+import { state, saveState } from "./core/state.js";
 import { showToast, createId } from "../shared/utils.js";
-import { showConfirmModal } from "./modals.js";
+import { showConfirmModal } from "./core/modals.js";
 
 /**
  * Add a new player to the tournament

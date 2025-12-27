@@ -3,7 +3,7 @@
  * Dynamic pairing for Mexicano format with preferred partners.
  */
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 import { shuffleArray } from "../../shared/utils.js";
 
 /**

@@ -1,7 +1,7 @@
 // Players Module
 // Player list rendering and input handling
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { getElements } from "./elements.js";
 import {
   renderPreferredPartners,

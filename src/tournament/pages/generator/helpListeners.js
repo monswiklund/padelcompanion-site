@@ -3,7 +3,7 @@
  * Handles help button event listeners.
  */
 
-import { showInfoModal } from "../../modals.js";
+import { showInfoModal } from "../../core/modals.js";
 import {
   HELP_FORMATS,
   HELP_SCORING,

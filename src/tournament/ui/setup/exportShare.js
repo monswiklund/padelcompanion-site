@@ -3,7 +3,7 @@
  * Handles tournament data export and sharing.
  */
 
-import { state } from "../../state.js";
+import { state } from "../../core/state.js";
 import { showToast } from "../../../shared/utils.js";
 
 /**

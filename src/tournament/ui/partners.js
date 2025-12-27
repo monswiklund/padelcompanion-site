@@ -1,7 +1,7 @@
 // Partners Module
 // Preferred partners rendering and management
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 import { getElements } from "./elements.js";
 
 /**

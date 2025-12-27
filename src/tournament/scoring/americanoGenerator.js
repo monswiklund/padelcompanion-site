@@ -3,7 +3,7 @@
  * Round-robin schedule generation for Americano format.
  */
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 
 /**
  * Generate Americano schedule (Round Robin).

@@ -3,7 +3,7 @@
  * Handles Side A vs Side B bracket generation.
  */
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { generateBracket } from "./bracketGeneration.js";
 
 /**

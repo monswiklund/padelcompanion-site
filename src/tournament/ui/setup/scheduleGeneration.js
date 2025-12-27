@@ -3,14 +3,14 @@
  * Handles tournament schedule generation and lifecycle.
  */
 
-import { state, saveState, pushHistory } from "../../state.js";
+import { state, saveState, pushHistory } from "../../core/state.js";
 import { getElements } from "../elements.js";
 import { showToast } from "../../../shared/utils.js";
 import {
   showConfirmModal,
   showAlertModal,
   showCountdown,
-} from "../../modals.js";
+} from "../../core/modals.js";
 import { saveToHistory, renderHistoryList } from "../../history/index.js";
 import {
   generateAmericanoSchedule,

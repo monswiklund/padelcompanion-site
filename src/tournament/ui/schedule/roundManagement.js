@@ -3,10 +3,10 @@
  * Handles round completion, editing, and state transitions.
  */
 
-import { state, saveState, pushHistory } from "../../state.js";
+import { state, saveState, pushHistory } from "../../core/state.js";
 import { getCourtName } from "../courts.js";
 import { renderLeaderboard, getSortedLeaderboard } from "../leaderboard.js";
-import { showConfirmModal } from "../../modals.js";
+import { showConfirmModal } from "../../core/modals.js";
 import { showToast } from "../../../shared/utils.js";
 import {
   updatePlayerStats,

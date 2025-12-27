@@ -1,8 +1,8 @@
 import { injectLayout } from "../shared/layout.js";
-import { loadState } from "./state.js";
+import { loadState } from "./core/state.js";
 import { initHistory } from "./history/index.js";
 import { initTheme } from "../shared/theme.js";
-import { registerRoute, initRouter, getCurrentRoute } from "./router.js";
+import { registerRoute, initRouter, getCurrentRoute } from "./core/router.js";
 import { showToast } from "../shared/utils.js";
 import {
   updateSetupUI,
@@ -14,7 +14,7 @@ import {
   setupCustomSelects,
 } from "./ui/index.js";
 import { initPWA } from "../shared/pwa.js";
-import { showInfoModal } from "./modals.js";
+import { showInfoModal } from "./core/modals.js";
 
 // Page modules for routing
 import { generatorPage } from "./pages/generator/index.js";

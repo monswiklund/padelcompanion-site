@@ -1,7 +1,7 @@
 // Controls Module
 // Grid columns, text size, and round scale controls
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { getElements } from "./elements.js";
 
 let isManualMode = false;

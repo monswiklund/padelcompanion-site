@@ -3,7 +3,7 @@
  * Handles the rendering and interaction of the tournament configuration options.
  */
 
-import { showAlertModal } from "../../modals.js";
+import { showAlertModal } from "../../core/modals.js";
 import { showToast } from "../../../shared/utils.js";
 
 /**

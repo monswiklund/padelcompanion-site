@@ -3,7 +3,7 @@
  * Handles UI state updates based on tournament configuration.
  */
 
-import { state } from "../../state.js";
+import { state } from "../../core/state.js";
 import { getElements } from "../elements.js";
 import { updateAddPartnerPairButton } from "../partners.js";
 

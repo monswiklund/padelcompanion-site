@@ -87,7 +87,7 @@ export function canUndo() {
   return historyStack.length > 0;
 }
 
-import { StorageService } from "../shared/storage.js";
+import { StorageService } from "../../shared/storage.js";
 
 // LocalStorage key
 const STORAGE_KEY = "tournament-state";

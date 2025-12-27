@@ -4,7 +4,7 @@ import {
   showInputModal,
   showInfoModal,
   showConfirmModal,
-} from "../../modals.js";
+} from "../../core/modals.js";
 import {
   HELP_POOL_ASSIGNMENT,
   HELP_BRACKET_GUIDE,
@@ -13,7 +13,7 @@ import {
 import {
   SIDE_CONFIGS,
   renderMultiBracketPreview as renderMultiPreview,
-} from "../../ui/bracketComponents.js";
+} from "../../ui/bracket/index.js";
 import {
   initBracketTournament,
   initDualBracketTournament,

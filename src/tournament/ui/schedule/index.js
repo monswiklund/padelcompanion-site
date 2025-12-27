@@ -3,7 +3,7 @@
  * Main orchestrator for schedule rendering and interactions.
  */
 
-import { state, saveState } from "../../state.js";
+import { state, saveState } from "../../core/state.js";
 import { getElements } from "../elements.js";
 import {
   updateGridColumns,

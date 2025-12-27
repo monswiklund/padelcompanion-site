@@ -1,9 +1,9 @@
 // Tournament Configuration Module
 // Interactive configuration panel for tournament settings
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { createId, showToast } from "../../shared/utils.js";
-import { showInfoModal, showConfirmModal, showAlertModal } from "../modals.js";
+import { showInfoModal, showConfirmModal, showAlertModal } from "../core/modals.js";
 import { getElements } from "./elements.js";
 import { removePreferredPair } from "../players.js";
 import { openAddPairModal } from "./components/addPairModal.js";

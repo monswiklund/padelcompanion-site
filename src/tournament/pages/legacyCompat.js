@@ -35,7 +35,7 @@ import {
   exportTournamentData,
   shareResults,
 } from "../ui/index.js";
-import { showFinalStandings } from "../modals.js";
+import { showFinalStandings } from "../core/modals.js";
 
 /**
  * Setup legacy window functions for backward compatibility.

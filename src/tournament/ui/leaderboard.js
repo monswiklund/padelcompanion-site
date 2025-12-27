@@ -1,7 +1,7 @@
 // Leaderboard Module
 // Leaderboard rendering and visibility controls
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 import { getElements } from "./elements.js";
 
 /**

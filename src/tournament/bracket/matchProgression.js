@@ -3,7 +3,7 @@
  * Handles match result updates and downstream effects.
  */
 
-import { state, saveState } from "../state.js";
+import { state, saveState } from "../core/state.js";
 import { getTeamById } from "./bracketGeneration.js";
 
 /**

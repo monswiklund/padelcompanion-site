@@ -1,6 +1,6 @@
-import { MatchTimer } from "../../timer.js";
+import { MatchTimer } from "../../core/timer.js";
 import { getElements } from "../elements.js";
-import { showInputModal, showConfirmModal } from "../../modals.js";
+import { showInputModal, showConfirmModal } from "../../core/modals.js";
 import { showToast } from "../../../shared/utils.js";
 
 let timer = null;

@@ -7,12 +7,12 @@ import {
   getWinnersCourtState,
   initWinnersCourt,
   clearWinnersCourt,
-} from "../../winnersCourtLogic.js";
+} from "./logic.js";
 import {
   showConfirmModal,
   showInputModal,
   showInfoModal,
-} from "../../modals.js";
+} from "../../core/modals.js";
 import { HELP_SKILL_LEVELS } from "../../content/help.js";
 import { showToast } from "../../../shared/utils.js";
 import { setupCustomSelects } from "../../ui/customSelect.js";

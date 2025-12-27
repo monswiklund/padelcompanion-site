@@ -5,7 +5,7 @@ import {
   loadState,
   resetTournamentState,
   initLeaderboard,
-} from "../state.js";
+} from "../core/state.js";
 
 describe("State Management", () => {
   // Mock localStorage

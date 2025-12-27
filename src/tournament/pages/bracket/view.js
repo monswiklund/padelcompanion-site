@@ -1,4 +1,4 @@
-import { state, saveState } from "../../state.js";
+import { state, saveState } from "../../core/state.js";
 import {
   clearBracket,
   updateMatchResult,
@@ -8,7 +8,7 @@ import {
   getFinalStandings,
 } from "../../bracket/index.js";
 import { showToast } from "../../../shared/utils.js";
-import { showConfirmModal } from "../../modals.js";
+import { showConfirmModal } from "../../core/modals.js";
 
 // View State
 const listeners = [];

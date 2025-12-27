@@ -5,7 +5,7 @@
  */
 
 import { getGeneratorTemplate } from "../../ui/generatorTemplates.js";
-import { state } from "../../state.js";
+import { state } from "../../core/state.js";
 import { initHistory, renderHistory } from "../../history/index.js";
 import {
   initElements,

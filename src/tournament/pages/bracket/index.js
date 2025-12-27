@@ -1,4 +1,4 @@
-import { state } from "../../state.js";
+import { state } from "../../core/state.js";
 import { initHistory, renderHistory } from "../../history/index.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
 import { renderSetup, cleanupSetupListeners } from "./setup.js";

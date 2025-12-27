@@ -3,13 +3,9 @@
  * Handles the active game display for Winners Court.
  */
 
-import { state, saveState } from "../../state.js";
-import {
-  getWinnersCourtState,
-  recordCourtResult,
-  nextRound,
-} from "../../winnersCourtLogic.js";
-import { showConfirmModal } from "../../modals.js";
+import { state, saveState } from "../../core/state.js";
+import { getWinnersCourtState, recordCourtResult, nextRound } from "./logic.js";
+import { showConfirmModal } from "../../core/modals.js";
 import { showToast } from "../../../shared/utils.js";
 import { renderCourt } from "./courtRenderer.js";
 

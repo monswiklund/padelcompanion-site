@@ -3,7 +3,7 @@
  * Dynamic pairing for Team Mexicano format.
  */
 
-import { state } from "../state.js";
+import { state } from "../core/state.js";
 import { shuffleArray } from "../../shared/utils.js";
 
 /**

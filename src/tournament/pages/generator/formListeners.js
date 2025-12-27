@@ -3,9 +3,9 @@
  * Handles form input event listeners for tournament setup.
  */
 
-import { state, saveState } from "../../state.js";
+import { state, saveState } from "../../core/state.js";
 import { showToast } from "../../../shared/utils.js";
-import { showConfirmModal, showInputModal } from "../../modals.js";
+import { showConfirmModal, showInputModal } from "../../core/modals.js";
 import {
   getElements,
   updateSetupUI,

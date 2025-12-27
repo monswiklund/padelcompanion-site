@@ -3,7 +3,7 @@
  * Handles score input, validation, and auto-fill logic.
  */
 
-import { state } from "../../state.js";
+import { state } from "../../core/state.js";
 
 /**
  * Auto-fill score for total points mode.

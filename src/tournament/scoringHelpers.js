@@ -3,7 +3,7 @@
  * Reusable functions for tournament scheduling logic.
  */
 
-import { state } from "./state.js";
+import { state } from "./core/state.js";
 
 /**
  * Get the preferred partner ID for a player.
