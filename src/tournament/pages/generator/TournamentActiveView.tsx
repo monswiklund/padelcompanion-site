@@ -223,31 +223,10 @@ const TournamentActiveView: React.FC = () => {
         <div className="tournament-main">
           <Schedule />
         </div>
-        <aside className="tournament-sidebar">
-          <Leaderboard />
-        </aside>
       </div>
 
-      <div className="tournament-footer-actions">
-        <button className="btn btn-primary" onClick={() => window.print()}>
-          Print Results
-        </button>
-        <button
-          className="btn btn-secondary"
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({
-                title: "Tournament Results",
-                text: `Check out our ${formatLabel} tournament!`,
-                url: window.location.href,
-              });
-            } else {
-              showToast("Sharing not supported on this browser");
-            }
-          }}
-        >
-          Share Standings
-        </button>
+      <div className="mt-8 mb-12 w-full max-w-xl mx-auto px-4">
+        <Leaderboard />
       </div>
     </div>
   );
