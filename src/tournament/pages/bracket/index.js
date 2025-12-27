@@ -1,5 +1,5 @@
 import { state } from "../../state.js";
-import { initHistory, renderHistory } from "../../history.js";
+import { initHistory, renderHistory } from "../../history/index.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
 import { renderSetup, cleanupSetupListeners } from "./setup.js";
 import { renderView, cleanupViewListeners } from "./view.js";

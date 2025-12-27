@@ -5,7 +5,7 @@ import { state, saveState, pushHistory } from "../state.js";
 import { getElements } from "./elements.js";
 import { showToast } from "../../shared/utils.js";
 import { showConfirmModal, showAlertModal, showCountdown } from "../modals.js";
-import { saveToHistory, renderHistoryList } from "../history.js";
+import { saveToHistory, renderHistoryList } from "../history/index.js";
 import {
   generateAmericanoSchedule,
   generateTeamSchedule,

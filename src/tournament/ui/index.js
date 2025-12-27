@@ -33,7 +33,7 @@ export {
   completeRound,
   editRound,
   renderGameDetails,
-} from "./schedule.js";
+} from "./schedule/index.js";
 
 export {
   renderLeaderboard,

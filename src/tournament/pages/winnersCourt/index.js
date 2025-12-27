@@ -8,7 +8,7 @@ import { getWinnersCourtState } from "../../winnersCourtLogic.js";
 import { showInfoModal } from "../../modals.js";
 import { HELP_WINNERS_INTRO } from "../../content/help.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
-import { initHistory, renderHistory } from "../../history.js";
+import { initHistory, renderHistory } from "../../history/index.js";
 import { StorageService } from "../../../shared/storage.js";
 
 // Sub-modules

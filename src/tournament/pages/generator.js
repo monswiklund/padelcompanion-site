@@ -46,7 +46,7 @@ import {
   validateCourts,
 } from "../ui/index.js";
 import { state, loadState, saveState, undoLastAction } from "../state.js";
-import { initHistory, renderHistory } from "../history.js";
+import { initHistory, renderHistory } from "../history/index.js";
 import { showToast } from "../../shared/utils.js";
 import { StorageService } from "../../shared/storage.js";
 import {

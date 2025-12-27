@@ -1,6 +1,6 @@
 import { injectLayout } from "../shared/layout.js";
 import { loadState } from "./state.js";
-import { initHistory } from "./history.js";
+import { initHistory } from "./history/index.js";
 import { initTheme } from "../shared/theme.js";
 import { registerRoute, initRouter, getCurrentRoute } from "./router.js";
 import { showToast } from "../shared/utils.js";
