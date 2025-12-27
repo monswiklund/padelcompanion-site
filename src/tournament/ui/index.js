@@ -64,7 +64,7 @@ export {
   shareResults,
   renderTournamentSummary,
   setRenderTournamentConfigCallback,
-} from "./setup.js";
+} from "./setup/index.js";
 
 export {
   renderTournamentConfig,

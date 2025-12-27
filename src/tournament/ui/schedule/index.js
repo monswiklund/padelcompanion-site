@@ -10,7 +10,7 @@ import {
   updateSliderMax,
   updateTextSize,
 } from "../controls.js";
-import { setRenderScheduleCallback } from "../setup.js";
+import { setRenderScheduleCallback } from "../setup/index.js";
 import { renderRoundCard } from "../components/roundCard.js";
 import { initTimer } from "../components/timerDisplay.js";
 

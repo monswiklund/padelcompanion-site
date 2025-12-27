@@ -17,7 +17,7 @@ import {
 import {
   initBracketTournament,
   initDualBracketTournament,
-} from "../../bracketLogic.js";
+} from "../../bracket/index.js";
 
 // Setup State
 let tempTeams = [];

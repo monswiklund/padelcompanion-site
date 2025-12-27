@@ -92,7 +92,9 @@ function updateConfigValue(key, value) {
 
   // Update section title when format changes
   if (key === "format") {
-    import("./setup.js").then((m) => m.updateSetupUI && m.updateSetupUI());
+    import("./setup/index.js").then(
+      (m) => m.updateSetupUI && m.updateSetupUI()
+    );
   }
 }
 

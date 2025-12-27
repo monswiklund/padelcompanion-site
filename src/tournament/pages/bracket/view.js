@@ -6,7 +6,7 @@ import {
   getRoundName,
   isBracketComplete,
   getFinalStandings,
-} from "../../bracketLogic.js";
+} from "../../bracket/index.js";
 import { showToast } from "../../../shared/utils.js";
 import { showConfirmModal } from "../../modals.js";
 
