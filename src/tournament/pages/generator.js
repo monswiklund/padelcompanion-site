@@ -48,6 +48,7 @@ import {
 import { state, loadState, saveState, undoLastAction } from "../state.js";
 import { initHistory, renderHistory } from "../history.js";
 import { showToast } from "../../shared/utils.js";
+import { StorageService } from "../../shared/storage.js";
 import {
   addPlayer,
   removePlayer,
@@ -503,7 +504,7 @@ function attachListeners() {
         "This will clear the current tournament and reset the app. Your saved history will NOT be deleted. Are you sure?",
         "Yes, Reset App",
         () => {
-          localStorage.removeItem("tournament-state");
+          StorageService.removeItem("tournament-state");
           window.location.reload();
         },
         true // isDanger

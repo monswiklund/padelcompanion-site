@@ -1,4 +1,5 @@
 import { showToast } from "../../../shared/utils.js";
+import { StorageService } from "../../../shared/storage.js";
 import {
   showInputModal,
   showInfoModal,
@@ -21,7 +22,7 @@ import {
 // Setup State
 let tempTeams = [];
 let listExpanded = false;
-let bracketMode = localStorage.getItem("bracket_mode") || "teams"; // "teams" or "players"
+let bracketMode = StorageService.getItem("bracket_mode", "teams"); // "teams" or "players"
 
 const listeners = [];
 
@@ -56,15 +57,14 @@ function getTeamName(team) {
 }
 
 function saveTeams() {
-  localStorage.setItem("bracket_teams", JSON.stringify(tempTeams));
+  StorageService.setItem("bracket_teams", tempTeams);
 }
 
 function loadTeams() {
   try {
-    const saved = localStorage.getItem("bracket_teams");
+    const saved = StorageService.getItem("bracket_teams");
     if (saved) {
-      const parsed = JSON.parse(saved);
-      tempTeams = parsed.map((t) =>
+      tempTeams = saved.map((t) =>
         typeof t === "string" ? { name: t, side: null } : t
       );
     }
@@ -241,7 +241,7 @@ function attachSetupListeners(container, onComplete) {
   if (modeToggle) {
     addListener(modeToggle, "change", () => {
       bracketMode = modeToggle.checked ? "players" : "teams";
-      localStorage.setItem("bracket_mode", bracketMode);
+      StorageService.setItem("bracket_mode", bracketMode);
       renderSetup(container, onComplete);
     });
   }
@@ -249,7 +249,7 @@ function attachSetupListeners(container, onComplete) {
   const scoreTypeSelect = container.querySelector("#bracketScoreType");
   if (scoreTypeSelect) {
     addListener(scoreTypeSelect, "change", () => {
-      localStorage.setItem("bracket_score_type", scoreTypeSelect.value);
+      StorageService.setItem("bracket_score_type", scoreTypeSelect.value);
     });
   }
 
@@ -348,7 +348,7 @@ function attachSetupListeners(container, onComplete) {
         const index = parseInt(sideToggle.dataset.index);
         const team = tempTeams[index];
         const bracketCount = parseInt(
-          localStorage.getItem("bracket_count") || "2"
+          StorageService.getItem("bracket_count", "2")
         );
         const pools = ["A", "B", "C", "D", "E", "F"].slice(0, bracketCount);
 
@@ -396,7 +396,7 @@ function attachSetupListeners(container, onComplete) {
 
   addListener(dualModeToggle, "change", () => {
     const poolSettingsSection = container.querySelector("#poolSettingsSection");
-    localStorage.setItem(
+    StorageService.setItem(
       "bracket_dual_mode",
       dualModeToggle.checked ? "true" : "false"
     );
@@ -411,14 +411,14 @@ function attachSetupListeners(container, onComplete) {
   const bracketCountSelect = container.querySelector("#bracketCount");
   if (bracketCountSelect) {
     addListener(bracketCountSelect, "change", () => {
-      localStorage.setItem("bracket_count", bracketCountSelect.value);
+      StorageService.setItem("bracket_count", bracketCountSelect.value);
       updatePreview(container);
     });
   }
 
   if (sharedFinalToggle) {
     addListener(sharedFinalToggle, "change", () => {
-      localStorage.setItem(
+      StorageService.setItem(
         "bracket_shared_final",
         sharedFinalToggle.checked ? "true" : "false"
       );
@@ -428,7 +428,7 @@ function attachSetupListeners(container, onComplete) {
 
   if (sideAssignSelect) {
     addListener(sideAssignSelect, "change", () => {
-      localStorage.setItem("bracket_side_assign", sideAssignSelect.value);
+      StorageService.setItem("bracket_side_assign", sideAssignSelect.value);
     });
   }
 
@@ -495,7 +495,8 @@ export function renderSetup(container, onComplete) {
   loadTeams();
   cleanupSetupListeners();
 
-  const savedDualMode = localStorage.getItem("bracket_dual_mode") === "true";
+  const savedDualMode =
+    StorageService.getItem("bracket_dual_mode", "false") === "true";
 
   container.innerHTML = `
     <div class="bracket-empty-state">
@@ -575,18 +576,18 @@ export function renderSetup(container, onComplete) {
             <span style="font-size: 0.85rem; color: var(--text-secondary);">Score:</span>
             <select id="bracketScoreType" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
               <option value="points" ${
-                localStorage.getItem("bracket_score_type") === "points" ||
-                !localStorage.getItem("bracket_score_type")
+                StorageService.getItem("bracket_score_type") === "points" ||
+                !StorageService.getItem("bracket_score_type")
                   ? "selected"
                   : ""
               }>Points</option>
               <option value="games" ${
-                localStorage.getItem("bracket_score_type") === "games"
+                StorageService.getItem("bracket_score_type") === "games"
                   ? "selected"
                   : ""
               }>Games</option>
               <option value="sets" ${
-                localStorage.getItem("bracket_score_type") === "sets"
+                StorageService.getItem("bracket_score_type") === "sets"
                   ? "selected"
                   : ""
               }>Sets</option>
@@ -610,7 +611,7 @@ export function renderSetup(container, onComplete) {
                     (n) =>
                       `<option value="${n}" ${
                         parseInt(
-                          localStorage.getItem("bracket_count") || "2"
+                          StorageService.getItem("bracket_count", "2")
                         ) === n
                           ? "selected"
                           : ""
@@ -625,7 +626,7 @@ export function renderSetup(container, onComplete) {
             <!-- Pair Finals Toggle -->
             <label class="wc-toggle" id="sharedFinalLabel" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
               <input type="checkbox" id="bracketSharedFinal" ${
-                localStorage.getItem("bracket_shared_final") !== "false"
+                StorageService.getItem("bracket_shared_final") !== "false"
                   ? "checked"
                   : ""
               } />
@@ -638,23 +639,23 @@ export function renderSetup(container, onComplete) {
               <span style="font-size: 0.85rem; color: var(--text-secondary);">Assign:</span>
               <select id="bracketSideAssign" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
                 <option value="random" ${
-                  localStorage.getItem("bracket_side_assign") === "random" ||
-                  !localStorage.getItem("bracket_side_assign")
+                  StorageService.getItem("bracket_side_assign") === "random" ||
+                  !StorageService.getItem("bracket_side_assign")
                     ? "selected"
                     : ""
                 }>Random</option>
                 <option value="alternate" ${
-                  localStorage.getItem("bracket_side_assign") === "alternate"
+                  StorageService.getItem("bracket_side_assign") === "alternate"
                     ? "selected"
                     : ""
                 }>Alternate</option>
                 <option value="half" ${
-                  localStorage.getItem("bracket_side_assign") === "half"
+                  StorageService.getItem("bracket_side_assign") === "half"
                     ? "selected"
                     : ""
                 }>Split by Pool</option>
                 <option value="manual" ${
-                  localStorage.getItem("bracket_side_assign") === "manual"
+                  StorageService.getItem("bracket_side_assign") === "manual"
                     ? "selected"
                     : ""
                 }>Manual</option>

@@ -478,7 +478,8 @@ function openScoreEntry(container, matchId) {
   if (!match || !match.team1 || !match.team2) return;
 
   // Get saved score type
-  const savedScoreType = localStorage.getItem("bracket_score_type") || "points";
+  // Get saved score type
+  const savedScoreType = StorageService.getItem("bracket_score_type", "points");
   const scoreTypeLabel =
     savedScoreType.charAt(0).toUpperCase() + savedScoreType.slice(1);
 

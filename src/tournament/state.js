@@ -87,6 +87,8 @@ export function canUndo() {
   return historyStack.length > 0;
 }
 
+import { StorageService } from "../shared/storage.js";
+
 // LocalStorage key
 const STORAGE_KEY = "tournament-state";
 
@@ -94,43 +96,40 @@ const STORAGE_KEY = "tournament-state";
  * Save state to localStorage
  */
 export function saveState() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      // Version for migrations
-      version: state.version,
-      // Settings
-      players: state.players,
-      format: state.format,
-      courts: state.courts,
-      scoringMode: state.scoringMode,
-      pointsPerMatch: state.pointsPerMatch,
-      rankingCriteria: state.rankingCriteria,
-      courtFormat: state.courtFormat,
-      customCourtNames: state.customCourtNames,
-      maxRepeats: state.maxRepeats,
-      pairingStrategy: state.pairingStrategy,
-      preferredPartners: state.preferredPartners,
-      tournamentName: state.tournamentName,
-      tournamentNotes: state.tournamentNotes,
-      // Active tournament state
-      schedule: state.schedule,
-      currentRound: state.currentRound,
-      leaderboard: state.leaderboard,
-      allRounds: state.allRounds,
-      isLocked: state.isLocked,
-      hideLeaderboard: state.hideLeaderboard,
-      manualByes: state.manualByes,
-      gridColumns: state.gridColumns,
-      textSize: state.textSize,
-      // Bracket tournament (v1+)
-      tournament: state.tournament,
-      // UI state (v1+)
-      ui: state.ui,
-      // Winners Court (v1+)
-      winnersCourt: state.winnersCourt,
-    })
-  );
+  StorageService.setItem(STORAGE_KEY, {
+    // Version for migrations
+    version: state.version,
+    // Settings
+    players: state.players,
+    format: state.format,
+    courts: state.courts,
+    scoringMode: state.scoringMode,
+    pointsPerMatch: state.pointsPerMatch,
+    rankingCriteria: state.rankingCriteria,
+    courtFormat: state.courtFormat,
+    customCourtNames: state.customCourtNames,
+    maxRepeats: state.maxRepeats,
+    pairingStrategy: state.pairingStrategy,
+    preferredPartners: state.preferredPartners,
+    tournamentName: state.tournamentName,
+    tournamentNotes: state.tournamentNotes,
+    // Active tournament state
+    schedule: state.schedule,
+    currentRound: state.currentRound,
+    leaderboard: state.leaderboard,
+    allRounds: state.allRounds,
+    isLocked: state.isLocked,
+    hideLeaderboard: state.hideLeaderboard,
+    manualByes: state.manualByes,
+    gridColumns: state.gridColumns,
+    textSize: state.textSize,
+    // Bracket tournament (v1+)
+    tournament: state.tournament,
+    // UI state (v1+)
+    ui: state.ui,
+    // Winners Court (v1+)
+    winnersCourt: state.winnersCourt,
+  });
 }
 
 /**
@@ -138,12 +137,10 @@ export function saveState() {
  * @returns {boolean} True if state was loaded
  */
 export function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return false;
+  let data = StorageService.getItem(STORAGE_KEY);
+  if (!data) return false;
 
   try {
-    let data = JSON.parse(saved);
-
     // Migrate old state versions
     data = migrateState(data);
 

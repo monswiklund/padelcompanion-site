@@ -21,6 +21,7 @@ import { setupCustomSelects } from "../ui/customSelect.js";
 import { getHistoryTemplate } from "../ui/historyTemplate.js";
 import { renderPlayerListItem } from "../ui/components/playerList.js";
 import { initHistory, renderHistory } from "../history.js";
+import { StorageService } from "../../shared/storage.js";
 
 // Track attached listeners for cleanup
 const listeners = [];
@@ -46,17 +47,10 @@ export const winnersCourtPage = {
     console.log("[WinnersCourtPage] Mounting...");
 
     // 1. Load Setup State (Players)
-    try {
-      const saved = localStorage.getItem("wc_setup_players");
-      if (saved) {
-        this.tempPlayers = JSON.parse(saved);
-      }
-      // Load split sides preference
-      this.splitSidesEnabled =
-        localStorage.getItem("wc_split_sides") === "true";
-    } catch (e) {
-      console.error("Failed to load WC setup players", e);
-    }
+    this.tempPlayers = StorageService.getItem("wc_setup_players", []);
+    // Load split sides preference
+    this.splitSidesEnabled =
+      StorageService.getItem("wc_split_sides", "false") === "true";
 
     // 2. Load Active Game State
     // (This is redundant if accessed via getWinnersCourtState directly,
@@ -74,7 +68,7 @@ export const winnersCourtPage = {
    * Save setup state to persistent storage
    */
   saveSetup() {
-    localStorage.setItem("wc_setup_players", JSON.stringify(this.tempPlayers));
+    StorageService.setItem("wc_setup_players", this.tempPlayers);
   },
 
   /**
@@ -409,7 +403,8 @@ export const winnersCourtPage = {
     if (splitSidesToggle) {
       addListener(splitSidesToggle, "change", () => {
         this.splitSidesEnabled = splitSidesToggle.checked;
-        localStorage.setItem(
+        this.splitSidesEnabled = splitSidesToggle.checked;
+        StorageService.setItem(
           "wc_split_sides",
           this.splitSidesEnabled ? "true" : "false"
         );

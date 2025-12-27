@@ -7,6 +7,7 @@ import { getStateSnapshot, restoreState, saveState } from "./state.js";
 import { showToast } from "../shared/utils.js";
 import { renderSchedule, renderLeaderboard } from "./ui/index.js";
 import { showConfirmModal } from "./modals.js";
+import { StorageService } from "../shared/storage.js";
 
 const HISTORY_KEY = "padel_history_v1";
 
@@ -41,7 +42,7 @@ export function saveToHistory() {
     history.pop();
   }
 
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  StorageService.setItem(HISTORY_KEY, history);
   return record;
 }
 
@@ -50,13 +51,7 @@ export function saveToHistory() {
  * @returns {Array} List of tournament records
  */
 export function getHistory() {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error("Failed to parse history", e);
-    return [];
-  }
+  return StorageService.getItem(HISTORY_KEY, []);
 }
 
 /**
@@ -71,7 +66,7 @@ export function deleteHistoryItem(id) {
     () => {
       const history = getHistory();
       const filtered = history.filter((item) => item.id !== id);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered));
+      StorageService.setItem(HISTORY_KEY, filtered);
       renderHistoryList();
       showToast("Tournament deleted");
     },
@@ -127,7 +122,7 @@ export function loadTournament(id) {
  * Clear all history
  */
 export function clearHistory() {
-  localStorage.removeItem(HISTORY_KEY);
+  StorageService.removeItem(HISTORY_KEY);
 }
 
 // ===== UI Logic =====
