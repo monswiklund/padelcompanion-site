@@ -85,14 +85,7 @@ export default defineConfig({
     outDir: "dist",
     rollupOptions: {
       input: {
-        main: "index.html",
-        privacy: "privacy.html",
-        terms: "terms.html",
-        support: "support.html",
-        contact: "contact.html",
-        deleteAccount: "delete-account.html",
-        notFound: "404.html",
-        tournament: "tournament/index.html",
+        main: resolve(__dirname, "index.html"),
       },
     },
   },
