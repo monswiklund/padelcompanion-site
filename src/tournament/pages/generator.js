@@ -73,6 +73,10 @@ import {
   showInfoModal,
 } from "../modals.js";
 
+// Import extracted modules
+import { initEventDelegation } from "./eventDelegation.js";
+import { setupLegacyWindowFunctions } from "./legacyCompat.js";
+
 // Track attached listeners for cleanup
 const listeners = [];
 
@@ -535,9 +539,6 @@ function attachListeners() {
 /**
  * Attach help button event listeners.
  */
-/**
- * Attach help button event listeners.
- */
 function attachHelpListeners() {
   const helpFormat = document.getElementById("helpFormat");
   if (helpFormat) {
@@ -568,168 +569,6 @@ function attachHelpListeners() {
   }
 }
 
-/**
- * Initialize event delegation for dynamically rendered content.
- * This handles clicks and changes on elements created after mount.
- */
-function initEventDelegation(container) {
-  // Click event delegation
-  addListener(container, "click", (e) => {
-    const target = e.target.closest("[data-action]");
-    if (!target) return;
-
-    const action = target.dataset.action;
-    const id = target.dataset.id ? Number(target.dataset.id) : null;
-    const roundIndex = target.dataset.round
-      ? parseInt(target.dataset.round)
-      : null;
-
-    switch (action) {
-      case "remove-player":
-        if (id !== null) {
-          removePlayer(id);
-          renderPlayers();
-        }
-        break;
-      case "toggle-player-list":
-        togglePlayerList();
-        break;
-      case "remove-pair":
-        if (id !== null) {
-          removePreferredPair(id);
-          renderPreferredPartners();
-          updateSetupUI();
-          setupCustomSelects();
-        }
-        break;
-      case "toggle-bye":
-        if (id !== null) {
-          toggleManualBye(id);
-        }
-        break;
-      case "toggle-round":
-        if (roundIndex !== null) {
-          toggleRoundCollapse(roundIndex);
-        }
-        break;
-      case "complete-round":
-        completeRound();
-        break;
-      case "edit-round":
-        if (roundIndex !== null) {
-          editRound(roundIndex);
-        }
-        break;
-      case "toggle-visibility":
-        toggleLeaderboardVisibility();
-        break;
-      case "toggle-position":
-        togglePositionChanges();
-        break;
-      case "end-tournament":
-        endTournament(showFinalStandings);
-        break;
-      case "toggle-toolbar":
-        toggleToolbar();
-        break;
-      case "export-data":
-        exportTournamentData();
-        break;
-      case "share-results":
-        shareResults();
-        break;
-      case "add-late-player":
-        promptAddLatePlayer();
-        break;
-    }
-  });
-
-  // Change event delegation for selects
-  addListener(container, "change", (e) => {
-    const target = e.target.closest("[data-action]");
-    if (!target) return;
-
-    const action = target.dataset.action;
-    const pairId = target.dataset.pairId ? Number(target.dataset.pairId) : null;
-    const which = target.dataset.which ? parseInt(target.dataset.which) : null;
-
-    if (action === "update-partner" && pairId !== null && which !== null) {
-      updatePreferredPair(pairId, which, Number(target.value));
-      renderPreferredPartners();
-      updateSetupUI();
-      setupCustomSelects();
-    }
-
-    // Handle Race Mode autofill on change (blur)
-    if (action === "autofill-score" && state.scoringMode === "race") {
-      const roundIndex = parseInt(target.dataset.round);
-      const matchIndex = parseInt(target.dataset.match);
-      const team = parseInt(target.dataset.team);
-      const value = target.value;
-      autoFillScore(roundIndex, matchIndex, team, value);
-    }
-  });
-
-  // Global input listener to limit score inputs to 2 digits
-  addListener(container, "input", (e) => {
-    if (e.target.classList.contains("score-input")) {
-      if (e.target.value.length > 2) {
-        e.target.value = e.target.value.slice(0, 2);
-      }
-    }
-
-    // Smart scoring (Total Points only)
-    const target = e.target.closest('[data-action="autofill-score"]');
-    if (!target) return;
-
-    // Skip Race mode on input (wait for blur)
-    if (state.scoringMode === "race") return;
-
-    const roundIndex = parseInt(target.dataset.round);
-    const matchIndex = parseInt(target.dataset.match);
-    const team = parseInt(target.dataset.team);
-    const value = target.value;
-
-    autoFillScore(roundIndex, matchIndex, team, value);
-  });
-}
-
-/**
- * Legacy window functions for backward compatibility.
- * These support onclick="" handlers until all HTML is migrated to data-action.
- */
-function setupLegacyWindowFunctions() {
-  window.removePlayer = (id) => {
-    removePlayer(id);
-    renderPlayers();
-  };
-
-  window.updatePreferredPair = (pairId, which, playerId) => {
-    updatePreferredPair(pairId, which, playerId);
-    renderPreferredPartners();
-  };
-  window.removePreferredPair = (pairId) => {
-    removePreferredPair(pairId);
-    renderPreferredPartners();
-  };
-  window.updateCustomCourtName = updateCustomCourtName;
-  window.autoFillScore = autoFillScore;
-  window.toggleManualBye = toggleManualBye;
-  window.toggleRoundCollapse = toggleRoundCollapse;
-  window.completeRound = completeRound;
-  window.editRound = editRound;
-  window.toggleLeaderboardVisibility = toggleLeaderboardVisibility;
-  window.togglePositionChanges = togglePositionChanges;
-  window.updateRankingCriteria = updateRankingCriteria;
-  window.updateSetupUI = updateSetupUI;
-  window.endTournament = () => endTournament(showFinalStandings);
-  window.validateCourts = validateCourts;
-  window.toggleToolbar = toggleToolbar;
-  window.exportTournamentData = exportTournamentData;
-  window.shareResults = shareResults;
-  window.promptAddLatePlayer = promptAddLatePlayer;
-}
-
 export const generatorPage = {
   /**
    * Mount the generator page.
@@ -754,10 +593,15 @@ export const generatorPage = {
     attachListeners();
 
     // Initialize event delegation for dynamically rendered content
-    initEventDelegation(container);
+    initEventDelegation(
+      container,
+      addListener,
+      promptAddLatePlayer,
+      endTournament
+    );
 
     // Setup legacy window functions for onclick handlers
-    setupLegacyWindowFunctions();
+    setupLegacyWindowFunctions(endTournament, promptAddLatePlayer);
 
     // Initialize UI State
     updateSetupUI();

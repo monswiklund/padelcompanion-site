@@ -1,5 +1,10 @@
 // Custom Select Module
-// Enhanced dropdown UI logic
+// Enhanced dropdown UI logic with proper lifecycle management
+
+// Track global listeners for cleanup
+let globalListenersAttached = false;
+let clickHandler = null;
+let scrollHandler = null;
 
 /**
  * Setup custom styled select dropdowns
@@ -71,10 +76,7 @@ export function setupCustomSelects() {
         // Close
         customSelect.classList.remove("open");
         optionsDiv.classList.remove("show");
-        optionsDiv.style.position = "";
-        optionsDiv.style.top = "";
-        optionsDiv.style.left = "";
-        optionsDiv.style.width = "";
+        resetOptionsStyles(optionsDiv);
       });
 
       optionsDiv.appendChild(optionEl);
@@ -84,16 +86,6 @@ export function setupCustomSelects() {
     customSelect.appendChild(optionsDiv);
     wrapper.appendChild(customSelect);
 
-    // Clean up orphans first
-    const cleanOrphans = () => {
-      document.querySelectorAll("body > .custom-options").forEach((el) => {
-        if (el._owner && !document.body.contains(el._owner)) {
-          el.remove();
-        }
-      });
-    };
-    cleanOrphans();
-
     // Toggle logic
     trigger.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -101,24 +93,7 @@ export function setupCustomSelects() {
       const isOpen = customSelect.classList.contains("open");
 
       // Close other open selects
-      document.querySelectorAll(".custom-select.open").forEach((el) => {
-        if (el !== customSelect) {
-          el.classList.remove("open");
-          if (el.customOptions) {
-            el.customOptions.classList.remove("show");
-            // Return to parent if in body
-            if (el.customOptions.parentElement === document.body) {
-              el.appendChild(el.customOptions);
-            }
-            // Reset styles
-            el.customOptions.style.position = "";
-            el.customOptions.style.top = "";
-            el.customOptions.style.left = "";
-            el.customOptions.style.width = "";
-            el.customOptions.style.margin = "";
-          }
-        }
-      });
+      closeAllSelects(customSelect);
 
       if (isOpen) {
         // Closing current
@@ -130,11 +105,7 @@ export function setupCustomSelects() {
           customSelect.appendChild(optionsDiv);
         }
 
-        optionsDiv.style.position = "";
-        optionsDiv.style.top = "";
-        optionsDiv.style.left = "";
-        optionsDiv.style.width = "";
-        optionsDiv.style.margin = "";
+        resetOptionsStyles(optionsDiv);
       } else {
         // Opening current
         customSelect.classList.add("open");
@@ -162,42 +133,165 @@ export function setupCustomSelects() {
     optionsDiv._owner = customSelect; // For orphan cleanup
   });
 
-  // Global click outside to close
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".custom-select")) {
-      closeAllSelects();
+  // Attach global listeners only once
+  if (!globalListenersAttached) {
+    attachGlobalListeners();
+  }
+
+  // Clean up orphaned options that may have been left in body
+  cleanOrphanedOptions();
+}
+
+/**
+ * Reset inline styles on options div
+ */
+function resetOptionsStyles(optionsDiv) {
+  optionsDiv.style.position = "";
+  optionsDiv.style.top = "";
+  optionsDiv.style.left = "";
+  optionsDiv.style.width = "";
+  optionsDiv.style.margin = "";
+}
+
+/**
+ * Close all open custom selects, optionally excluding one
+ */
+function closeAllSelects(exclude = null) {
+  document.querySelectorAll(".custom-select.open").forEach((el) => {
+    if (el === exclude) return;
+
+    el.classList.remove("open");
+    const opts = el.customOptions || el.querySelector(".custom-options");
+    if (opts) {
+      opts.classList.remove("show");
+      // Return to parent if in body
+      if (opts.parentElement === document.body) {
+        el.appendChild(opts);
+      }
+      resetOptionsStyles(opts);
     }
   });
+}
+
+/**
+ * Attach global event listeners for closing dropdowns
+ */
+function attachGlobalListeners() {
+  // Global click outside to close
+  clickHandler = (e) => {
+    if (
+      !e.target.closest(".custom-select") &&
+      !e.target.closest(".custom-options")
+    ) {
+      closeAllSelects();
+    }
+  };
+  document.addEventListener("click", clickHandler);
 
   // Close on scroll (prevent floating) - but NOT if scrolling inside the dropdown
-  document.addEventListener(
-    "scroll",
-    (e) => {
-      // Don't close if scrolling inside the dropdown options
-      if (e.target.closest && e.target.closest(".custom-options")) {
-        return;
-      }
-      closeAllSelects();
-    },
-    true
-  ); // Capture phase to catch scroll on any element
+  scrollHandler = (e) => {
+    // Don't close if scrolling inside the dropdown options
+    if (e.target.closest && e.target.closest(".custom-options")) {
+      return;
+    }
+    closeAllSelects();
+  };
+  document.addEventListener("scroll", scrollHandler, true); // Capture phase
 
-  function closeAllSelects() {
-    document.querySelectorAll(".custom-select.open").forEach((el) => {
-      el.classList.remove("open");
-      const opts = el.customOptions || el.querySelector(".custom-options");
-      if (opts) {
-        opts.classList.remove("show");
-        // Return to parent if in body
-        if (opts.parentElement === document.body) {
-          el.appendChild(opts);
-        }
-        opts.style.position = "";
-        opts.style.top = "";
-        opts.style.left = "";
-        opts.style.width = "";
-        opts.style.margin = "";
-      }
-    });
+  globalListenersAttached = true;
+}
+
+/**
+ * Clean up orphaned options that were left in body
+ * (happens when components are removed without proper cleanup)
+ */
+function cleanOrphanedOptions() {
+  document.querySelectorAll("body > .custom-options").forEach((el) => {
+    // Check if owner still exists in DOM
+    if (!el._owner || !document.body.contains(el._owner)) {
+      el.remove();
+    }
+  });
+}
+
+/**
+ * Destroy all custom selects and clean up resources
+ * Call this when unmounting a page that uses custom selects
+ */
+export function destroyCustomSelects() {
+  // Close all open selects first
+  closeAllSelects();
+
+  // Clean up orphaned options in body
+  cleanOrphanedOptions();
+
+  // Remove all custom select wrappers and restore original selects
+  document.querySelectorAll(".custom-select-wrapper").forEach((wrapper) => {
+    const select = wrapper.querySelector("select.form-select");
+    if (select) {
+      select.style.display = "";
+      wrapper.parentNode.insertBefore(select, wrapper);
+    }
+    wrapper.remove();
+  });
+
+  // Remove global listeners
+  if (globalListenersAttached) {
+    if (clickHandler) {
+      document.removeEventListener("click", clickHandler);
+      clickHandler = null;
+    }
+    if (scrollHandler) {
+      document.removeEventListener("scroll", scrollHandler, true);
+      scrollHandler = null;
+    }
+    globalListenersAttached = false;
   }
+}
+
+/**
+ * Refresh a specific select element (useful after options change)
+ * @param {HTMLSelectElement} select - The select element to refresh
+ */
+export function refreshCustomSelect(select) {
+  const wrapper = select.closest(".custom-select-wrapper");
+  if (!wrapper) return;
+
+  const customSelect = wrapper.querySelector(".custom-select");
+  const trigger = wrapper.querySelector(".custom-select-trigger");
+  const optionsDiv = wrapper.querySelector(".custom-options");
+
+  if (!customSelect || !trigger || !optionsDiv) return;
+
+  // Update trigger text
+  const selectedOption =
+    select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+  trigger.innerHTML = `<span>${
+    selectedOption ? selectedOption.text : "Select..."
+  }</span>`;
+
+  // Clear and repopulate options
+  optionsDiv.innerHTML = "";
+  Array.from(select.options).forEach((option) => {
+    const optionEl = document.createElement("div");
+    optionEl.classList.add("custom-option");
+    optionEl.textContent = option.text;
+    optionEl.dataset.value = option.value;
+    if (option.selected) optionEl.classList.add("selected");
+
+    optionEl.addEventListener("click", () => {
+      select.value = optionEl.dataset.value;
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      trigger.innerHTML = `<span>${optionEl.textContent}</span>`;
+      optionsDiv
+        .querySelectorAll(".custom-option")
+        .forEach((el) => el.classList.remove("selected"));
+      optionEl.classList.add("selected");
+      customSelect.classList.remove("open");
+      optionsDiv.classList.remove("show");
+      resetOptionsStyles(optionsDiv);
+    });
+
+    optionsDiv.appendChild(optionEl);
+  });
 }

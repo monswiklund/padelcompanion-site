@@ -2,15 +2,14 @@
 // Confirm, Input, Final standings, and Completion modals
 
 import { launchConfetti } from "./confetti.js";
+import {
+  createModal,
+  animateIn,
+  buildHeader,
+  buildBody,
+  buildFooter,
+} from "./modalBase.js";
 
-/**
- * Show a confirmation modal
- * @param {string} title - Modal title
- * @param {string} message - Modal message
- * @param {string} confirmText - Confirm button text
- * @param {Function} onConfirm - Callback on confirm
- * @param {boolean} isDanger - Use danger styling for destructive actions
- */
 /**
  * Show a confirmation modal
  * @param {string} title - Modal title
@@ -30,54 +29,35 @@ export function showConfirmModal(
   secondaryText = null,
   onSecondary = null
 ) {
-  // Remove existing modal
-  const existing = document.querySelector(".confirm-modal");
-  if (existing) existing.remove();
-
-  const modal = document.createElement("div");
-  modal.className = "modal-overlay confirm-modal";
-  modal.style.display = "flex";
+  const { overlay, innerModal, close } = createModal({
+    className: "confirm-modal",
+    maxWidth: "400px",
+  });
 
   const btnClass = isDanger ? "btn btn-danger" : "btn btn-primary";
 
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 400px; text-align: center;">
-      <div class="modal-header">
-        <h3>${title}</h3>
+  innerModal.style.textAlign = "center";
+  innerModal.innerHTML = `
+    ${buildHeader(title)}
+    ${buildBody(`<p>${message}</p>`)}
+    <div class="modal-footer" style="flex-direction: column; gap: 12px;">
+      <div class="modal-actions-row" style="display: flex; gap: 10px; width: 100%;">
+        ${
+          secondaryText
+            ? `<button class="btn btn-outline" id="modalSecondaryBtn" style="flex: 1;">${secondaryText}</button>`
+            : ""
+        }
+        <button class="${btnClass}" id="modalConfirmBtn" style="flex: 1;">${confirmText}</button>
       </div>
-      <div class="modal-body">
-        <p>${message}</p>
-      </div>
-      <div class="modal-footer" style="flex-direction: column; gap: 12px;">
-        <div class="modal-actions-row" style="display: flex; gap: 10px; width: 100%;">
-          ${
-            secondaryText
-              ? `<button class="btn btn-outline" id="modalSecondaryBtn" style="flex: 1;">${secondaryText}</button>`
-              : ""
-          }
-          <button class="${btnClass}" id="modalConfirmBtn" style="flex: 1;">${confirmText}</button>
-        </div>
-        <button class="btn btn-secondary" id="modalCancelBtn" style="width: 100%;">Cancel</button>
-      </div>
+      <button class="btn btn-secondary" id="modalCancelBtn" style="width: 100%;">Cancel</button>
     </div>
   `;
 
-  document.body.appendChild(modal);
+  animateIn(overlay);
 
-  // Animate in (CSS starts with opacity: 0)
-  setTimeout(() => modal.classList.add("visible"), 10);
-
-  // Stop clicks inside modal from bubbling to overlay
-  const innerModal = modal.querySelector(".modal");
-  if (innerModal) {
-    innerModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  const cancelBtn = modal.querySelector("#modalCancelBtn");
-  const confirmBtn = modal.querySelector("#modalConfirmBtn");
-  const secondaryBtn = modal.querySelector("#modalSecondaryBtn");
-
-  const close = () => modal.remove();
+  const cancelBtn = innerModal.querySelector("#modalCancelBtn");
+  const confirmBtn = innerModal.querySelector("#modalConfirmBtn");
+  const secondaryBtn = innerModal.querySelector("#modalSecondaryBtn");
 
   if (cancelBtn) {
     cancelBtn.addEventListener("click", (e) => {
@@ -104,11 +84,6 @@ export function showConfirmModal(
       onSecondary();
     });
   }
-
-  // Click outside (on overlay) to dismiss
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) close();
-  });
 }
 
 /**
@@ -117,21 +92,20 @@ export function showConfirmModal(
  * @param {string} placeholder - Input placeholder
  * @param {Function} onConfirm - Callback with input value
  * @param {string} [description] - Optional description text to display above the input
+ * @param {string} [inputType] - 'text' or 'textarea'
  */
 export function showInputModal(
   title,
   placeholder,
   onConfirm,
   description = "",
-  inputType = "text" // 'text' or 'textarea'
+  inputType = "text"
 ) {
-  // Remove existing modal
-  const existing = document.querySelector(".input-modal");
-  if (existing) existing.remove();
-
-  const modal = document.createElement("div");
-  modal.className = "modal-overlay input-modal";
-  modal.style.display = "flex";
+  const { overlay, innerModal, close } = createModal({
+    className: "input-modal",
+    maxWidth: "400px",
+    dismissOnEscape: false, // We handle escape separately for input
+  });
 
   const descriptionHtml = description
     ? `<p class="modal-hint" style="margin-bottom: var(--space-md); text-align: left;">${description}</p>`
@@ -142,34 +116,27 @@ export function showInputModal(
       ? `<textarea id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%; min-height: 120px; resize: vertical;"></textarea>`
       : `<input type="text" id="modalInput" class="form-input" placeholder="${placeholder}" style="width: 100%;">`;
 
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 400px; text-align: center;">
-      <div class="modal-header">
-        <h3>${title}</h3>
-      </div>
-      <div class="modal-body">
-        ${descriptionHtml}
-        <div class="form-group">
-          ${inputHtml}
-        </div>
-      </div>
-      <div class="modal-footer" style="justify-content: center; gap: 10px;">
-        <button class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
-        <button class="btn btn-primary" id="modalConfirmBtn">Add</button>
+  innerModal.style.textAlign = "center";
+  innerModal.innerHTML = `
+    ${buildHeader(title)}
+    <div class="modal-body">
+      ${descriptionHtml}
+      <div class="form-group">
+        ${inputHtml}
       </div>
     </div>
+    ${buildFooter(
+      `<button class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
+       <button class="btn btn-primary" id="modalConfirmBtn">Add</button>`,
+      { "justify-content": "center", gap: "10px" }
+    )}
   `;
 
-  document.body.appendChild(modal);
+  animateIn(overlay);
 
-  // Animate in (CSS starts with opacity: 0)
-  setTimeout(() => modal.classList.add("visible"), 10);
-
-  const input = modal.querySelector("#modalInput");
-  const cancelBtn = modal.querySelector("#modalCancelBtn");
-  const confirmBtn = modal.querySelector("#modalConfirmBtn");
-
-  const close = () => modal.remove();
+  const input = innerModal.querySelector("#modalInput");
+  const cancelBtn = innerModal.querySelector("#modalCancelBtn");
+  const confirmBtn = innerModal.querySelector("#modalConfirmBtn");
 
   cancelBtn.onclick = close;
 
@@ -223,7 +190,7 @@ export function showFinalStandings(standings) {
       <div class="modal-actions-row" style="margin-top: 20px; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
         <button class="btn btn-secondary" data-action="share-results">Share</button>
         <button class="btn btn-secondary" data-action="export-data">Download CSV</button>
-        <button class="btn btn-primary" onclick="window.closeFinalModal()">Close</button>
+        <button class="btn btn-primary" data-action="close-final-modal">Close</button>
       </div>
     </div>
   `;
@@ -234,6 +201,13 @@ export function showFinalStandings(standings) {
 
   // Animate in
   setTimeout(() => modal.classList.add("visible"), 10);
+
+  // Handle close button via delegation
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest('[data-action="close-final-modal"]')) {
+      closeFinalModal();
+    }
+  });
 }
 
 /**
@@ -261,45 +235,25 @@ export function closeFinalModal() {
  * @param {Function} onDismiss - Optional callback on dismiss
  */
 export function showAlertModal(title, message, onDismiss) {
-  // Remove existing modal
-  const existing = document.querySelector(".alert-modal");
-  if (existing) existing.remove();
+  const { overlay, innerModal, close } = createModal({
+    className: "alert-modal",
+    maxWidth: "400px",
+    onClose: onDismiss,
+  });
 
-  const modal = document.createElement("div");
-  modal.className = "modal-overlay alert-modal";
-  modal.style.display = "flex";
-
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 400px; text-align: center;">
-      <div class="modal-header">
-        <h3>${title}</h3>
-      </div>
-      <div class="modal-body">
-        <p>${message}</p>
-      </div>
-      <div class="modal-footer" style="justify-content: center;">
-        <button class="btn btn-primary" id="modalOkBtn">OK</button>
-      </div>
-    </div>
+  innerModal.style.textAlign = "center";
+  innerModal.innerHTML = `
+    ${buildHeader(title)}
+    ${buildBody(`<p>${message}</p>`)}
+    ${buildFooter(
+      `<button class="btn btn-primary" id="modalOkBtn">OK</button>`,
+      { "justify-content": "center" }
+    )}
   `;
 
-  document.body.appendChild(modal);
+  animateIn(overlay);
 
-  // Animate in
-  setTimeout(() => modal.classList.add("visible"), 10);
-
-  const innerModal = modal.querySelector(".modal");
-  if (innerModal) {
-    innerModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  const okBtn = modal.querySelector("#modalOkBtn");
-
-  const close = () => {
-    modal.remove();
-    if (onDismiss) onDismiss();
-  };
-
+  const okBtn = innerModal.querySelector("#modalOkBtn");
   if (okBtn) {
     okBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -307,15 +261,6 @@ export function showAlertModal(title, message, onDismiss) {
       close();
     });
   }
-
-  // Click outside to dismiss
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) close();
-  });
-  // Click outside to dismiss
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) close();
-  });
 }
 
 /**
@@ -324,51 +269,30 @@ export function showAlertModal(title, message, onDismiss) {
  * @param {string} htmlContent - HTML content to display
  */
 export function showInfoModal(title, htmlContent) {
-  // Remove existing modal
-  const existing = document.querySelector(".info-modal");
-  if (existing) existing.remove();
+  const { overlay, innerModal, close } = createModal({
+    className: "info-modal",
+    maxWidth: "500px",
+  });
 
-  const modal = document.createElement("div");
-  modal.className = "modal-overlay info-modal";
-  modal.style.display = "flex";
-
-  modal.innerHTML = `
-    <div class="modal" style="max-width: 500px; text-align: left;">
-      <div class="modal-header">
-        <h3>${title}</h3>
-        <button class="close-modal" id="modalCloseX" style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:var(--text-muted);">&times;</button>
-      </div>
-      <div class="modal-body" style="font-size: 0.95rem; line-height: 1.6;">
-        ${htmlContent}
-      </div>
-      <div class="modal-footer" style="justify-content: flex-end;">
-        <button class="btn btn-primary btn-sm" id="modalOkBtn">Got it</button>
-      </div>
+  innerModal.style.textAlign = "left";
+  innerModal.innerHTML = `
+    ${buildHeader(title, true)}
+    <div class="modal-body" style="font-size: 0.95rem; line-height: 1.6;">
+      ${htmlContent}
     </div>
+    ${buildFooter(
+      `<button class="btn btn-primary btn-sm" id="modalOkBtn">Got it</button>`,
+      { "justify-content": "flex-end" }
+    )}
   `;
 
-  document.body.appendChild(modal);
+  animateIn(overlay);
 
-  // Animate in
-  setTimeout(() => modal.classList.add("visible"), 10);
-
-  const innerModal = modal.querySelector(".modal");
-  if (innerModal) {
-    innerModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  const okBtn = modal.querySelector("#modalOkBtn");
-  const closeX = modal.querySelector("#modalCloseX");
-
-  const close = () => modal.remove();
+  const okBtn = innerModal.querySelector("#modalOkBtn");
+  const closeX = innerModal.querySelector(".modal-close-x");
 
   if (okBtn) okBtn.onclick = close;
   if (closeX) closeX.onclick = close;
-
-  // Click outside to dismiss
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) close();
-  });
 }
 
 /**
@@ -441,6 +365,3 @@ export function showCountdown() {
     timeoutId = setTimeout(showNext, 100);
   });
 }
-
-// Global registration for onclick handlers
-window.closeFinalModal = closeFinalModal;
