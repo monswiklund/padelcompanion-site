@@ -10,7 +10,7 @@ import {
 import { PreferredPartners } from "@/components/tournament/PreferredPartners";
 import { useTournament } from "@/context/TournamentContext";
 // Import legacy functions
-import { generateSchedule } from "../../ui/index.js";
+import { generateSchedule } from "../../ui/setup/scheduleGeneration.js";
 import { state as legacyState } from "../../core/state.js";
 
 interface GeneratorPlayer {

@@ -1,42 +1,39 @@
 /**
  * Schedule Generation Module
- * Handles tournament schedule generation and lifecycle.
+ * Pure logic for tournament schedule generation.
+ * Refactored to work with React context - no DOM dependencies.
  */
 
 import { state, saveState, pushHistory } from "../../core/state.js";
-import { getElements } from "../elements.js";
-import { showToast } from "../../../shared/utils.js";
+import { showToast } from "../../../shared/utils";
 import {
   showConfirmModal,
   showAlertModal,
   showCountdown,
-} from "../../core/modals.js";
-import { saveToHistory, renderHistoryList } from "../../history/index.js";
+} from "../../core/modals";
+import { saveToHistory } from "../../history/repository";
 import {
   generateAmericanoSchedule,
   generateTeamSchedule,
   generateMexicanoFirstRound,
   generateTeamMexicanoFirstRound,
 } from "../../scoring/index.js";
-import { renderLeaderboard } from "../leaderboard.js";
 
 // Forward declaration for renderSchedule
-let renderScheduleCallback = null;
+let renderScheduleCallback: (() => void) | null = null;
 
 /**
- * Set callback for schedule rendering.
- * @param {Function} fn - Callback function
+ * Set callback for schedule rendering (called after generation).
  */
-export function setRenderScheduleCallback(fn) {
+export function setRenderScheduleCallback(fn: () => void): void {
   renderScheduleCallback = fn;
 }
 
 /**
  * Generate tournament schedule.
+ * Updates legacy state and triggers re-render.
  */
-export function generateSchedule() {
-  const els = getElements();
-
+export function generateSchedule(): void {
   const isTeam = state.format === "team" || state.format === "teamMexicano";
   const minPlayers = isTeam ? 2 : 4;
 
@@ -58,7 +55,7 @@ export function generateSchedule() {
 
   const startGeneration = () => {
     pushHistory();
-    state.leaderboard = state.players.map((p) => ({
+    state.leaderboard = state.players.map((p: any) => ({
       ...p,
       points: 0,
       wins: 0,
@@ -83,30 +80,10 @@ export function generateSchedule() {
       state.allRounds = null;
     }
 
-    els.leaderboardSection.style.display = "block";
-    renderLeaderboard();
-    if (renderScheduleCallback) renderScheduleCallback();
-    els.scheduleSection.style.display = "block";
-
-    const actionsSection = document.getElementById("tournamentActionsSection");
-    if (actionsSection) actionsSection.style.display = "block";
-
-    els.scheduleSection.scrollIntoView({ behavior: "smooth" });
-
-    // Animate first round
-    setTimeout(() => {
-      const firstRound = document.getElementById("round-0");
-      if (firstRound) {
-        firstRound.classList.add("animate-in", "highlight");
-        setTimeout(() => {
-          firstRound.classList.remove("animate-in", "highlight");
-        }, 1600);
-      }
-    }, 100);
-
     state.isLocked = true;
     saveState();
 
+    if (renderScheduleCallback) renderScheduleCallback();
     showToast(`🎾 Tournament started! Round 1 ready`);
   };
 
@@ -121,7 +98,6 @@ export function generateSchedule() {
 
     const oldCourts = state.courts;
     state.courts = maxPossibleCourts;
-    if (els.courts) els.courts.value = state.courts;
     showToast(`Adjusted courts: ${oldCourts} → ${maxPossibleCourts}`);
   }
 
@@ -131,11 +107,9 @@ export function generateSchedule() {
 }
 
 /**
- * Reset tournament schedule.
+ * Reset tournament schedule (confirmation modal).
  */
-export function resetSchedule() {
-  const els = getElements();
-
+export function resetSchedule(): void {
   showConfirmModal(
     "Reset Tournament?",
     "This will clear all rounds and scores.",
@@ -149,10 +123,6 @@ export function resetSchedule() {
       state.isLocked = false;
       state.hideLeaderboard = false;
       state.manualByes = [];
-
-      els.scheduleSection.style.display = "none";
-      els.leaderboardSection.style.display = "none";
-
       saveState();
       showToast("Tournament reset");
     },
@@ -162,9 +132,10 @@ export function resetSchedule() {
 
 /**
  * End tournament and show final standings.
- * @param {Function} showFinalStandingsCallback - Callback to show standings
  */
-export function endTournament(showFinalStandingsCallback) {
+export function endTournament(
+  showFinalStandingsCallback?: (standings: any[]) => void
+): void {
   showConfirmModal(
     "End Tournament?",
     "This will show final standings. This action cannot be undone.",
@@ -173,17 +144,17 @@ export function endTournament(showFinalStandingsCallback) {
       state.isLocked = false;
       state.hideLeaderboard = false;
 
-      const sorted = [...state.leaderboard].sort((a, b) => b.points - a.points);
+      const sorted = [...state.leaderboard].sort(
+        (a: any, b: any) => b.points - a.points
+      );
 
-      saveToHistory();
-      renderHistoryList();
+      saveToHistory(state);
       showToast("Tournament saved to history");
 
       if (showFinalStandingsCallback) {
         showFinalStandingsCallback(sorted);
       }
 
-      renderLeaderboard();
       saveState();
     },
     true
@@ -191,9 +162,9 @@ export function endTournament(showFinalStandingsCallback) {
 }
 
 /**
- * Toggle toolbar visibility.
+ * Toggle toolbar visibility (legacy).
  */
-export function toggleToolbar() {
+export function toggleToolbar(): void {
   const toolbar = document.getElementById("scheduleToolbar");
-  toolbar.classList.toggle("collapsed");
+  if (toolbar) toolbar.classList.toggle("collapsed");
 }

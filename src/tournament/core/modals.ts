@@ -8,27 +8,20 @@ import {
   buildHeader,
   buildBody,
   buildFooter,
-} from "./modalBase.js";
+} from "./modalBase";
 
 /**
  * Show a confirmation modal
- * @param {string} title - Modal title
- * @param {string} message - Modal message
- * @param {string} confirmText - Confirm button text
- * @param {Function} onConfirm - Callback on confirm
- * @param {boolean} isDanger - Use danger styling for destructive actions
- * @param {string} secondaryText - Optional secondary action text
- * @param {Function} onSecondary - Optional callback for secondary action
  */
 export function showConfirmModal(
-  title,
-  message,
+  title: string,
+  message: string,
   confirmText = "Confirm",
-  onConfirm,
+  onConfirm: () => void,
   isDanger = false,
-  secondaryText = null,
-  onSecondary = null
-) {
+  secondaryText: string | null = null,
+  onSecondary: (() => void) | null = null
+): void {
   const { overlay, innerModal, close } = createModal({
     className: "confirm-modal",
     maxWidth: "400px",
@@ -59,22 +52,18 @@ export function showConfirmModal(
   const confirmBtn = innerModal.querySelector("#modalConfirmBtn");
   const secondaryBtn = innerModal.querySelector("#modalSecondaryBtn");
 
-  if (cancelBtn) {
-    cancelBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    });
-  }
+  cancelBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    close();
+  });
 
-  if (confirmBtn) {
-    confirmBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-      onConfirm();
-    });
-  }
+  confirmBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    close();
+    onConfirm();
+  });
 
   if (secondaryBtn && onSecondary) {
     secondaryBtn.addEventListener("click", (e) => {
@@ -88,23 +77,18 @@ export function showConfirmModal(
 
 /**
  * Show an input modal
- * @param {string} title - Modal title
- * @param {string} placeholder - Input placeholder
- * @param {Function} onConfirm - Callback with input value
- * @param {string} [description] - Optional description text to display above the input
- * @param {string} [inputType] - 'text' or 'textarea'
  */
 export function showInputModal(
-  title,
-  placeholder,
-  onConfirm,
+  title: string,
+  placeholder: string,
+  onConfirm: (value: string) => void,
   description = "",
-  inputType = "text"
-) {
+  inputType: "text" | "textarea" = "text"
+): void {
   const { overlay, innerModal, close } = createModal({
     className: "input-modal",
     maxWidth: "400px",
-    dismissOnEscape: false, // We handle escape separately for input
+    dismissOnEscape: false,
   });
 
   const descriptionHtml = description
@@ -134,9 +118,15 @@ export function showInputModal(
 
   animateIn(overlay);
 
-  const input = innerModal.querySelector("#modalInput");
-  const cancelBtn = innerModal.querySelector("#modalCancelBtn");
-  const confirmBtn = innerModal.querySelector("#modalConfirmBtn");
+  const input = innerModal.querySelector("#modalInput") as
+    | HTMLInputElement
+    | HTMLTextAreaElement;
+  const cancelBtn = innerModal.querySelector(
+    "#modalCancelBtn"
+  ) as HTMLButtonElement;
+  const confirmBtn = innerModal.querySelector(
+    "#modalConfirmBtn"
+  ) as HTMLButtonElement;
 
   cancelBtn.onclick = close;
 
@@ -157,16 +147,20 @@ export function showInputModal(
   setTimeout(() => input.focus(), 100);
 }
 
+interface Standing {
+  name: string;
+  points: number;
+  played: number;
+}
+
 /**
  * Show final tournament standings
- * @param {Array} standings - Sorted array of players
  */
-export function showFinalStandings(standings) {
-  // Remove existing modal
+export function showFinalStandings(standings: Standing[]): void {
   const existing = document.querySelector(".final-modal");
   if (existing) existing.remove();
 
-  const medal = (i) =>
+  const medal = (i: number) =>
     i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
 
   const modal = document.createElement("div");
@@ -196,15 +190,14 @@ export function showFinalStandings(standings) {
   `;
   document.body.appendChild(modal);
 
-  // Launch confetti celebration
   launchConfetti();
 
-  // Animate in
   setTimeout(() => modal.classList.add("visible"), 10);
 
-  // Handle close button via delegation
   modal.addEventListener("click", (e) => {
-    if (e.target.closest('[data-action="close-final-modal"]')) {
+    if (
+      (e.target as HTMLElement).closest('[data-action="close-final-modal"]')
+    ) {
       closeFinalModal();
     }
   });
@@ -213,13 +206,12 @@ export function showFinalStandings(standings) {
 /**
  * Close final standings modal
  */
-export function closeFinalModal() {
+export function closeFinalModal(): void {
   const modal = document.querySelector(".final-modal");
   if (modal) {
     modal.classList.remove("visible");
     setTimeout(() => {
       modal.remove();
-      // Scroll to leaderboard after closing
       const leaderboard = document.getElementById("leaderboardSection");
       if (leaderboard) {
         leaderboard.scrollIntoView({ behavior: "smooth" });
@@ -230,11 +222,12 @@ export function closeFinalModal() {
 
 /**
  * Show a simple alert modal
- * @param {string} title - Modal title
- * @param {string} message - Modal message
- * @param {Function} onDismiss - Optional callback on dismiss
  */
-export function showAlertModal(title, message, onDismiss) {
+export function showAlertModal(
+  title: string,
+  message: string,
+  onDismiss?: () => void
+): void {
   const { overlay, innerModal, close } = createModal({
     className: "alert-modal",
     maxWidth: "400px",
@@ -254,21 +247,17 @@ export function showAlertModal(title, message, onDismiss) {
   animateIn(overlay);
 
   const okBtn = innerModal.querySelector("#modalOkBtn");
-  if (okBtn) {
-    okBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      close();
-    });
-  }
+  okBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    close();
+  });
 }
 
 /**
  * Show a rich info modal with HTML content
- * @param {string} title - Modal title
- * @param {string} htmlContent - HTML content to display
  */
-export function showInfoModal(title, htmlContent) {
+export function showInfoModal(title: string, htmlContent: string): void {
   const { overlay, innerModal, close } = createModal({
     className: "info-modal",
     maxWidth: "500px",
@@ -291,15 +280,14 @@ export function showInfoModal(title, htmlContent) {
   const okBtn = innerModal.querySelector("#modalOkBtn");
   const closeX = innerModal.querySelector(".modal-close-x");
 
-  if (okBtn) okBtn.onclick = close;
-  if (closeX) closeX.onclick = close;
+  if (okBtn) (okBtn as HTMLButtonElement).onclick = close;
+  if (closeX) (closeX as HTMLButtonElement).onclick = close;
 }
 
 /**
  * Show a countdown overlay (3-2-1-GO!)
- * @returns {Promise} Resolves when countdown is complete
  */
-export function showCountdown() {
+export function showCountdown(): Promise<void> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.className = "countdown-overlay";
@@ -308,9 +296,8 @@ export function showCountdown() {
     document.body.appendChild(overlay);
 
     let skipped = false;
-    let timeoutId = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    // Skip countdown on click
     const skipCountdown = () => {
       if (skipped) return;
       skipped = true;
@@ -324,12 +311,11 @@ export function showCountdown() {
 
     overlay.addEventListener("click", skipCountdown);
 
-    // Activate overlay
     requestAnimationFrame(() => {
       overlay.classList.add("active");
     });
 
-    const numberEl = overlay.querySelector(".countdown-number");
+    const numberEl = overlay.querySelector(".countdown-number") as HTMLElement;
     const sequence = ["3", "2", "1", "GO!"];
     let index = 0;
 
@@ -337,7 +323,6 @@ export function showCountdown() {
       if (skipped) return;
 
       if (index >= sequence.length) {
-        // Fade out and cleanup
         overlay.classList.remove("active");
         setTimeout(() => {
           overlay.remove();
@@ -351,7 +336,6 @@ export function showCountdown() {
       numberEl.className =
         "countdown-number" + (val === "GO!" ? " countdown-go" : "");
 
-      // Trigger animation reset
       numberEl.style.animation = "none";
       requestAnimationFrame(() => {
         numberEl.style.animation = "";
@@ -361,7 +345,6 @@ export function showCountdown() {
       timeoutId = setTimeout(showNext, val === "GO!" ? 600 : 800);
     };
 
-    // Start after brief delay
     timeoutId = setTimeout(showNext, 100);
   });
 }

@@ -4,7 +4,7 @@ declare module "../../ui/bracket/index.js";
 declare module "../../bracket/index.js";
 declare module "../../ui/components/playerList.js";
 declare module "../../players.js";
-declare module "../../ui/index.js";
+declare module "../../ui/setup/scheduleGeneration.js";
 declare module "../../core/state.js";
 declare module "../../ui/components/toast.js";
 declare module "../../content/help.js";

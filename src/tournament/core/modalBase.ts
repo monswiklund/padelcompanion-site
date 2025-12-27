@@ -1,20 +1,26 @@
 /**
  * Modal Base Module
  * Shared infrastructure for creating consistent modals.
- * Handles: DOM creation, animations, keyboard/click-outside dismissal.
  */
+
+interface ModalOptions {
+  className: string;
+  maxWidth?: string;
+  dismissOnOutsideClick?: boolean;
+  dismissOnEscape?: boolean;
+  onClose?: () => void;
+}
+
+interface ModalResult {
+  overlay: HTMLDivElement;
+  innerModal: HTMLDivElement;
+  close: () => void;
+}
 
 /**
  * Create a modal overlay with inner modal container.
- * @param {Object} options
- * @param {string} options.className - Unique class for this modal type (e.g., 'confirm-modal')
- * @param {string} [options.maxWidth='400px'] - Max width of modal
- * @param {boolean} [options.dismissOnOutsideClick=true] - Close on overlay click
- * @param {boolean} [options.dismissOnEscape=true] - Close on Escape key
- * @param {Function} [options.onClose] - Callback when modal closes
- * @returns {{ overlay: HTMLElement, innerModal: HTMLElement, close: Function }}
  */
-export function createModal(options = {}) {
+export function createModal(options: ModalOptions): ModalResult {
   const {
     className,
     maxWidth = "400px",
@@ -28,15 +34,17 @@ export function createModal(options = {}) {
   if (existing) existing.remove();
 
   // Create overlay
-  const overlay = document.createElement("div");
+  const overlay = document.createElement("div") as HTMLDivElement;
   overlay.className = `modal-overlay ${className}`;
   overlay.style.display = "flex";
 
   // Create inner modal container
-  const innerModal = document.createElement("div");
+  const innerModal = document.createElement("div") as HTMLDivElement;
   innerModal.className = "modal";
   innerModal.style.maxWidth = maxWidth;
   overlay.appendChild(innerModal);
+
+  let escapeHandler: ((e: KeyboardEvent) => void) | null = null;
 
   // Close function
   const close = () => {
@@ -61,9 +69,8 @@ export function createModal(options = {}) {
   }
 
   // Escape key to dismiss
-  let escapeHandler = null;
   if (dismissOnEscape) {
-    escapeHandler = (e) => {
+    escapeHandler = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", escapeHandler);
@@ -74,21 +81,16 @@ export function createModal(options = {}) {
 
 /**
  * Animate modal in (add visible class after paint).
- * @param {HTMLElement} overlay
  */
-export function animateIn(overlay) {
+export function animateIn(overlay: HTMLElement): void {
   document.body.appendChild(overlay);
-  // Trigger after paint for CSS transition
   setTimeout(() => overlay.classList.add("visible"), 10);
 }
 
 /**
  * Build standard modal header HTML.
- * @param {string} title
- * @param {boolean} [showCloseX=false]
- * @returns {string}
  */
-export function buildHeader(title, showCloseX = false) {
+export function buildHeader(title: string, showCloseX = false): string {
   const closeBtn = showCloseX
     ? `<button class="close-modal modal-close-x" style="background:none; border:none; cursor:pointer; font-size:1.5rem; color:var(--text-muted);">&times;</button>`
     : "";
@@ -102,11 +104,11 @@ export function buildHeader(title, showCloseX = false) {
 
 /**
  * Build standard modal body HTML.
- * @param {string} content - Inner HTML content
- * @param {Object} [style] - Optional inline styles
- * @returns {string}
  */
-export function buildBody(content, style = {}) {
+export function buildBody(
+  content: string,
+  style: Record<string, string> = {}
+): string {
   const styleStr = Object.entries(style)
     .map(([k, v]) => `${k}:${v}`)
     .join(";");
@@ -117,11 +119,11 @@ export function buildBody(content, style = {}) {
 
 /**
  * Build standard modal footer HTML.
- * @param {string} buttons - Button HTML
- * @param {Object} [style] - Optional inline styles
- * @returns {string}
  */
-export function buildFooter(buttons, style = {}) {
+export function buildFooter(
+  buttons: string,
+  style: Record<string, string> = {}
+): string {
   const styleStr = Object.entries(style)
     .map(([k, v]) => `${k}:${v}`)
     .join(";");
