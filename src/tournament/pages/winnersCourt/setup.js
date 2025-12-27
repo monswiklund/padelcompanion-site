@@ -18,7 +18,17 @@ import { showToast } from "../../../shared/utils.js";
 import { setupCustomSelects } from "../../ui/customSelect.js";
 import { renderPlayerListItem } from "../../ui/components/playerList.js";
 import { StorageService } from "../../../shared/storage.js";
+import { PageHeader } from "../../ui/components/PageHeader.js";
+import { PlayerManager } from "../../ui/components/PlayerManager.js";
+import { SettingsCard } from "../../ui/components/SettingsCard.js";
 
+/**
+ * Render setup form.
+ * @param {HTMLElement} container - Container element
+ * @param {Object} pageState - Page state { tempPlayers, splitSidesEnabled, listExpanded }
+ * @param {Function} addListener - Listener tracker function
+ * @param {Function} onReRender - Callback to re-render the full page
+ */
 /**
  * Render setup form.
  * @param {HTMLElement} container - Container element
@@ -33,128 +43,163 @@ export function renderSetup(container, pageState, addListener, onReRender) {
   const isGameActive = !!wcState;
   const maxCourts = Math.max(1, Math.floor(pageState.tempPlayers.length / 4));
 
-  container.innerHTML = `
-    <div class="wc-setup ${isGameActive ? "compact" : ""}">
-      <div class="wc-header-row" style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 8px;">
-        <button class="help-icon" id="wcHelpBtn" style="width: 28px; height: 28px; font-size: 1rem; font-weight: bold;">?</button>
-      </div>
+  // --- 1. Page Header ---
+  const headerHtml = PageHeader({
+    title: "Winners Court",
+    subtitle: isGameActive
+      ? "Game in Progress • You can modify players here for the next game."
+      : "Skill-based court promotion",
+    actionId: "wcHelpBtn",
+    actionIcon: "?",
+  });
 
+  // --- 2. Player Manager ---
+  // Custom Skill Input Slot
+  const skillSlot = `
+    <div class="input-group" style="width: 70px;">
+      <label for="wcSkillInput" style="display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
+        Skill 
+        <span id="wcSkillHelp" style="cursor: pointer; opacity: 0.7; font-size: 0.65rem; background: var(--bg-tertiary); border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;">?</span>
+      </label>
+      <select id="wcSkillInput" class="form-select wc-skill-select compact-select">
+        <option value="0" selected>-</option>
+        ${Array.from(
+          { length: 10 },
+          (_, i) => `<option value="${i + 1}">${i + 1}</option>`
+        ).join("")}
+      </select>
+    </div>
+  `;
+
+  // Determine list content (Standard vs Split Sides)
+  const listContent = renderPlayerItems(pageState);
+
+  const playerManagerHtml = PlayerManager({
+    items: pageState.tempPlayers,
+    mode: "players",
+    inputId: "wcNameInput",
+    addBtnId: "addPlayerBtn",
+    importBtnId: "importBtn",
+    clearBtnId: "clearAllBtn",
+    listId: "wcPlayersList",
+    toggleBtnId: "wcTogglePlayersBtn",
+    hintId: "wcPlayersHint",
+    // We pass null for renderItem because we provide customListContent
+    renderItem: null,
+    customInputSlot: skillSlot,
+    customListContent: listContent,
+    hintText: getPlayersHint(pageState),
+  });
+
+  // --- 3. Settings Section ---
+  const settingsHtml = `
+    <div class="wc-options" style="display: flex; justify-content: center; flex-wrap: wrap; gap: 16px;">
       ${
-        isGameActive
-          ? `<p class="wc-description" style="margin-bottom: 12px; color: var(--success);">
-          <span style="font-weight: bold;">Game in Progress</span> • You can modify players here for the next game.
-         </p>`
-          : `<p class="wc-description">Enter players with skill ratings (1-10) to create balanced court assignments.</p>`
+        !pageState.splitSidesEnabled
+          ? `
+      <div class="wc-option">
+        <label for="wcCourts">Courts</label>
+        <select id="wcCourts" class="form-input">
+          ${Array.from({ length: maxCourts + 1 }, (_, i) => i + 1)
+            .filter((n) => n <= maxCourts || n === 1)
+            .map(
+              (n) =>
+                `<option value="${n}" ${
+                  n === maxCourts ? "selected" : ""
+                }>${n} Court${n > 1 ? "s" : ""} (${n * 4} players)</option>`
+            )
+            .join("")}
+        </select>
+      </div>
+      `
+          : ""
       }
       
-      <div class="wc-form">
-        <!-- Players Section -->
-        <div class="players-section" style="${
-          isGameActive ? "border-color: var(--accent);" : ""
-        } max-width: 700px; margin: 0 auto;">
-          <div class="section-header">
-            <h3>Players <span id="wcPlayerCount">(${
-              pageState.tempPlayers.length
-            })</span></h3>
-            <div class="player-actions">
-              <button class="btn btn-sm btn-secondary" id="importBtn">Import...</button>
-              <button class="btn btn-sm btn-danger" id="clearAllBtn">Clear All</button>
-            </div>
-          </div>
-          
-          <div class="player-input-row" style="display: flex; gap: 12px; align-items: flex-end;">
-            <div class="input-group" style="flex: 1;">
-              <label for="wcNameInput" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Name</label>
-              <input type="text" id="wcNameInput" class="form-input" placeholder="Enter name..." />
-            </div>
-            <div class="input-group" style="width: 70px;">
-              <label for="wcSkillInput" style="display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
-                Skill 
-                <span id="wcSkillHelp" style="cursor: pointer; opacity: 0.7; font-size: 0.65rem; background: var(--bg-tertiary); border-radius: 50%; width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center;">?</span>
-              </label>
-              <select id="wcSkillInput" class="form-select wc-skill-select compact-select">
-                <option value="0" selected>-</option>
-                ${Array.from(
-                  { length: 10 },
-                  (_, i) => `<option value="${i + 1}">${i + 1}</option>`
-                ).join("")}
-              </select>
-            </div>
-            <button class="btn btn-primary" id="addPlayerBtn" style="height: 44px;">Add</button>
-          </div>
-          
-          <ul class="player-list custom-scrollbar-y" id="wcPlayersList" style="display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; padding: 4px; max-height: 400px !important; overflow-y: auto !important; transition: max-height 0.3s ease-out !important;">
-            ${renderPlayerItems(pageState)}
-          </ul>
-           <button class="btn btn-sm btn-secondary" id="wcTogglePlayersBtn" style="width: 100%; margin-top: 8px; display: none;">Show All (${
-             pageState.tempPlayers.length
-           })</button>
-          
-          ${renderSideSummary(pageState)}
-          
-          <p class="players-hint" id="wcPlayersHint">${getPlayersHint(
-            pageState
-          )}</p>
-        </div>
-        
-        <!-- Options Section -->
-        <div class="wc-options">
-          ${
-            !pageState.splitSidesEnabled
-              ? `
-          <div class="wc-option">
-            <label for="wcCourts">Courts</label>
-            <select id="wcCourts" class="form-input">
-              ${Array.from({ length: maxCourts + 1 }, (_, i) => i + 1)
-                .filter((n) => n <= maxCourts || n === 1)
-                .map(
-                  (n) =>
-                    `<option value="${n}" ${
-                      n === maxCourts ? "selected" : ""
-                    }>${n} Court${n > 1 ? "s" : ""} (${n * 4} players)</option>`
-                )
-                .join("")}
-            </select>
-          </div>
-          `
-              : ""
-          }
-          
-          <label class="wc-toggle">
-            <input type="checkbox" id="wcTwist" />
-            <span class="slider round"></span>
-            <span class="toggle-label">Twist Mode</span>
-          </label>
-          
-          <label class="wc-toggle">
-            <input type="checkbox" id="wcSplitSides" ${
-              pageState.splitSidesEnabled ? "checked" : ""
-            } />
-            <span class="slider round"></span>
-            <span class="toggle-label">Split Sides (A/B)</span>
-          </label>
-          
-          ${
-            pageState.splitSidesEnabled
-              ? `
-            <button class="btn btn-sm btn-secondary" id="wcAutoAssignBtn" style="white-space: nowrap;">
-              Auto-Assign by Skill
-            </button>
-          `
-              : ""
-          }
-        </div>
-        
-        ${
-          !isGameActive
-            ? `<button class="btn btn-primary btn-lg" id="generateWcBtn" ${
-                pageState.tempPlayers.length < 4 ? "disabled" : ""
-              }>Generate Winners Court</button>`
-            : `<div style="text-align: center; margin-top: 10px;">
-             <button class="btn btn-secondary btn-sm" id="restartWcBtn">Restart / New Game</button>
-           </div>`
-        }
-      </div>
+      <label class="wc-toggle">
+        <input type="checkbox" id="wcTwist" />
+        <span class="slider round"></span>
+        <span class="toggle-label">Twist Mode</span>
+      </label>
+      
+      <label class="wc-toggle">
+        <input type="checkbox" id="wcSplitSides" ${
+          pageState.splitSidesEnabled ? "checked" : ""
+        } />
+        <span class="slider round"></span>
+        <span class="toggle-label">Split Sides (A/B)</span>
+      </label>
+      
+      ${
+        pageState.splitSidesEnabled
+          ? `
+        <button class="btn btn-sm btn-secondary" id="wcAutoAssignBtn" style="white-space: nowrap;">
+          Auto-Assign by Skill
+        </button>
+      `
+          : ""
+      }
+    </div>
+  `;
+
+  const settingsCardHtml = SettingsCard({
+    content: settingsHtml,
+    style: "text-align: center;",
+  });
+
+  // --- 4. Main Actions ---
+  const mainActionsHtml = !isGameActive
+    ? `<button class="btn btn-primary btn-lg" id="generateWcBtn" ${
+        pageState.tempPlayers.length < 4 ? "disabled" : ""
+      } style="display: block; margin: 0 auto;">Generate Winners Court</button>`
+    : `<div style="text-align: center; margin-top: 10px;">
+           <button class="btn btn-secondary btn-sm" id="restartWcBtn">Restart / New Game</button>
+         </div>`;
+
+  // --- Render to Container ---
+  // Note: PageHeader is technically rendered in index.js for this page?
+  // Checking index.js:
+  // container.innerHTML = `
+  //     <div class="page-intro-header">...</div>
+  //     <div id="wcSetupContainer"></div> ...
+  // `
+  // So index.js renders the header. But our plan says "Replace header with PageHeader".
+  // If we put PageHeader INSIDE setup container, we might duplicate it or need to remove it from index.js.
+  // However, removing it from index.js makes index.js cleaner.
+  // Let's assume we want to CONTROL the header from here if we want to change subtitles dynamically (Game in Progress).
+  //
+  // BUT: index.js renders the container structure ONCE, and Setup re-renders inside #wcSetupContainer.
+  // If we put the header in #wcSetupContainer, it will re-render with the setup form. That's fine.
+  // But we need to remove the static header from index.js then.
+  // For now, let's keep the header in index.js?
+  // "Game in Progress" subtitle IS distinct.
+  //
+  // Let's render everything into #wcSetupContainer.
+  // BUT the header should probably be outside the setup form card?
+  //
+  // Decision: Render PageHeader primarily in index.js, but since we are refactoring setup.js:
+  // The implementations plan said: "[MODIFY] winnersCourt/setup.js ... Replace header with PageHeader"
+  // This implies we move header rendering here OR update index.js to use PageHeader.
+  // Let's verify index.js content. It has:
+  // container.innerHTML = `
+  //   <div class="page-intro-header">...</div>
+  //   <div id="wcSetupContainer"></div>
+  // `
+  // If I add PageHeader to setup.js, I need to remove it from index.js.
+  // I will check index.js content again.
+
+  container.innerHTML = `
+    <div class="wc-setup ${isGameActive ? "compact" : ""}">
+      ${headerHtml}
+      
+      ${/* Player Manager Card */ ""}
+      ${SettingsCard({
+        content: playerManagerHtml + renderSideSummary(pageState),
+      })}
+      
+      ${/* Settings Card (Split Twist etc) */ ""}
+      ${settingsCardHtml}
+      
+      ${mainActionsHtml}
     </div>
   `;
 

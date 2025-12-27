@@ -87,11 +87,6 @@ export const winnersCourtPage = {
     removeAllListeners();
 
     container.innerHTML = `
-      <div class="page-intro-header">
-        <h2>Winners Court</h2>
-        <p>Skill-based court promotion</p>
-      </div>
-
       <div id="wcSetupContainer"></div>
       <div id="wcActiveContainer"></div>
     `;

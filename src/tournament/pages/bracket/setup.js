@@ -18,6 +18,9 @@ import {
   initBracketTournament,
   initDualBracketTournament,
 } from "../../bracket/index.js";
+import { PageHeader } from "../../ui/components/PageHeader.js";
+import { PlayerManager } from "../../ui/components/PlayerManager.js";
+import { SettingsCard } from "../../ui/components/SettingsCard.js";
 
 // Setup State
 let tempTeams = [];
@@ -498,180 +501,177 @@ export function renderSetup(container, onComplete) {
   const savedDualMode =
     StorageService.getItem("bracket_dual_mode", "false") === "true";
 
-  container.innerHTML = `
-    <div class="bracket-empty-state">
-      <div class="page-intro-header">
-        <h2>Create a Bracket</h2>
-        <p>Set up a single elimination tournament bracket.</p>
-      </div>
-      
-      <!-- Section 1: Players/Teams List -->
-      <div class="bracket-setup-card" style="max-width: 700px; margin: 0 auto 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <h3 style="margin: 0;">${getModeLabel()} <span id="bracketTeamCount">(${
-    tempTeams.length
-  })</span></h3>
-            <button class="help-icon" id="bracketHelpBtn" style="width: 24px; height: 24px; font-size: 0.9rem; font-weight: bold;">?</button>
-          </div>
-          <div class="player-actions">
-            <button class="btn btn-sm btn-secondary" id="importTeamsBtn">Import...</button>
-            <button class="btn btn-sm btn-danger" id="clearAllTeamsBtn">Clear All</button>
-          </div>
-        </div>
-        
-        <div class="player-input-row" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
-          <div class="input-group" style="flex: 1;">
-            <label for="bracketTeamInput" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">${getModeLabelSingular()} Name</label>
-            <input type="text" id="bracketTeamInput" class="form-input" placeholder="${getModeInputPlaceholder()}" />
-          </div>
-          <button class="btn btn-primary" id="addTeamBtn" style="height: 44px;">Add</button>
-        </div>
-        
-        <ul id="bracketTeamsList" class="player-list custom-scrollbar-y" style="max-height: 300px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; padding: 4px; margin: 0;">
-          ${renderTeamItems()}
-        </ul>
-        <button class="btn btn-sm btn-secondary" id="bracketToggleTeamsBtn" style="width: 100%; margin-top: 8px; display: none;">Show All (${
-          tempTeams.length
-        })</button>
-        
-        <p class="players-hint" id="bracketTeamsHint" style="margin-top: 12px; text-align: center;">${getTeamsHint()}</p>
-        <p class="form-hint" style="margin-top: 8px; text-align: center;">
-          Use 4, 8, 16, or 32 ${
-            bracketMode === "players" ? "players" : "teams"
-          } for perfect brackets. 
-          <button type="button" id="bracketHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
-        </p>
-      </div>
-      
-      <!-- Section 2: Settings -->
-      <div class="bracket-setup-card" style="max-width: 700px; margin: 0 auto 20px; padding: 20px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-        <div class="settings-section" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-          <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <span style="color: ${
-              bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
-            }; font-weight: ${
+  // --- 1. Page Header ---
+  const headerHtml = PageHeader({
+    title: "Create a Bracket",
+    subtitle: "Set up a single elimination tournament bracket.",
+    actionId: "bracketHelpBtn",
+    actionIcon: "?",
+  });
+
+  // --- 2. Player Manager ---
+  const listContent = renderTeamItems();
+
+  // Custom Slot for Mode Toggle (Teams vs Players)
+  // We can put this in the customInputSlot or maybe just keep it in settings?
+  // The original UI had the toggles in settings, effectively.
+  // BUT: "Teams" or "Players" label in PlayerManager depends on `bracketMode`.
+
+  const playerManagerHtml = PlayerManager({
+    items: tempTeams,
+    mode: bracketMode, // "teams" or "players"
+    inputId: "bracketTeamInput",
+    addBtnId: "addTeamBtn",
+    importBtnId: "importTeamsBtn",
+    clearBtnId: "clearAllTeamsBtn",
+    listId: "bracketTeamsList",
+    toggleBtnId: "bracketToggleTeamsBtn",
+    hintId: "bracketTeamsHint",
+    renderItem: null, // Using customListContent
+    customListContent: listContent,
+    hintText: getTeamsHint(),
+  });
+
+  // --- 3. Settings ---
+  // We need to preserve the toggles for Mode, Dual Mode, Score Type.
+  const settingsHtml = `
+    <div class="settings-section" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <span style="color: ${
+          bracketMode === "teams" ? "var(--accent)" : "var(--text-muted)"
+        }; font-weight: ${
     bracketMode === "teams" ? "600" : "400"
   };">Teams</span>
-            <input type="checkbox" id="bracketModeToggle" ${
-              bracketMode === "players" ? "checked" : ""
-            } />
-            <span class="slider round"></span>
-            <span style="color: ${
-              bracketMode === "players" ? "var(--accent)" : "var(--text-muted)"
-            }; font-weight: ${
+        <input type="checkbox" id="bracketModeToggle" ${
+          bracketMode === "players" ? "checked" : ""
+        } />
+        <span class="slider round"></span>
+        <span style="color: ${
+          bracketMode === "players" ? "var(--accent)" : "var(--text-muted)"
+        }; font-weight: ${
     bracketMode === "players" ? "600" : "400"
   };">Players</span>
-          </label>
-          <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" id="bracketDualMode" ${
-              savedDualMode ? "checked" : ""
-            } />
-            <span class="slider round"></span>
-            <span>Pool Play</span>
-          </label>
-          
-          <!-- Score Type -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 0.85rem; color: var(--text-secondary);">Score:</span>
-            <select id="bracketScoreType" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
-              <option value="points" ${
-                StorageService.getItem("bracket_score_type") === "points" ||
-                !StorageService.getItem("bracket_score_type")
-                  ? "selected"
-                  : ""
-              }>Points</option>
-              <option value="games" ${
-                StorageService.getItem("bracket_score_type") === "games"
-                  ? "selected"
-                  : ""
-              }>Games</option>
-              <option value="sets" ${
-                StorageService.getItem("bracket_score_type") === "sets"
-                  ? "selected"
-                  : ""
-              }>Sets</option>
-            </select>
-          </div>
+      </label>
+      <label class="wc-toggle" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="bracketDualMode" ${
+          savedDualMode ? "checked" : ""
+        } />
+        <span class="slider round"></span>
+        <span>Pool Play</span>
+      </label>
+      
+      <!-- Score Type -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">Score:</span>
+        <select id="bracketScoreType" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+          <option value="points" ${
+            StorageService.getItem("bracket_score_type") === "points" ||
+            !StorageService.getItem("bracket_score_type")
+              ? "selected"
+              : ""
+          }>Points</option>
+          <option value="games" ${
+            StorageService.getItem("bracket_score_type") === "games"
+              ? "selected"
+              : ""
+          }>Games</option>
+          <option value="sets" ${
+            StorageService.getItem("bracket_score_type") === "sets"
+              ? "selected"
+              : ""
+          }>Sets</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Pool Settings Section (only visible when Multi-Brackets enabled) -->
+    <div id="poolSettingsSection" style="display: ${
+      savedDualMode ? "flex" : "none"
+    }; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); margin-top: 16px;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pool Settings</div>
+      
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: center;">
+        <!-- Number of Pools -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Pools:</span>
+          <select id="bracketCount" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+            ${[2, 3, 4, 5, 6]
+              .map(
+                (n) =>
+                  `<option value="${n}" ${
+                    parseInt(StorageService.getItem("bracket_count", "2")) === n
+                      ? "selected"
+                      : ""
+                  }>${n} (${String.fromCharCode(65)}...${String.fromCharCode(
+                    64 + n
+                  )})</option>`
+              )
+              .join("")}
+          </select>
         </div>
         
-        <!-- Pool Settings Section (only visible when Multi-Brackets enabled) -->
-        <div id="poolSettingsSection" style="display: ${
-          savedDualMode ? "flex" : "none"
-        }; flex-direction: column; gap: 12px; padding: 12px; background: var(--bg-secondary); border-radius: var(--radius-md); margin-top: 16px;">
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Pool Settings</div>
-          
-          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: center;">
-            <!-- Number of Pools -->
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.85rem; color: var(--text-secondary);">Pools:</span>
-              <select id="bracketCount" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
-                ${[2, 3, 4, 5, 6]
-                  .map(
-                    (n) =>
-                      `<option value="${n}" ${
-                        parseInt(
-                          StorageService.getItem("bracket_count", "2")
-                        ) === n
-                          ? "selected"
-                          : ""
-                      }>${n} (${String.fromCharCode(
-                        65
-                      )}...${String.fromCharCode(64 + n)})</option>`
-                  )
-                  .join("")}
-              </select>
-            </div>
-            
-            <!-- Pair Finals Toggle -->
-            <label class="wc-toggle" id="sharedFinalLabel" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="bracketSharedFinal" ${
-                StorageService.getItem("bracket_shared_final") !== "false"
-                  ? "checked"
-                  : ""
-              } />
-              <span class="slider round"></span>
-              <span>Pair Finals 🏆</span>
-            </label>
+        <!-- Pair Finals Toggle -->
+        <label class="wc-toggle" id="sharedFinalLabel" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="bracketSharedFinal" ${
+            StorageService.getItem("bracket_shared_final") !== "false"
+              ? "checked"
+              : ""
+          } />
+          <span class="slider round"></span>
+          <span>Pair Finals 🏆</span>
+        </label>
 
-            <!-- Assignment Method -->
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.85rem; color: var(--text-secondary);">Assign:</span>
-              <select id="bracketSideAssign" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
-                <option value="random" ${
-                  StorageService.getItem("bracket_side_assign") === "random" ||
-                  !StorageService.getItem("bracket_side_assign")
-                    ? "selected"
-                    : ""
-                }>Random</option>
-                <option value="alternate" ${
-                  StorageService.getItem("bracket_side_assign") === "alternate"
-                    ? "selected"
-                    : ""
-                }>Alternate</option>
-                <option value="half" ${
-                  StorageService.getItem("bracket_side_assign") === "half"
-                    ? "selected"
-                    : ""
-                }>Split by Pool</option>
-                <option value="manual" ${
-                  StorageService.getItem("bracket_side_assign") === "manual"
-                    ? "selected"
-                    : ""
-                }>Manual</option>
-              </select>
-              <button type="button" id="assignHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
-            </div>
-          </div>
+        <!-- Assignment Method -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.85rem; color: var(--text-secondary);">Assign:</span>
+          <select id="bracketSideAssign" class="form-input" style="padding: 4px 8px; font-size: 0.85rem;">
+            <option value="random" ${
+              StorageService.getItem("bracket_side_assign") === "random" ||
+              !StorageService.getItem("bracket_side_assign")
+                ? "selected"
+                : ""
+            }>Random</option>
+            <option value="alternate" ${
+              StorageService.getItem("bracket_side_assign") === "alternate"
+                ? "selected"
+                : ""
+            }>Alternate</option>
+            <option value="half" ${
+              StorageService.getItem("bracket_side_assign") === "half"
+                ? "selected"
+                : ""
+            }>Split by Pool</option>
+            <option value="manual" ${
+              StorageService.getItem("bracket_side_assign") === "manual"
+                ? "selected"
+                : ""
+            }>Manual</option>
+          </select>
+          <button type="button" id="assignHelp" class="help-btn" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: bold; padding: 0 4px;">?</button>
         </div>
       </div>
-      
-      <!-- Section 3: Preview (Full Width) -->
+    </div>
+  `;
+
+  const settingsCardHtml = SettingsCard({
+    content: settingsHtml,
+  });
+
+  // --- 4. Preview ---
+  const previewHtml = `
       <div id="bracketPreview" class="bracket-preview" style="margin: 20px auto; padding: 15px; background: var(--bg-tertiary); border-radius: var(--radius-md); display: ${
         tempTeams.length >= 2 ? "block" : "none"
       };">
         <div id="bracketPreviewContent"></div>
       </div>
+  `;
+
+  container.innerHTML = `
+    <div class="bracket-empty-state">
+      ${headerHtml}
+      ${SettingsCard({ content: playerManagerHtml })}
+      ${settingsCardHtml}
+      ${previewHtml}
       
       <button class="btn btn-primary" id="createBracketBtn" ${
         tempTeams.length < 2 ? "disabled" : ""
