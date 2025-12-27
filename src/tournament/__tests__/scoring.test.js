@@ -8,7 +8,7 @@ import {
   generateTeamMexicanoNextRound,
   updatePlayerStats,
   subtractPlayerStats,
-} from "../scoring.js";
+} from "../scoring/index.js";
 import { state } from "../state.js";
 
 describe("Tournament Scoring Logic", () => {

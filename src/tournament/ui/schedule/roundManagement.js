@@ -13,7 +13,7 @@ import {
   subtractPlayerStats,
   generateMexicanoNextRound,
   generateTeamMexicanoNextRound,
-} from "../../scoring.js";
+} from "../../scoring/index.js";
 import {
   validateRoundScores,
   checkRaceScores,

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { generateMexicanoNextRound } from "./scoring.js";
+import { generateMexicanoNextRound } from "./scoring/index.js";
 import { state } from "./state.js";
 
 describe("Mexicano Scoring Logic", () => {

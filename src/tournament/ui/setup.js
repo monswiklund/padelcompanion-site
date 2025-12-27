@@ -11,7 +11,7 @@ import {
   generateTeamSchedule,
   generateMexicanoFirstRound,
   generateTeamMexicanoFirstRound,
-} from "../scoring.js";
+} from "../scoring/index.js";
 import { renderLeaderboard } from "./leaderboard.js";
 import { updateAddPartnerPairButton } from "./partners.js";
 

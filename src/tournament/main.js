@@ -17,7 +17,7 @@ import { initPWA } from "../shared/pwa.js";
 import { showInfoModal } from "./modals.js";
 
 // Page modules for routing
-import { generatorPage } from "./pages/generator.js";
+import { generatorPage } from "./pages/generator/index.js";
 import { bracketPage } from "./pages/bracket/index.js";
 import { winnersCourtPage } from "./pages/winnersCourt/index.js";
 
