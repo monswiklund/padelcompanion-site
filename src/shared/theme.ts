@@ -3,10 +3,12 @@
 
 const STORAGE_KEY = "padelcompanion-theme";
 
+type Theme = "dark" | "light";
+
 /**
  * Initialize theme from localStorage or system preference
  */
-export function initTheme() {
+export function initTheme(): Theme {
   const saved = localStorage.getItem(STORAGE_KEY);
   // Default to dark if no preference or explicitly dark
   const isDark = !saved || saved === "dark";
@@ -20,11 +22,10 @@ export function initTheme() {
 
 /**
  * Toggle between dark and light theme
- * @returns {string} The new theme
  */
-export function toggleTheme() {
+export function toggleTheme(): Theme {
   const current = document.documentElement.getAttribute("data-theme");
-  const next = current === "dark" ? "light" : "dark";
+  const next: Theme = current === "dark" ? "light" : "dark";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem(STORAGE_KEY, next);
   return next;
@@ -32,18 +33,20 @@ export function toggleTheme() {
 
 /**
  * Get the current theme
- * @returns {string} "dark" or "light"
  */
-export function getTheme() {
-  return document.documentElement.getAttribute("data-theme") || "dark";
+export function getTheme(): Theme {
+  return (
+    (document.documentElement.getAttribute("data-theme") as Theme) || "dark"
+  );
 }
 
 /**
  * Update a theme toggle button's icon
- * @param {HTMLElement} button - The toggle button element
- * @param {string} theme - The current theme
  */
-export function updateThemeIcon(button, theme) {
+export function updateThemeIcon(
+  button: HTMLElement | null,
+  theme: Theme
+): void {
   if (!button) return;
   const icon = button.querySelector(".theme-icon");
   if (icon) {

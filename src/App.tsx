@@ -14,21 +14,11 @@ import TermsOfService from "./pages/TermsOfService";
 import SupportPage from "./pages/SupportPage";
 
 // Placeholder components for Phase 3 migration
-const GeneratorPage = () => (
-  <div style={{ padding: "150px 20px", textAlign: "center" }}>
-    <h1>Generator Page Migration in Progress</h1>
-  </div>
-);
-const BracketPage = () => (
-  <div style={{ padding: "150px 20px", textAlign: "center" }}>
-    <h1>Bracket Page Migration in Progress</h1>
-  </div>
-);
-const WinnersCourtPage = () => (
-  <div style={{ padding: "150px 20px", textAlign: "center" }}>
-    <h1>Winners Court Migration in Progress</h1>
-  </div>
-);
+import GeneratorPage from "./tournament/pages/generator/GeneratorPage";
+import BracketPage from "./tournament/pages/bracket/BracketPage";
+import WinnersCourtPage from "./tournament/pages/winnersCourt/WinnersCourtPage";
+import HistoryPage from "./tournament/pages/history/HistoryPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const App: React.FC = () => {
   return (
@@ -45,6 +35,7 @@ const App: React.FC = () => {
                 path="/tournament/winners-court"
                 element={<WinnersCourtPage />}
               />
+              <Route path="/tournament/history" element={<HistoryPage />} />
 
               {/* Support & Legal */}
               <Route path="/support" element={<SupportPage />} />
@@ -70,8 +61,8 @@ const App: React.FC = () => {
                 element={<Navigate to="/terms" replace />}
               />
 
-              {/* Catch-all redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* 404 Page */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
           <Footer />

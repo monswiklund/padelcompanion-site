@@ -1,41 +1,53 @@
 /**
  * History Repository
  * Pure data layer for tournament history storage.
- * No UI dependencies - just CRUD operations.
  */
 
-import { StorageService } from "../../shared/storage.js";
+import { StorageService } from "@/shared/storage";
+import type { TournamentState } from "@/context/TournamentContext";
 
 const HISTORY_KEY = "padel_history_v1";
 const MAX_HISTORY_ITEMS = 20;
 
+export interface HistorySummary {
+  date: string;
+  name: string;
+  notes: string;
+  format: string;
+  winner: string;
+  playerCount: number;
+  roundCount: number;
+}
+
+export interface HistoryItem {
+  id: string;
+  savedAt: string;
+  summary: HistorySummary;
+  data: TournamentState;
+}
+
 /**
  * Get all past tournaments.
- * @returns {Array} List of tournament records
  */
-export function getHistory() {
-  return StorageService.getItem(HISTORY_KEY, []);
+export function getHistory(): HistoryItem[] {
+  return StorageService.getItem<HistoryItem[]>(HISTORY_KEY, []) || [];
 }
 
 /**
  * Get a specific tournament by ID.
- * @param {string} id - Tournament ID
- * @returns {Object|null} Tournament record or null
  */
-export function getHistoryItem(id) {
+export function getHistoryItem(id: string): HistoryItem | null {
   const history = getHistory();
   return history.find((item) => item.id === id) || null;
 }
 
 /**
  * Save a tournament to history.
- * @param {Object} stateSnapshot - Complete state snapshot from getStateSnapshot()
- * @returns {Object} The saved record
  */
-export function saveToHistory(stateSnapshot) {
+export function saveToHistory(stateSnapshot: TournamentState): HistoryItem {
   const history = getHistory();
 
-  const record = {
+  const record: HistoryItem = {
     id: Date.now().toString(),
     savedAt: new Date().toISOString(),
     summary: {
@@ -63,10 +75,8 @@ export function saveToHistory(stateSnapshot) {
 
 /**
  * Delete a tournament from history.
- * @param {string} id - Tournament ID
- * @returns {boolean} True if deleted, false if not found
  */
-export function deleteFromHistory(id) {
+export function deleteFromHistory(id: string): boolean {
   const history = getHistory();
   const index = history.findIndex((item) => item.id === id);
 
@@ -80,6 +90,6 @@ export function deleteFromHistory(id) {
 /**
  * Clear all history.
  */
-export function clearAllHistory() {
+export function clearAllHistory(): void {
   StorageService.removeItem(HISTORY_KEY);
 }

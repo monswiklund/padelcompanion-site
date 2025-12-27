@@ -12,6 +12,8 @@ import {
   showInputModal,
   showConfirmModal,
 } from "../../core/modals.js";
+import { useTournament } from "@/context/TournamentContext";
+import { state as legacyState } from "../../core/state.js";
 
 interface WCPlayer {
   name: string;
@@ -26,6 +28,7 @@ interface WinnersCourtSetupProps {
 export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
   onGameActive,
 }) => {
+  const { state, dispatch } = useTournament();
   // --- State ---
   const [players, setPlayers] = useState<WCPlayer[]>([]);
   const [splitSides, setSplitSides] = useState(
@@ -152,6 +155,13 @@ export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
       initWinnersCourt(playersBySide, courtCountBySide, isTwist);
       const total = courtCountA + courtCountB;
       showToast(`Winners Court created with ${total} courts`, "success");
+
+      // Sync to Context
+      dispatch({
+        type: "SET_STATE",
+        payload: { winnersCourt: legacyState.winnersCourt },
+      });
+
       onGameActive();
       // We usually don't need to clear players from setup, they stay as "next game candidates"
     } catch (e: any) {

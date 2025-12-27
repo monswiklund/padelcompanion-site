@@ -35,7 +35,7 @@ export const state = {
   maxCourts: 2,
 
   // ===== Bracket Tournament (namespaced) =====
-  tournament: {
+  bracket: {
     format: "single", // 'single' | 'double'
     teams: [],
     matches: [],
@@ -124,7 +124,7 @@ export function saveState() {
     gridColumns: state.gridColumns,
     textSize: state.textSize,
     // Bracket tournament (v1+)
-    tournament: state.tournament,
+    bracket: state.bracket,
     // UI state (v1+)
     ui: state.ui,
     // Winners Court (v1+)
@@ -185,14 +185,17 @@ export function loadState() {
     state.bracketScale = Math.max(50, Math.min(200, data.bracketScale || 100));
 
     // Load bracket tournament state (v1+)
-    if (data.tournament) {
-      state.tournament = {
-        format: data.tournament.format || "single",
-        teams: data.tournament.teams || [],
-        matches: data.tournament.matches || [],
-        standings: data.tournament.standings || [],
-        meta: data.tournament.meta || { name: "", notes: "", createdAt: null },
+    if (data.bracket) {
+      state.bracket = {
+        format: data.bracket.format || "single",
+        teams: data.bracket.teams || [],
+        matches: data.bracket.matches || [],
+        standings: data.bracket.standings || [],
+        meta: data.bracket.meta || { name: "", notes: "", createdAt: null },
       };
+    } else if (data.tournament) {
+      // Compatibility for older browser storage that used "tournament"
+      state.bracket = data.tournament;
     }
 
     // Load UI state (v1+)
@@ -228,15 +231,16 @@ function migrateState(data) {
   if (savedVersion < STATE_VERSION) {
     console.log(`[State] Migrating from v${savedVersion} to v${STATE_VERSION}`);
 
-    // v0 -> v1: Add tournament and ui namespaces
+    // v0 -> v1: Add bracket and ui namespaces
     if (savedVersion < 1) {
-      data.tournament = data.tournament || {
-        format: "single",
-        teams: [],
-        matches: [],
-        standings: [],
-        meta: { name: "", notes: "", createdAt: null },
-      };
+      data.bracket = data.bracket ||
+        data.tournament || {
+          format: "single",
+          teams: [],
+          matches: [],
+          standings: [],
+          meta: { name: "", notes: "", createdAt: null },
+        };
       data.ui = data.ui || {
         currentRoute: "",
         selectedMatchId: null,

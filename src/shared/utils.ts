@@ -2,10 +2,8 @@
 
 /**
  * Shuffle an array in place using Fisher-Yates algorithm
- * @param {Array} array - The array to shuffle
- * @returns {Array} The shuffled array
  */
-export function shuffleArray(array) {
+export function shuffleArray<T>(array: T[]): T[] {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -13,25 +11,30 @@ export function shuffleArray(array) {
   return array;
 }
 
-/**
+type ToastType = "default" | "success" | "error" | "warning" | "info";
+
+interface ToastOptions {
+  type?: ToastType;
+  duration?: number;
+  dismissible?: boolean;
+}
+
 /**
  * Show a toast notification
- * @param {string} message - The message to display
- * @param {Object|number|string} options - Options object, or legacy duration/type
- * @param {string} options.type - Type: 'default', 'success', 'error', 'warning', 'info'
- * @param {number} options.duration - Duration in ms (auto-calculated if not provided)
- * @param {boolean} options.dismissible - Show close button (default: true for errors)
  */
-export function showToast(message, options = {}) {
-  let type = "default";
-  let duration;
-  let dismissible;
+export function showToast(
+  message: string,
+  options: ToastOptions | number | string = {}
+): void {
+  let type: ToastType = "default";
+  let duration: number | undefined;
+  let dismissible: boolean | undefined;
 
   // Legacy support: showToast(msg, duration) or showToast(msg, type)
   if (typeof options === "number") {
     duration = options;
   } else if (typeof options === "string") {
-    type = options;
+    type = options as ToastType;
   } else if (typeof options === "object") {
     type = options.type ?? "default";
     duration = options.duration;
@@ -39,7 +42,10 @@ export function showToast(message, options = {}) {
   }
 
   // Smart defaults per type
-  const defaults = {
+  const defaults: Record<
+    ToastType,
+    { duration: number; dismissible: boolean }
+  > = {
     success: { duration: 2500, dismissible: false },
     info: { duration: 3000, dismissible: false },
     warning: { duration: 5000, dismissible: true },
@@ -56,7 +62,7 @@ export function showToast(message, options = {}) {
   if (existing) existing.remove();
 
   // Type icons
-  const icons = {
+  const icons: Record<ToastType, string> = {
     success: "✓",
     error: "✕",
     warning: "⚠",
@@ -110,7 +116,7 @@ export function showToast(message, options = {}) {
   document.body.appendChild(toast);
 
   // Keyboard support: Esc to dismiss
-  const handleKeydown = (e) => {
+  const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === "Escape" && dismissible) {
       dismiss();
       document.removeEventListener("keydown", handleKeydown);
@@ -134,8 +140,7 @@ export function showToast(message, options = {}) {
 
 /**
  * Create a unique ID
- * @returns {number} A unique timestamp-based ID
  */
-export function createId() {
-  return Math.floor(Date.now() + Math.random() * 1000000);
+export function createId(): string {
+  return String(Math.floor(Date.now() + Math.random() * 1000000));
 }

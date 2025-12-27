@@ -6,15 +6,12 @@
 export const StorageService = {
   /**
    * Get an item from storage
-   * @param {string} key - Storage key
-   * @param {*} defaultValue - Default value if key doesn't exist or error occurs
-   * @returns {*} Parsed value or default
    */
-  getItem(key, defaultValue = null) {
+  getItem<T>(key: string, defaultValue: T | null = null): T | null {
     try {
       const item = localStorage.getItem(key);
       if (item === null) return defaultValue;
-      return JSON.parse(item);
+      return JSON.parse(item) as T;
     } catch (e) {
       console.warn(`[Storage] Failed to load key "${key}":`, e);
       return defaultValue;
@@ -23,11 +20,8 @@ export const StorageService = {
 
   /**
    * Save an item to storage
-   * @param {string} key - Storage key
-   * @param {*} value - Value to store (will be JSON.stringified)
-   * @returns {boolean} True if successful
    */
-  setItem(key, value) {
+  setItem<T>(key: string, value: T): boolean {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
@@ -39,9 +33,8 @@ export const StorageService = {
 
   /**
    * Remove an item from storage
-   * @param {string} key - Storage key
    */
-  removeItem(key) {
+  removeItem(key: string): void {
     try {
       localStorage.removeItem(key);
     } catch (e) {
@@ -52,7 +45,7 @@ export const StorageService = {
   /**
    * Clear all items (use with caution)
    */
-  clear() {
+  clear(): void {
     try {
       localStorage.clear();
     } catch (e) {

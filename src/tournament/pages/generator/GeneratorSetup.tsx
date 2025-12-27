@@ -1,26 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { StorageService } from "@/shared/storage.js";
 import { showToast, createId } from "@/shared/utils.js";
 import {
   TournamentConfig,
   TournamentConfigState,
 } from "@/components/tournament/TournamentConfig";
 import { PreferredPartners } from "@/components/tournament/PreferredPartners";
+import { useTournament } from "@/context/TournamentContext";
 // Import legacy functions
-import { generateSchedule } from "../../ui/index.js"; // This function reads from global state...
-import { state, saveState } from "../../core/state.js"; // Access global state to sync for legacy generator
-import {
-  addPlayer,
-  removePlayer,
-  removeAllPlayers,
-  importPlayers,
-} from "../../players.js"; // Use legacy player actions if possible, or replicate?
-// Legacy player actions modify global state. If we use them, we get syncing for free?
-// React Setup usually wants its own state.
-// Hybrid approach: Local React state -> Sync to Global State -> Trigger Legacy
+import { generateSchedule } from "../../ui/index.js";
+import { state as legacyState } from "../../core/state.js";
 
 interface GeneratorPlayer {
   id: string;
@@ -35,65 +26,59 @@ interface GeneratorSetupProps {
 export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   onGameActive,
 }) => {
-  // --- State ---
-  // We initialize from global state (which is loaded from storage on app start)
-  const [players, setPlayers] = useState<GeneratorPlayer[]>(
-    state.players || []
-  );
-  const [pairs, setPairs] = useState(state.preferredPartners || []);
-  const [config, setConfig] = useState<TournamentConfigState>({
-    format: state.format || "americano",
-    courts: state.courts || 1,
-    scoringMode: state.scoringMode || "total",
-    pointsPerMatch: state.pointsPerMatch || 24,
-    maxRepeats: state.maxRepeats || 0,
-    pairingStrategy: state.pairingStrategy || "optimal",
-    strictStrategy: state.strictStrategy || false,
-  });
+  const { state, dispatch } = useTournament();
+  const {
+    players,
+    preferredPartners: pairs,
+    format,
+    courts,
+    scoringMode,
+    pointsPerMatch,
+    maxRepeats,
+    pairingStrategy,
+    strictStrategy,
+  } = state;
 
-  // --- Effects: Sync React State to Global State ---
+  // Sync with legacy state for functions that still depend on it
   useEffect(() => {
-    state.players = players;
-    state.preferredPartners = pairs;
-    // Config
-    state.format = config.format;
-    state.courts = config.courts;
-    state.scoringMode = config.scoringMode;
-    state.pointsPerMatch = config.pointsPerMatch;
-    state.maxRepeats = config.maxRepeats;
-    state.pairingStrategy = config.pairingStrategy;
-    state.strictStrategy = config.strictStrategy;
+    Object.assign(legacyState, state);
+  }, [state]);
 
-    saveState(); // Persist to localStorage via legacy storage mechanism
-  }, [players, pairs, config]);
-
-  // Also listen for external updates? (e.g. if legacy code modifies state?)
-  // Probably not needed as we are the Setup view owner now.
-
-  // --- Handlers ---
   const handleAddPlayer = (name: string) => {
-    // Use logic similar to legacy addPlayer to get ID generation consistent if needed
     if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
       showToast("Player already exists", "error");
       return;
     }
     const newPlayer = { id: createId(), name, lockedCourt: null };
-    setPlayers([...players, newPlayer]);
+    dispatch({ type: "ADD_PLAYER", player: newPlayer });
     showToast(`${name} added`, "success");
   };
 
   const handleGenerate = () => {
-    // Validation
     if (players.length < 4) {
       showToast("Need at least 4 players", "error");
       return;
     }
 
-    // We already synced state in useEffect.
-    // Call legacy generate
     try {
+      // Ensure legacy state is up to date before calling legacy generator
+      Object.assign(legacyState, state);
+
       generateSchedule();
-      if (state.schedule && state.schedule.length > 0) {
+
+      // Sync BACK after generation (which populates state.schedule, state.leaderboard, etc)
+      dispatch({
+        type: "SET_STATE",
+        payload: {
+          schedule: legacyState.schedule,
+          leaderboard: legacyState.leaderboard,
+          allRounds: legacyState.allRounds,
+          currentRound: legacyState.currentRound,
+          isLocked: legacyState.isLocked,
+        },
+      });
+
+      if (legacyState.schedule && legacyState.schedule.length > 0) {
         onGameActive();
       }
     } catch (e: any) {
@@ -102,13 +87,10 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   };
 
   const updateConfig = (key: keyof TournamentConfigState, value: any) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
+    dispatch({ type: "UPDATE_FIELD", key: key as any, value });
   };
 
-  // --- Render Item (Court Lock) ---
   const renderPlayerItem = (p: GeneratorPlayer, i: number) => {
-    const courts = config.courts;
-
     return (
       <li
         key={p.id}
@@ -118,16 +100,18 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
           <span className="text-text-muted text-xs w-6">{i + 1}.</span>
           <span className="font-medium truncate flex-1">{p.name}</span>
 
-          {/* Court Lock */}
           {courts > 1 && (
             <select
               className="bg-black/20 text-xs p-1 rounded border border-white/10 outline-none w-20"
               value={p.lockedCourt || ""}
               onChange={(e) => {
                 const val = e.target.value ? parseInt(e.target.value) : null;
-                const newP = [...players];
-                newP[i].lockedCourt = val;
-                setPlayers(newP);
+                const newPlayers = [...players];
+                newPlayers[i] = { ...newPlayers[i], lockedCourt: val };
+                dispatch({
+                  type: "SET_STATE",
+                  payload: { players: newPlayers },
+                });
               }}
               title="Lock to Court"
             >
@@ -144,9 +128,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         <button
           className="text-text-muted hover:text-red-400 px-2 font-bold ml-2"
           onClick={() => {
-            const newP = [...players];
-            newP.splice(i, 1);
-            setPlayers(newP);
+            dispatch({ type: "REMOVE_PLAYER", playerId: p.id });
           }}
         >
           ×
@@ -156,90 +138,105 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   };
 
   return (
-    <div className="tournament-setup-view generator-setup">
-      {/* Header from index.js usually. If we want it here: */}
-      {/* <div className="page-intro-header ..."></div> */}
-      {/* We assume index.js handles header OR we replicate. 
-            Legacy setup.js rendered header via PageHeader.
-            So we should probably render header here to replace it fully.
-        */}
-      <div className="page-intro-header text-center max-w-[600px] mx-auto my-8 px-4">
+    <div className="tournament-setup-view container animate-fade-in py-8">
+      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
         <h2 className="text-3xl mb-1 text-white">Americano Setup</h2>
         <p className="text-text-muted">
           Add players and configure your tournament settings.
         </p>
       </div>
 
-      {/* Player Manager */}
-      <Card>
-        <PlayerList<GeneratorPlayer>
-          items={players}
-          onAdd={handleAddPlayer}
-          onRemove={(idx) => {
-            const newP = [...players];
-            newP.splice(idx, 1);
-            setPlayers(newP);
-          }}
-          onClear={() => setPlayers([])}
-          onImport={(text) => {
-            const lines = text.split("\n");
-            const newP = [...players];
-            let added = 0;
-            lines.forEach((l) => {
-              const name = l.trim();
-              if (
-                name &&
-                !newP.some((p) => p.name.toLowerCase() === name.toLowerCase())
-              ) {
-                newP.push({ id: createId(), name, lockedCourt: null });
-                added++;
+      <div className="setup-grid">
+        <div className="setup-main">
+          <Card>
+            <PlayerList
+              items={players}
+              onAdd={handleAddPlayer}
+              onRemove={(idx) => {
+                dispatch({ type: "REMOVE_PLAYER", playerId: players[idx].id });
+              }}
+              onClear={() => dispatch({ type: "CLEAR_PLAYERS" })}
+              onImport={(text) => {
+                const lines = text.split("\n");
+                const addedPlayers: GeneratorPlayer[] = [];
+                lines.forEach((l) => {
+                  const name = l.trim();
+                  if (
+                    name &&
+                    !players.some(
+                      (p) => p.name.toLowerCase() === name.toLowerCase()
+                    )
+                  ) {
+                    addedPlayers.push({
+                      id: createId(),
+                      name,
+                      lockedCourt: null,
+                    });
+                  }
+                });
+                dispatch({
+                  type: "SET_STATE",
+                  payload: { players: [...players, ...addedPlayers] },
+                });
+                showToast(`Imported ${addedPlayers.length} players`, "success");
+              }}
+              renderItem={renderPlayerItem}
+              hintText={
+                <div className="text-center text-xs text-text-muted mt-2">
+                  {players.length} ready | {courts} courts ({courts * 4}{" "}
+                  playing).
+                  {players.length % 4 !== 0 && (
+                    <span className="text-orange-400 ml-1">Queue enabled.</span>
+                  )}
+                </div>
               }
-            });
-            setPlayers(newP);
-            showToast(`Imported ${added} players`, "success");
-          }}
-          renderItem={renderPlayerItem}
-          hintText={
-            <div className="text-center text-xs text-text-muted mt-2">
-              {players.length} ready | {config.courts} courts (
-              {config.courts * 4} playing).
-              {players.length % 4 !== 0 && (
-                <span className="text-orange-400 ml-1">Queue enabled.</span>
-              )}
-            </div>
-          }
-        />
-      </Card>
+            />
+          </Card>
+        </div>
 
-      {/* Config */}
-      <div className="mt-4">
-        <TournamentConfig
-          config={config}
-          playerCount={players.length}
-          onChange={updateConfig}
-        />
+        <div className="setup-sidebar">
+          <TournamentConfig
+            config={{
+              format,
+              courts,
+              scoringMode,
+              pointsPerMatch,
+              maxRepeats,
+              pairingStrategy,
+              strictStrategy,
+            }}
+            playerCount={players.length}
+            onChange={updateConfig}
+          />
+
+          {format.includes("mexicano") && (
+            <Card className="mt-4">
+              <PreferredPartners
+                pairs={pairs}
+                players={players}
+                onAddPair={(p1Id, p2Id) => {
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    key: "preferredPartners",
+                    value: [
+                      ...pairs,
+                      { id: createId(), player1Id: p1Id, player2Id: p2Id },
+                    ],
+                  });
+                }}
+                onRemovePair={(id) => {
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    key: "preferredPartners",
+                    value: pairs.filter((p) => p.id !== id),
+                  });
+                }}
+              />
+            </Card>
+          )}
+        </div>
       </div>
 
-      {/* Pairs (If Mexicano) */}
-      {config.format.includes("mexicano") && (
-        <Card className="mt-4">
-          <PreferredPartners
-            pairs={pairs}
-            players={players}
-            onAddPair={(p1Id, p2Id) => {
-              setPairs([
-                ...pairs,
-                { id: createId(), player1Id: p1Id, player2Id: p2Id },
-              ]);
-            }}
-            onRemovePair={(id) => {
-              setPairs(pairs.filter((p) => p.id !== id));
-            }}
-          />
-        </Card>
-      )}
-
-      {/* Actions */}
       <div className="mt-8 flex justify-center pb-12">
         <Button
           size="lg"

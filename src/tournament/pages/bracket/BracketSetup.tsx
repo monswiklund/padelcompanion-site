@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { StorageService } from "@/shared/storage.js";
-// We need to import these from the JS modules. Vite handles mixed imports fine.
 import { renderMultiBracketPreview } from "../../ui/bracket/index.js";
 import {
   initBracketTournament,
   initDualBracketTournament,
 } from "../../bracket/index.js";
-import { showToast } from "@/shared/utils.js";
+import { showToast, createId } from "@/shared/utils.js";
+import { useTournament } from "@/context/TournamentContext";
+import { state as legacyState } from "../../core/state.js";
 
 interface Team {
   name: string;
-  side: string | null; // "A", "B", etc.
-  id?: string;
+  side: string | null;
+  id: string;
 }
 
 interface BracketSetupProps {
@@ -22,78 +22,38 @@ interface BracketSetupProps {
 }
 
 export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
-  // --- State ---
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [mode, setMode] = useState<"teams" | "players">(
-    (StorageService.getItem("bracket_mode") as "teams" | "players") || "teams"
-  );
+  const { state, dispatch } = useTournament();
 
-  // Pool / Dual Mode Settings
-  const [isDualMode, setIsDualMode] = useState(
-    StorageService.getItem("bracket_dual_mode") === "true"
-  );
-  const [bracketCount, setBracketCount] = useState(
-    parseInt(StorageService.getItem("bracket_count") || "2")
-  );
-  const [sharedFinal, setSharedFinal] = useState(
-    StorageService.getItem("bracket_shared_final") !== "false"
-  );
-  const [sideAssign, setSideAssign] = useState(
-    StorageService.getItem("bracket_side_assign") || "random"
-  );
-  const [scoreType, setScoreType] = useState(
-    StorageService.getItem("bracket_score_type") || "points"
-  );
+  // Local state for setup-only toggles or use context?
+  // Let's use context for global settings and local for transient setup choices
+  // But wait, many of these were in localStorage. Let's move them to Context.
 
-  // --- Effects (Persistence) ---
-  useEffect(() => {
-    // Load teams on mount
-    const saved = StorageService.getItem("bracket_teams");
-    if (saved && Array.isArray(saved)) {
-      setTeams(
-        saved.map((t: any) =>
-          typeof t === "string" ? { name: t, side: null } : t
-        )
-      );
-    }
-  }, []);
+  const {
+    bracketScale,
+    ui: { activeBracketTab },
+  } = state;
+
+  // We'll need to add these fields to TournamentState or use local for now.
+  // Actually, let's just use local state for the "Setup" values and sync to legacy state on Generate.
+  const [teams, setTeams] = React.useState<Team[]>([]);
+  const [mode, setMode] = React.useState<"teams" | "players">("teams");
+  const [isDualMode, setIsDualMode] = React.useState(false);
+  const [bracketCount, setBracketCount] = React.useState(2);
+  const [sharedFinal, setSharedFinal] = React.useState(true);
+  const [sideAssign, setSideAssign] = React.useState("random");
+  const [scoreType, setScoreType] = React.useState("points");
 
   useEffect(() => {
-    StorageService.setItem("bracket_teams", teams);
-  }, [teams]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_mode", mode);
-  }, [mode]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_dual_mode", String(isDualMode));
-  }, [isDualMode]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_count", String(bracketCount));
-  }, [bracketCount]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_shared_final", String(sharedFinal));
-  }, [sharedFinal]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_side_assign", sideAssign);
-  }, [sideAssign]);
-
-  useEffect(() => {
-    StorageService.setItem("bracket_score_type", scoreType);
-  }, [scoreType]);
-
-  // --- Handlers ---
+    // Sync with legacy state for functions that still depend on it
+    Object.assign(legacyState, state);
+  }, [state]);
 
   const handleAddTeam = (name: string) => {
     if (teams.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
       showToast("Team already exists!", "error");
       return;
     }
-    setTeams([...teams, { name, side: null }]);
+    setTeams([...teams, { id: createId(), name, side: null }]);
     showToast(`${name} added`, "success");
   };
 
@@ -106,11 +66,9 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
 
   const handleSideToggle = (index: number) => {
     if (!isDualMode) return;
-
     const polls = ["A", "B", "C", "D", "E", "F"].slice(0, bracketCount);
     const newTeams = [...teams];
     const team = { ...newTeams[index] };
-
     if (team.side === null) {
       team.side = polls[0];
     } else {
@@ -133,13 +91,20 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
 
     try {
       if (isDualMode) {
-        // We typically invoke the legacy function
         initDualBracketTournament(teams, sharedFinal);
-        showToast(`Dual bracket created with ${teams.length} teams`, "success");
       } else {
         initBracketTournament(teams);
-        showToast(`Bracket created with ${teams.length} teams`, "success");
       }
+
+      // Sync BACK to context
+      dispatch({
+        type: "SET_STATE",
+        payload: {
+          bracket: legacyState.bracket,
+          bracketScale: legacyState.bracketScale || 100,
+        },
+      });
+
       if (onComplete) onComplete();
     } catch (e: any) {
       console.error(e);
@@ -147,11 +112,9 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
     }
   };
 
-  // --- Render Helpers ---
-
   const renderTeamItem = (team: Team, index: number) => (
     <li
-      key={index}
+      key={team.id}
       className="player-item flex justify-between items-center p-2 bg-bg-tertiary rounded mb-2"
     >
       <div className="flex items-center gap-2">
@@ -185,181 +148,176 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
   }, [teams.length, isDualMode, bracketCount, sharedFinal]);
 
   return (
-    <div className="tournament-setup-view">
-      {/* 1. Page Header (We can replicate it here or import PageHeader logic if it was React) */}
-      <div className="page-intro-header text-center max-w-[600px] mx-auto my-8 px-4">
-        <h2 className="text-3xl mb-1 bg-gradient-to-br from-white to-purple-200 bg-clip-text text-transparent">
-          Create a Bracket
-        </h2>
+    <div className="tournament-setup-view container animate-fade-in py-8">
+      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
+        <h2 className="text-3xl mb-1 text-white">Create a Bracket</h2>
         <p className="text-text-muted">
           Set up a single elimination tournament bracket.
         </p>
       </div>
 
-      {/* 2. Player Manager */}
-      <Card>
-        <PlayerList<Team>
-          title={mode === "teams" ? "Teams" : "Players"}
-          singularTitle={mode === "teams" ? "Team" : "Player"}
-          items={teams}
-          onAdd={handleAddTeam}
-          onRemove={handleRemoveTeam}
-          onClear={() => setTeams([])}
-          onImport={(text) => {
-            const lines = text.split("\n");
-            let added = 0;
-            const newTeams = [...teams];
-            lines.forEach((l) => {
-              const n = l.trim();
-              if (
-                n &&
-                !newTeams.some(
-                  (t) => t.name.toLowerCase() === n.toLowerCase()
-                ) &&
-                newTeams.length < 32
-              ) {
-                newTeams.push({ name: n, side: null });
-                added++;
-              }
-            });
-            setTeams(newTeams);
-            showToast(`Imported ${added} ${mode}`, "success");
-          }}
-          maxItems={32}
-          renderItem={renderTeamItem}
-          hintText={
-            <span
-              dangerouslySetInnerHTML={{
-                __html: getTeamsHint(teams.length),
+      <div className="setup-grid">
+        <div className="setup-main">
+          <Card>
+            <PlayerList
+              title={mode === "teams" ? "Teams" : "Players"}
+              singularTitle={mode === "teams" ? "Team" : "Player"}
+              items={teams}
+              onAdd={handleAddTeam}
+              onRemove={handleRemoveTeam}
+              onClear={() => setTeams([])}
+              onImport={(text) => {
+                const lines = text.split("\n");
+                let added = 0;
+                const newTeams = [...teams];
+                lines.forEach((l) => {
+                  const n = l.trim();
+                  if (
+                    n &&
+                    !newTeams.some(
+                      (t) => t.name.toLowerCase() === n.toLowerCase()
+                    ) &&
+                    newTeams.length < 32
+                  ) {
+                    newTeams.push({ id: createId(), name: n, side: null });
+                    added++;
+                  }
+                });
+                setTeams(newTeams);
+                showToast(`Imported ${added} ${mode}`, "success");
               }}
-            />
-          }
-        />
-      </Card>
-
-      {/* 3. Settings */}
-      <Card className="mt-4">
-        {/* Mode Toggles */}
-        <div className="flex flex-wrap justify-center gap-4 mb-4">
-          {/* Teams vs Players */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <span
-              className={
-                mode === "teams" ? "text-accent font-bold" : "text-text-muted"
+              maxItems={32}
+              renderItem={renderTeamItem}
+              hintText={
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: getTeamsHint(teams.length),
+                  }}
+                />
               }
-            >
-              Teams
-            </span>
-            <div
-              className="relative inline-block w-12 h-6"
-              onClick={() => setMode(mode === "teams" ? "players" : "teams")}
-            >
-              <input
-                type="checkbox"
-                checked={mode === "players"}
-                readOnly
-                className="sr-only"
-              />
-              <span className="slider round"></span>
-            </div>
-            <span
-              className={
-                mode === "players" ? "text-accent font-bold" : "text-text-muted"
-              }
-            >
-              Players
-            </span>
-          </label>
-
-          {/* Pool Play Checkbox */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              className="w-5 h-5 rounded bg-bg-tertiary border-border-color checked:bg-accent"
-              checked={isDualMode}
-              onChange={(e) => setIsDualMode(e.target.checked)}
             />
-            <span>Pool Play</span>
-          </label>
-
-          {/* Score Type */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-text-secondary">Score:</span>
-            <select
-              className="p-1 px-2 text-sm bg-black/20 border border-border-color rounded text-white outline-none"
-              value={scoreType}
-              onChange={(e) => setScoreType(e.target.value)}
-            >
-              <option value="points">Points</option>
-              <option value="games">Games</option>
-              <option value="sets">Sets</option>
-            </select>
-          </div>
+          </Card>
         </div>
 
-        {/* Dual Mode Settings */}
-        {isDualMode && (
-          <div className="flex flex-col gap-3 p-3 bg-bg-secondary rounded border border-border-color/50 animation-fade-in">
-            <div className="text-xs text-text-muted font-bold uppercase tracking-wider">
-              Pool Settings
-            </div>
-            <div className="flex flex-wrap gap-4 justify-center items-center">
-              {/* Count */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-text-secondary">Pools:</span>
-                <select
-                  className="p-1 px-2 text-sm bg-black/20 border border-border-color rounded text-white outline-none"
-                  value={bracketCount}
-                  onChange={(e) => setBracketCount(parseInt(e.target.value))}
-                >
-                  {[2, 3, 4, 5, 6].map((n) => (
-                    <option key={n} value={n}>
-                      {n} ({String.fromCharCode(65)}...
-                      {String.fromCharCode(64 + n)})
-                    </option>
-                  ))}
-                </select>
+        <div className="setup-sidebar">
+          <Card className="p-4">
+            <div className="flex flex-col gap-4">
+              {/* Mode Toggles */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Type:</span>
+                <div className="flex gap-2 bg-black/20 p-1 rounded">
+                  <button
+                    className={`px-3 py-1 rounded text-xs ${
+                      mode === "teams"
+                        ? "bg-accent text-white"
+                        : "text-text-muted hover:text-white"
+                    }`}
+                    onClick={() => setMode("teams")}
+                  >
+                    Teams
+                  </button>
+                  <button
+                    className={`px-3 py-1 rounded text-xs ${
+                      mode === "players"
+                        ? "bg-accent text-white"
+                        : "text-text-muted hover:text-white"
+                    }`}
+                    onClick={() => setMode("players")}
+                  >
+                    Players
+                  </button>
+                </div>
               </div>
 
-              {/* Pair Finals */}
-              <label className="flex items-center gap-2 cursor-pointer select-none text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Pool Play:</span>
                 <input
                   type="checkbox"
-                  checked={sharedFinal}
-                  onChange={(e) => setSharedFinal(e.target.checked)}
+                  checked={isDualMode}
+                  onChange={(e) => setIsDualMode(e.target.checked)}
+                  className="w-5 h-5"
                 />
-                <span>Pair Finals 🏆</span>
-              </label>
+              </div>
 
-              {/* Assignment */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-text-secondary">Assign:</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Score:</span>
                 <select
-                  className="p-1 px-2 text-sm bg-black/20 border border-border-color rounded text-white outline-none"
-                  value={sideAssign}
-                  onChange={(e) => setSideAssign(e.target.value)}
+                  className="p-1 px-2 text-sm bg-black/20 border border-white/10 rounded text-white outline-none"
+                  value={scoreType}
+                  onChange={(e) => setScoreType(e.target.value)}
                 >
-                  <option value="random">Random</option>
-                  <option value="alternate">Alternate</option>
-                  <option value="half">Split by Pool</option>
-                  <option value="manual">Manual</option>
+                  <option value="points">Points</option>
+                  <option value="games">Games</option>
+                  <option value="sets">Sets</option>
                 </select>
               </div>
+
+              {isDualMode && (
+                <div className="mt-2 pt-4 border-t border-white/10">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-text-secondary">
+                        Pools:
+                      </span>
+                      <select
+                        className="p-1 px-2 text-sm bg-black/20 border border-white/10 rounded text-white outline-none"
+                        value={bracketCount}
+                        onChange={(e) =>
+                          setBracketCount(parseInt(e.target.value))
+                        }
+                      >
+                        {[2, 3, 4, 5, 6].map((n) => (
+                          <option key={n} value={n}>
+                            {n} ({String.fromCharCode(65)}...
+                            {String.fromCharCode(64 + n)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-text-secondary">
+                        Pair Finals:
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={sharedFinal}
+                        onChange={(e) => setSharedFinal(e.target.checked)}
+                        className="w-5 h-5"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-text-secondary">
+                        Assign:
+                      </span>
+                      <select
+                        className="p-1 px-2 text-sm bg-black/20 border border-white/10 rounded text-white outline-none"
+                        value={sideAssign}
+                        onChange={(e) => setSideAssign(e.target.value)}
+                      >
+                        <option value="random">Random</option>
+                        <option value="alternate">Alternate</option>
+                        <option value="half">Split by Pool</option>
+                        <option value="manual">Manual</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-      </Card>
+          </Card>
 
-      {/* 4. Preview */}
-      {teams.length >= 2 && (
-        <div
-          className="bracket-preview mt-5 p-4 bg-bg-tertiary rounded-lg border border-border-color"
-          dangerouslySetInnerHTML={{ __html: previewHtml }}
-        />
-      )}
+          {teams.length >= 2 && (
+            <div
+              className="bracket-preview mt-4 p-4 bg-bg-tertiary rounded border border-white/10"
+              dangerouslySetInnerHTML={{ __html: previewHtml }}
+            />
+          )}
+        </div>
+      </div>
 
-      {/* 5. Action */}
-      <div className="mt-8 flex justify-center">
+      <div className="mt-8 flex justify-center pb-12">
         <Button size="lg" disabled={teams.length < 2} onClick={generateBracket}>
           Create Bracket
         </Button>
@@ -368,7 +326,6 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
   );
 };
 
-// Utils ported locally to avoid dependency mess for now
 function getTeamsHint(count: number) {
   if (count < 2) {
     return `Add at least ${2 - count} more team${2 - count > 1 ? "s" : ""}`;
