@@ -14,18 +14,6 @@ export {
 } from "./courts.js";
 
 export {
-  renderPlayers,
-  togglePlayerList,
-  showImportModal,
-  hideImportModal,
-} from "./players.js";
-
-export {
-  renderPreferredPartners,
-  updateAddPartnerPairButton,
-} from "./partners.js";
-
-export {
   renderSchedule,
   autoFillScore,
   toggleRoundCollapse,
@@ -55,18 +43,10 @@ export {
 export { setupCustomSelects } from "./customSelect.js";
 
 export {
-  updateSetupUI,
   generateSchedule,
   resetSchedule,
   endTournament,
   toggleToolbar,
   exportTournamentData,
   shareResults,
-  renderTournamentSummary,
-  setRenderTournamentConfigCallback,
 } from "./setup/index.js";
-
-export {
-  renderTournamentConfig,
-  initTournamentConfig,
-} from "./tournamentConfig.js";

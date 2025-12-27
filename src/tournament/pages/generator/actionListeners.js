@@ -10,8 +10,6 @@ import { StorageService } from "../../../shared/storage.js";
 import { addLatePlayer } from "../../players.js";
 import {
   getElements,
-  updateSetupUI,
-  renderPlayers,
   renderSchedule,
   renderLeaderboard,
   updateGridColumns,
@@ -76,10 +74,8 @@ export function attachActionListeners(addListener) {
         showToast("Undo successful");
 
         if (elements.format) elements.format.value = state.format;
-        renderPlayers();
         renderSchedule();
         renderLeaderboard();
-        updateSetupUI();
         updateGridColumns();
 
         if (state.schedule.length > 0) {

@@ -1,7 +1,7 @@
 import { state } from "../../core/state.js";
 import { initHistory, renderHistory } from "../../history/index.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
-import { renderSetup, cleanupSetupListeners } from "./setup.js";
+import { renderSetup, cleanupSetupListeners } from "./setup.jsx";
 import { renderView, cleanupViewListeners } from "./view.js";
 
 /**

@@ -5,20 +5,13 @@
  */
 
 import { getGeneratorActiveTemplate } from "../../ui/generatorTemplates.js";
-import { renderSetup } from "./setup.js";
+import { renderSetup } from "./setup.jsx";
 import {
   generateSchedule,
+  resetSchedule,
   initElements,
-  getElements,
-  updateSetupUI,
-  updateScoringLabel,
-  renderTournamentConfig,
-  renderPlayers,
   renderSchedule,
   renderLeaderboard,
-  updateGridColumns,
-  renderPreferredPartners,
-  setupCustomSelects,
   endTournament,
 } from "../../ui/index.js";
 import { getHistoryTemplate } from "../../ui/historyTemplate.js";
@@ -26,8 +19,6 @@ import { state } from "../../core/state.js";
 import { initHistory, renderHistory } from "../../history/index.js";
 
 // Listener modules
-import { attachFormListeners } from "./formListeners.js";
-import { attachSettingsListeners } from "./settingsListeners.js";
 import {
   attachActionListeners,
   promptAddLatePlayer,
@@ -62,8 +53,6 @@ function removeAllListeners() {
  * Attach all event listeners for the Generator page.
  */
 function attachListeners() {
-  attachFormListeners(addListener);
-  attachSettingsListeners(addListener);
   attachActionListeners(addListener);
   attachHelpListeners(addListener);
 }
@@ -76,10 +65,17 @@ export const generatorPage = {
    */
   mount(container, params) {
     console.log("[GeneratorPage] Mounting...");
+    this.render(container);
+  },
+
+  /**
+   * Main Render Orchestrator.
+   */
+  render(container) {
     if (!container) return;
+    removeAllListeners();
 
     // Structure: Setup (New) + Active (Legacy Template) + History
-    // We toggle visibility based on state
     const isGameActive = state.schedule && state.schedule.length > 0;
 
     container.innerHTML = `
@@ -99,52 +95,65 @@ export const generatorPage = {
       renderSetup(document.getElementById("genSetupContainer"), () => {
         // Generate clicked
         generateSchedule();
-        // After generation, switch visibility if successful
+        // Re-render to switch to active view
         if (state.schedule.length > 0) {
-          document.getElementById("genSetupContainer").style.display = "none";
-          document.getElementById("genActiveContainer").style.display = "block";
-          // Trigger active view renders
-          renderSchedule();
-          renderLeaderboard();
+          this.render(container);
         }
       });
     }
 
     // --- Active View & General ---
-    // Re-initialize element references (vital for getElements to work on Active container)
     initElements();
-
-    // Attach all event listeners
     attachListeners();
 
+    // Wrapped end/reset to trigger re-render
+    const handleEnd = (cb) => {
+      endTournament(cb);
+      // We don't re-render immediately because endTournament has a confirm modal.
+      // But we can hook into the core state change if we wanted.
+      // For now, most transitions work via the confirm callbacks.
+    };
+
+    const handleReset = () => {
+      resetSchedule();
+      // If reset happened, we want to re-render
+      // But resetSchedule also has a confirmation.
+    };
+
     // Initialize event delegation
-    initEventDelegation(
-      container,
-      addListener,
-      promptAddLatePlayer,
-      endTournament
-    );
+    initEventDelegation(container, addListener, promptAddLatePlayer, (stan) => {
+      endTournament(stan);
+      this.render(container);
+    });
 
     // Setup legacy window functions
-    setupLegacyWindowFunctions(endTournament, promptAddLatePlayer);
+    setupLegacyWindowFunctions((stan) => {
+      endTournament(stan);
+      this.render(container);
+    }, promptAddLatePlayer);
 
     // Initialize UI State for Active View
     if (isGameActive) {
-      updateScoringLabel();
       renderSchedule();
       renderLeaderboard();
-      // renderPreferredPartners only relevant if element exists,
-      // but active template might not have it. it's fine.
+
+      // Hook into the RESET button which is usually in the active view
+      const resetBtn = document.getElementById("resetTournamentBtn");
+      if (resetBtn) {
+        addListener(resetBtn, "click", () => {
+          // The actual reset logic is in scheduleGeneration.js
+          // We just need to know when it finishes to re-render.
+          // Since it's synchronous after confirmation, we can't easily hook it
+          // unless we pass a callback to resetSchedule.
+        });
+      }
     }
 
     // History
     initHistory();
-    const historySection = document.getElementById("historySectionPage");
-    if (historySection) {
-      renderHistory();
-    }
+    renderHistory();
 
-    console.log("[GeneratorPage] Mounted successfully");
+    console.log("[GeneratorPage] Rendered successfully");
   },
 
   /**

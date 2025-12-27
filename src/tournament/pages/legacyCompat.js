@@ -9,18 +9,9 @@
  * Legacy dependencies still requiring these:
  * - ui/courts.js: window.updateCustomCourtName (inline oninput)
  * - history.js: window.deleteHistoryItem, window.loadTournament, etc.
- * - ui/players.js: window.updatePlayerCourtLock (inline onchange)
  */
 
 import {
-  removePlayer,
-  removePreferredPair,
-  updatePreferredPair,
-} from "../players.js";
-import {
-  renderPlayers,
-  renderPreferredPartners,
-  updateSetupUI,
   updateCustomCourtName,
   autoFillScore,
   toggleManualBye,
@@ -43,19 +34,6 @@ import { showFinalStandings } from "../core/modals.js";
  * @param {Function} promptAddLatePlayer - Late player prompt function
  */
 export function setupLegacyWindowFunctions(endTournament, promptAddLatePlayer) {
-  window.removePlayer = (id) => {
-    removePlayer(id);
-    renderPlayers();
-  };
-
-  window.updatePreferredPair = (pairId, which, playerId) => {
-    updatePreferredPair(pairId, which, playerId);
-    renderPreferredPartners();
-  };
-  window.removePreferredPair = (pairId) => {
-    removePreferredPair(pairId);
-    renderPreferredPartners();
-  };
   window.updateCustomCourtName = updateCustomCourtName;
   window.autoFillScore = autoFillScore;
   window.toggleManualBye = toggleManualBye;
@@ -65,7 +43,6 @@ export function setupLegacyWindowFunctions(endTournament, promptAddLatePlayer) {
   window.toggleLeaderboardVisibility = toggleLeaderboardVisibility;
   window.togglePositionChanges = togglePositionChanges;
   window.updateRankingCriteria = updateRankingCriteria;
-  window.updateSetupUI = updateSetupUI;
   window.endTournament = () => endTournament(showFinalStandings);
   window.validateCourts = validateCourts;
   window.toggleToolbar = toggleToolbar;

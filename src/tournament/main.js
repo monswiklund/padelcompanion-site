@@ -5,13 +5,9 @@ import { initTheme } from "../shared/theme.js";
 import { registerRoute, initRouter, getCurrentRoute } from "./core/router.js";
 import { showToast } from "../shared/utils.js";
 import {
-  updateSetupUI,
-  updateScoringLabel,
-  toggleCustomCourtNames,
-  setRenderTournamentConfigCallback,
-  renderTournamentConfig,
   handleResize,
   setupCustomSelects,
+  toggleCustomCourtNames,
 } from "./ui/index.js";
 import { initPWA } from "../shared/pwa.js";
 import { showInfoModal } from "./core/modals.js";
@@ -53,9 +49,6 @@ function init() {
     // Toggle custom court names based on state
     toggleCustomCourtNames();
 
-    // Set callback to avoid circular dependency
-    setRenderTournamentConfigCallback(renderTournamentConfig);
-
     // Initialize History
     initHistory();
 
@@ -64,11 +57,6 @@ function init() {
 
     // Setup scroll-to-top button
     initScrollToTop();
-
-    // Initial UI Sync
-    updateSetupUI();
-    updateScoringLabel();
-    renderTournamentConfig();
 
     // Initialize ripple effect on buttons
     initRippleEffect();

@@ -5,16 +5,7 @@
  */
 
 import {
-  removePlayer,
-  removePreferredPair,
-  updatePreferredPair,
-} from "../players.js";
-import {
-  renderPlayers,
-  renderPreferredPartners,
-  updateSetupUI,
-  setupCustomSelects,
-  togglePlayerList,
+  renderSchedule,
   toggleManualBye,
   toggleRoundCollapse,
   completeRound,
@@ -27,7 +18,7 @@ import {
   autoFillScore,
 } from "../ui/index.js";
 import { showFinalStandings } from "../core/modals.js";
-import { state, saveState } from "../core/state.js";
+import { state } from "../core/state.js";
 import { updateCustomCourtName } from "../ui/courts.js";
 
 /**
@@ -55,23 +46,6 @@ export function initEventDelegation(
       : null;
 
     switch (action) {
-      case "remove-player":
-        if (id !== null) {
-          removePlayer(id);
-          renderPlayers();
-        }
-        break;
-      case "toggle-player-list":
-        togglePlayerList();
-        break;
-      case "remove-pair":
-        if (id !== null) {
-          removePreferredPair(id);
-          renderPreferredPartners();
-          updateSetupUI();
-          setupCustomSelects();
-        }
-        break;
       case "toggle-bye":
         if (id !== null) {
           toggleManualBye(id);
@@ -120,15 +94,6 @@ export function initEventDelegation(
     if (!target) return;
 
     const action = target.dataset.action;
-    const pairId = target.dataset.pairId ? Number(target.dataset.pairId) : null;
-    const which = target.dataset.which ? parseInt(target.dataset.which) : null;
-
-    if (action === "update-partner" && pairId !== null && which !== null) {
-      updatePreferredPair(pairId, which, Number(target.value));
-      renderPreferredPartners();
-      updateSetupUI();
-      setupCustomSelects();
-    }
 
     // Handle Race Mode autofill on change (blur)
     if (action === "autofill-score" && state.scoringMode === "race") {
@@ -137,17 +102,6 @@ export function initEventDelegation(
       const team = parseInt(target.dataset.team);
       const value = target.value;
       autoFillScore(roundIndex, matchIndex, team, value);
-    }
-
-    // Handle Player Court Lock
-    if (action === "update-court-lock") {
-      const playerId = parseInt(target.dataset.playerId);
-      const value = target.value;
-      const player = state.players.find((p) => p.id === playerId);
-      if (player) {
-        player.lockedCourt = value ? parseInt(value) : null;
-        saveState();
-      }
     }
   });
 

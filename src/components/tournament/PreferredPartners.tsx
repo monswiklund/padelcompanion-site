@@ -1,0 +1,164 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/Button";
+
+interface Pair {
+  id: string;
+  player1Id: string;
+  player2Id: string;
+}
+
+interface Player {
+  id: string;
+  name: string;
+}
+
+interface PreferredPartnersProps {
+  pairs: Pair[];
+  players: Player[];
+  onAddPair: (p1Id: string, p2Id: string) => void;
+  onRemovePair: (pairId: string) => void;
+}
+
+export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
+  pairs,
+  players,
+  onAddPair,
+  onRemovePair,
+}) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [p1, setP1] = useState<string>("");
+  const [p2, setP2] = useState<string>("");
+
+  // Filter available players
+  const getAvailablePlayers = (currentSelection: string | null) => {
+    const pairedIds = new Set<string>();
+    pairs.forEach((p) => {
+      pairedIds.add(p.player1Id);
+      pairedIds.add(p.player2Id);
+    });
+
+    return players.filter(
+      (p) => !pairedIds.has(p.id) || p.id === currentSelection
+    );
+  };
+
+  const handleAdd = () => {
+    if (p1 && p2 && p1 !== p2) {
+      onAddPair(p1, p2);
+      setP1("");
+      setP2("");
+      setIsAdding(false);
+    }
+  };
+
+  // Render occupied player name for pair list
+  const getPlayerName = (id: string) =>
+    players.find((p) => p.id === id)?.name || "Unknown";
+
+  return (
+    <div className="preferred-partners mt-4 border-t border-white/10 pt-4">
+      {!isAdding && pairs.length === 0 && (
+        <div className="text-center">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsAdding(true)}
+          >
+            + Add Fixed Pair
+          </Button>
+        </div>
+      )}
+
+      {(isAdding || pairs.length > 0) && (
+        <div className="bg-bg-tertiary rounded p-4 border border-white/5">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-sm font-bold text-text-secondary uppercase tracking-wider">
+              Fixed Pairs
+            </h4>
+            {!isAdding && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setIsAdding(true)}
+              >
+                Add
+              </Button>
+            )}
+          </div>
+
+          {/* List */}
+          {pairs.length > 0 && (
+            <ul className="mb-4 space-y-2">
+              {pairs.map((pair) => (
+                <li
+                  key={pair.id}
+                  className="flex justify-between items-center bg-black/20 p-2 rounded px-3"
+                >
+                  <span className="text-sm font-medium text-blue-300">
+                    {getPlayerName(pair.player1Id)} &{" "}
+                    {getPlayerName(pair.player2Id)}
+                  </span>
+                  <button
+                    className="text-text-muted hover:text-red-400 font-bold"
+                    onClick={() => onRemovePair(pair.id)}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Add Form */}
+          {isAdding && (
+            <div className="bg-black/20 p-3 rounded border border-white/10 animate-fade-in shadow-lg">
+              <div className="flex gap-2 items-center mb-3">
+                <select
+                  className="flex-1 bg-white/5 text-sm p-2 rounded border border-white/10 outline-none"
+                  value={p1}
+                  onChange={(e) => setP1(e.target.value)}
+                >
+                  <option value="">Select Player 1...</option>
+                  {getAvailablePlayers(p1)
+                    .filter((p) => p.id !== p2)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
+                <span className="text-text-muted font-bold">&</span>
+                <select
+                  className="flex-1 bg-white/5 text-sm p-2 rounded border border-white/10 outline-none"
+                  value={p2}
+                  onChange={(e) => setP2(e.target.value)}
+                >
+                  <option value="">Select Player 2...</option>
+                  {getAvailablePlayers(p2)
+                    .filter((p) => p.id !== p1)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsAdding(false)}
+                >
+                  Cancel
+                </Button>
+                <Button size="sm" disabled={!p1 || !p2} onClick={handleAdd}>
+                  Confirm Pair
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};

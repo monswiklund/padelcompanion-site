@@ -12,7 +12,7 @@ import { initHistory, renderHistory } from "../../history/index.js";
 import { StorageService } from "../../../shared/storage.js";
 
 // Sub-modules
-import { renderSetup } from "./setup.js";
+import { renderSetup } from "./setup.jsx";
 import { renderActiveGame } from "./gameView.js";
 
 // Track attached listeners for cleanup

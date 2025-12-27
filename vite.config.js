@@ -2,9 +2,12 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
+import react from "@vitejs/plugin-react";
+
 export default defineConfig({
   base: "/", // Change to '/repo-name/' if using project pages
   plugins: [
+    react(),
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {

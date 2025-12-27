@@ -19,7 +19,6 @@ import {
   generateTeamMexicanoFirstRound,
 } from "../../scoring/index.js";
 import { renderLeaderboard } from "../leaderboard.js";
-import { updateSetupUI } from "./setupUI.js";
 
 // Forward declaration for renderSchedule
 let renderScheduleCallback = null;
@@ -38,8 +37,7 @@ export function setRenderScheduleCallback(fn) {
 export function generateSchedule() {
   const els = getElements();
 
-  const format = els.format.value;
-  const isTeam = format === "team" || format === "teamMexicano";
+  const isTeam = state.format === "team" || state.format === "teamMexicano";
   const minPlayers = isTeam ? 2 : 4;
 
   if (state.players.length < minPlayers) {
@@ -50,10 +48,6 @@ export function generateSchedule() {
     return;
   }
 
-  state.format = els.format.value;
-  state.courts = parseInt(els.courts.value);
-  state.scoringMode = els.scoringMode.value;
-  state.pointsPerMatch = parseInt(els.points.value);
   state.currentRound = 1;
 
   const playersNeededPerCourt =
@@ -111,7 +105,6 @@ export function generateSchedule() {
     }, 100);
 
     state.isLocked = true;
-    updateSetupUI();
     saveState();
 
     showToast(`🎾 Tournament started! Round 1 ready`);
@@ -160,7 +153,6 @@ export function resetSchedule() {
       els.scheduleSection.style.display = "none";
       els.leaderboardSection.style.display = "none";
 
-      updateSetupUI();
       saveState();
       showToast("Tournament reset");
     },
@@ -180,7 +172,6 @@ export function endTournament(showFinalStandingsCallback) {
     () => {
       state.isLocked = false;
       state.hideLeaderboard = false;
-      updateSetupUI();
 
       const sorted = [...state.leaderboard].sort((a, b) => b.points - a.points);
 

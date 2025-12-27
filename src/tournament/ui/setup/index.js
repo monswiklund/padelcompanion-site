@@ -4,12 +4,6 @@
  */
 
 export {
-  updateSetupUI,
-  renderTournamentSummary,
-  setRenderTournamentConfigCallback,
-} from "./setupUI.js";
-
-export {
   generateSchedule,
   resetSchedule,
   endTournament,
