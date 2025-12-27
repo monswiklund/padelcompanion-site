@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
-import {
-  getHistory,
-  deleteFromHistory,
-} from "@/tournament/history/repository.js";
-import { exportTournamentData } from "@/tournament/ui/setup/exportShare.js";
+import { getHistory, deleteFromHistory } from "@/tournament/history/repository";
+import { exportTournamentData } from "@/tournament/ui/setup/exportShare";
 import { showToast } from "@/shared/utils";
-import { showConfirmModal } from "@/tournament/core/modals.js";
+import { showConfirmModal } from "@/tournament/core/modals";
 
 interface HistoryItem {
   id: string;
@@ -78,10 +75,28 @@ export const HistorySection: React.FC = () => {
   if (history.length === 0) return null;
 
   return (
-    <section className="history-section animate-fade-in" style={{ padding: "0 var(--space-md)" }}>
-      <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-md)" }}>
+    <section
+      className="history-section animate-fade-in"
+      style={{ padding: "0 var(--space-md)" }}
+    >
+      <div
+        className="section-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "var(--space-md)",
+        }}
+      >
         <div>
-          <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", color: "var(--text-primary)", marginBottom: "4px" }}>
+          <h3
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: "bold",
+              color: "var(--text-primary)",
+              marginBottom: "4px",
+            }}
+          >
             Tournament History
           </h3>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
@@ -94,7 +109,11 @@ export const HistorySection: React.FC = () => {
             type="text"
             placeholder="Search history..."
             className="form-input"
-            style={{ width: "100%", padding: "8px 12px", borderRadius: "var(--radius-md)" }}
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              borderRadius: "var(--radius-md)",
+            }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -116,19 +135,26 @@ export const HistorySection: React.FC = () => {
           <tbody>
             {filteredHistory.map((item) => (
               <tr key={item.id}>
+                <td>{new Date(item.savedAt).toLocaleDateString()}</td>
                 <td>
-                  {new Date(item.savedAt).toLocaleDateString()}
-                </td>
-                <td>
-                  <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                  <span
+                    style={{ fontWeight: 600, color: "var(--text-primary)" }}
+                  >
                     {item.summary.name || "Untitled Tournament"}
                   </span>
                 </td>
-                <td style={{ textTransform: "capitalize", color: "var(--text-muted)" }}>
+                <td
+                  style={{
+                    textTransform: "capitalize",
+                    color: "var(--text-muted)",
+                  }}
+                >
                   {item.summary.format}
                 </td>
                 <td>
-                  <span style={{ color: "var(--accent-light)", fontWeight: 500 }}>
+                  <span
+                    style={{ color: "var(--accent-light)", fontWeight: 500 }}
+                  >
                     🏆 {item.summary.winner}
                   </span>
                 </td>
@@ -148,7 +174,21 @@ export const HistorySection: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => exportTournamentData(item.data)}
+                      onClick={() => {
+                        const data = exportTournamentData();
+                        // Download as file
+                        const blob = new Blob([data], {
+                          type: "application/json",
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${
+                          item.summary.name || "tournament"
+                        }.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
                       title="Download CSV"
                     >
                       📥
@@ -170,7 +210,13 @@ export const HistorySection: React.FC = () => {
         </table>
 
         {filteredHistory.length === 0 && (
-          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+          <div
+            style={{
+              padding: "3rem",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+          >
             No history found matching "{search}"
           </div>
         )}

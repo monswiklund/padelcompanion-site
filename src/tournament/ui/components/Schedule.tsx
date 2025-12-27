@@ -1,21 +1,11 @@
 import React, { useState } from "react";
-import { useTournament, Player } from "@/context/TournamentContext";
-
-interface Match {
-  court: number;
-  team1: Player[];
-  team2: Player[];
-  score1?: number;
-  score2?: number;
-  relaxedConstraint?: string;
-}
-
-interface Round {
-  number: number;
-  completed: boolean;
-  matches: Match[];
-  byes?: Player[];
-}
+import {
+  useTournament,
+  Player,
+  Round,
+  Match,
+} from "@/context/TournamentContext";
+import { showConfirmModal } from "@/tournament/core/modals";
 
 const RoundCard: React.FC<{
   round: Round;
@@ -53,6 +43,56 @@ const RoundCard: React.FC<{
     return "Constraint relaxed (Best effort)";
   };
 
+  // Determine round status
+  const getRoundCompletionStatus = () => {
+    let completedCount = 0;
+    const missing: string[] = [];
+
+    round.matches.forEach((m) => {
+      const hasScores =
+        m.score1 !== undefined &&
+        m.score1 !== null &&
+        m.score2 !== undefined &&
+        m.score2 !== null;
+      if (hasScores) {
+        completedCount++;
+      } else {
+        missing.push(getCourtName(m.court));
+      }
+    });
+
+    if (completedCount === 0) return { status: "empty", missing };
+    if (completedCount === round.matches.length)
+      return { status: "complete", missing: [] };
+    return { status: "partial", missing };
+  };
+
+  const { status, missing } = getRoundCompletionStatus();
+
+  const handleCompleteClick = () => {
+    if (status === "complete") {
+      onComplete();
+    } else if (status === "partial") {
+      const msg = `Missing scores for:\n${missing
+        .map((c) => "• " + c)
+        .join("\n")}\n\nContinue anyway?`;
+      showConfirmModal("Incomplete Round", msg, "Continue Anyway", onComplete);
+    } else {
+      // Empty
+      showConfirmModal(
+        "No Scores Entered",
+        "You haven't entered any scores for this round. Are you sure you want to complete it as all 0-0?",
+        "Complete w/ Zeros",
+        onComplete
+      );
+    }
+  };
+
+  const getButtonClass = () => {
+    if (status === "complete") return "btn-success";
+    return "bg-base-300 text-base-content/50 hover:bg-base-200 border-base-content/10"; // Explicit Grey
+  };
+
   return (
     <div
       className={`round ${round.completed ? "completed" : "ongoing"} ${
@@ -83,7 +123,18 @@ const RoundCard: React.FC<{
       </div>
 
       <div className="round-content">
-        <div className="matches-grid">
+        <div
+          className="matches-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              state.gridColumns > 0
+                ? `repeat(${state.gridColumns}, minmax(0, 1fr))`
+                : undefined,
+            fontSize: `${state.textSize}%`,
+            ["--text-scale" as any]: state.textSize / 100,
+          }}
+        >
           {round.matches.map((match, mIdx) => (
             <div key={mIdx} className="match-card-wrapper">
               <div className="match-card-header">
@@ -197,8 +248,8 @@ const RoundCard: React.FC<{
               </div>
             </div>
             <button
-              className="btn btn-success complete-round-btn"
-              onClick={onComplete}
+              className={`btn ${getButtonClass()} complete-round-btn`}
+              onClick={handleCompleteClick}
             >
               Complete Round {round.number}
             </button>

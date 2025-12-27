@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { renderMultiBracketPreview } from "../../ui/bracket/index.js";
+import { BracketPreview } from "./BracketPreview";
 import {
   initBracketTournament,
   initDualBracketTournament,
-} from "../../bracket/index.js";
+} from "../../bracket";
 import { showToast, createId } from "@/shared/utils";
 import { useTournament } from "@/context/TournamentContext";
 import { state as legacyState } from "../../core/state";
@@ -91,9 +91,9 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
 
     try {
       if (isDualMode) {
-        initDualBracketTournament(teams, sharedFinal);
+        initDualBracketTournament(teams as any, sharedFinal);
       } else {
-        initBracketTournament(teams);
+        initBracketTournament(teams as any);
       }
 
       // Sync BACK to context
@@ -112,48 +112,24 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
     }
   };
 
-  const renderTeamItem = (team: Team, index: number) => (
-    <li
-      key={team.id}
-      className="player-item flex justify-between items-center p-2 bg-bg-tertiary rounded mb-2"
-    >
-      <div className="flex items-center gap-2">
-        {isDualMode && (
-          <button
-            className="side-toggle text-xs px-2 py-1 rounded bg-black/20 hover:bg-black/40 text-text-muted"
-            onClick={() => handleSideToggle(index)}
-            title="Click to assign Pool"
-          >
-            {team.side ? `Pool ${team.side}` : "No Pool"}
-          </button>
-        )}
-        <span>{team.name}</span>
-      </div>
+  const renderTeamPrefix = (team: Team, index: number) => {
+    if (!isDualMode) return null;
+    return (
       <button
-        className="text-text-muted hover:text-red-400 px-2 font-bold"
-        onClick={() => handleRemoveTeam(index)}
+        className="side-toggle text-xs px-2 py-1 rounded bg-black/20 hover:bg-black/40 text-text-muted mr-2"
+        onClick={() => handleSideToggle(index)}
+        title="Click to assign Pool"
       >
-        ×
+        {team.side ? `Pool ${team.side}` : "No Pool"}
       </button>
-    </li>
-  );
-
-  const previewHtml = React.useMemo(() => {
-    if (teams.length < 2) return "";
-    return renderMultiBracketPreview(
-      teams.length,
-      isDualMode ? bracketCount : 1,
-      sharedFinal
     );
-  }, [teams.length, isDualMode, bracketCount, sharedFinal]);
+  };
 
   return (
     <div className="tournament-setup-view container animate-fade-in py-8">
-      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
-        <h2 className="text-3xl mb-1 text-white">Create a Bracket</h2>
-        <p className="text-text-muted">
-          Set up a single elimination tournament bracket.
-        </p>
+      <div className="page-intro-header">
+        <h2>Create a Bracket</h2>
+        <p>Set up a single elimination tournament bracket.</p>
       </div>
 
       <div className="setup-grid">
@@ -166,11 +142,11 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
               onAdd={handleAddTeam}
               onRemove={handleRemoveTeam}
               onClear={() => setTeams([])}
-              onImport={(text) => {
+              onImport={(text: string) => {
                 const lines = text.split("\n");
                 let added = 0;
                 const newTeams = [...teams];
-                lines.forEach((l) => {
+                lines.forEach((l: string) => {
                   const n = l.trim();
                   if (
                     n &&
@@ -187,7 +163,7 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
                 showToast(`Imported ${added} ${mode}`, "success");
               }}
               maxItems={32}
-              renderItem={renderTeamItem}
+              renderPrefix={renderTeamPrefix}
               hintText={
                 <span
                   dangerouslySetInnerHTML={{
@@ -309,10 +285,13 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
           </Card>
 
           {teams.length >= 2 && (
-            <div
-              className="bracket-preview mt-4 p-4 bg-bg-tertiary rounded border border-white/10"
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
-            />
+            <Card className="mt-4 p-4 border border-white/10">
+              <BracketPreview
+                teamCount={teams.length}
+                bracketCount={isDualMode ? bracketCount : 1}
+                sharedFinal={sharedFinal}
+              />
+            </Card>
           )}
         </div>
       </div>

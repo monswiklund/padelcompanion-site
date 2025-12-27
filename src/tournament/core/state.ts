@@ -35,6 +35,7 @@ export interface Match {
 
 export interface Round {
   number: number;
+  completed?: boolean;
   matches: Match[];
   byes: Player[];
 }
@@ -59,12 +60,31 @@ export interface UIState {
   activeBracketTab: string;
 }
 
-export interface WinnersCourtState {
-  players: Player[];
-  courts: any[];
-  courtCount: number;
-  twist: boolean;
+export interface WCPlayer {
+  name: string;
+  skill: number;
+  side: "A" | "B" | null;
+}
+
+export interface WCCourt {
+  id: number;
+  team1: WCPlayer[];
+  team2: WCPlayer[];
+  score1: number;
+  score2: number;
+  winner: 1 | 2 | null;
+}
+
+export interface WCSideState {
+  courts: WCCourt[];
+  queue: WCPlayer[];
   round: number;
+  history: any[];
+}
+
+export interface WinnersCourtState {
+  sides: Record<string, WCSideState>;
+  twist: boolean;
 }
 
 export interface TournamentState {

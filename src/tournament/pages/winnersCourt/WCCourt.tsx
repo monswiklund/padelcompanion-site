@@ -1,11 +1,15 @@
 import React from "react";
-import { createTeams } from "./logic.js";
 
 interface WCCourtProps {
-  court: any;
+  court: {
+    id: number;
+    team1: { name: string }[];
+    team2: { name: string }[];
+    winner: 1 | 2 | null;
+  };
   twist: boolean;
   round: number;
-  onSelectWinner?: (winner: number) => void;
+  onSelectWinner?: (winner: 1 | 2) => void;
   readOnly?: boolean;
 }
 
@@ -16,7 +20,6 @@ export const WCCourt: React.FC<WCCourtProps> = ({
   onSelectWinner,
   readOnly = false,
 }) => {
-  const teams = createTeams(court.players, twist, round);
   const isComplete = court.winner != null;
   const canSelect = !readOnly && !isComplete;
 
@@ -34,8 +37,8 @@ export const WCCourt: React.FC<WCCourtProps> = ({
           }`}
           onClick={() => canSelect && onSelectWinner?.(1)}
         >
-          <div className="wc-player-name">{teams?.team1[0]?.name || "?"}</div>
-          <div className="wc-player-name">{teams?.team1[1]?.name || "?"}</div>
+          <div className="wc-player-name">{court.team1[0]?.name || "?"}</div>
+          <div className="wc-player-name">{court.team1[1]?.name || "?"}</div>
         </div>
         <div className="wc-vs-horizontal">VS</div>
         <div
@@ -44,19 +47,10 @@ export const WCCourt: React.FC<WCCourtProps> = ({
           }`}
           onClick={() => canSelect && onSelectWinner?.(2)}
         >
-          <div className="wc-player-name">{teams?.team2[0]?.name || "?"}</div>
-          <div className="wc-player-name">{teams?.team2[1]?.name || "?"}</div>
+          <div className="wc-player-name">{court.team2[0]?.name || "?"}</div>
+          <div className="wc-player-name">{court.team2[1]?.name || "?"}</div>
         </div>
       </div>
-      {court.players.length > 4 && (
-        <div className="wc-bench">
-          <strong>Bench:</strong>{" "}
-          {court.players
-            .slice(4)
-            .map((p: any) => p.name)
-            .join(", ")}
-        </div>
-      )}
     </div>
   );
 };

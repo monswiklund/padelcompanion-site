@@ -10,7 +10,7 @@ import {
 import { PreferredPartners } from "@/components/tournament/PreferredPartners";
 import { useTournament } from "@/context/TournamentContext";
 // Import legacy functions
-import { generateSchedule } from "../../ui/setup/scheduleGeneration.js";
+import { generateSchedule } from "../../ui/setup/scheduleGeneration";
 import { state as legacyState } from "../../core/state";
 
 interface GeneratorPlayer {
@@ -54,7 +54,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     showToast(`${name} added`, "success");
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (players.length < 4) {
       showToast("Need at least 4 players", "error");
       return;
@@ -64,21 +64,40 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
       // Ensure legacy state is up to date before calling legacy generator
       Object.assign(legacyState, state);
 
-      generateSchedule();
+      console.log("[Generator] Pre-generation State:", {
+        players: state.players.length,
+        courts: state.courts,
+        format: state.format,
+        legacyCourts: legacyState.courts,
+      });
 
-      // Sync BACK after generation (which populates state.schedule, state.leaderboard, etc)
+      const result = await generateSchedule();
+
+      if (!result) return;
+
+      const generatedSchedule = result.schedule || [];
+      const validSchedule = generatedSchedule.filter(
+        (r: any) => r && r.matches && r.matches.length > 0
+      );
+
+      if (generatedSchedule.length > 0 && validSchedule.length === 0) {
+        showToast("Error: Generated schedule has empty rounds.", "error");
+        return;
+      }
+
+      // Sync BACK after generation
       dispatch({
         type: "SET_STATE",
         payload: {
-          schedule: legacyState.schedule,
-          leaderboard: legacyState.leaderboard,
-          allRounds: legacyState.allRounds,
-          currentRound: legacyState.currentRound,
-          isLocked: legacyState.isLocked,
+          schedule: generatedSchedule.length > 0 ? [...generatedSchedule] : [],
+          leaderboard: result.leaderboard ? [...result.leaderboard] : [],
+          allRounds: result.allRounds ? [...result.allRounds] : null,
+          currentRound: result.currentRound,
+          isLocked: result.isLocked,
         },
       });
 
-      if (legacyState.schedule && legacyState.schedule.length > 0) {
+      if (validSchedule.length > 0) {
         onGameActive();
       }
     } catch (e: any) {
@@ -90,45 +109,30 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     dispatch({ type: "UPDATE_FIELD", key: key as any, value });
   };
 
-  const renderPlayerItem = (p: GeneratorPlayer, i: number) => {
+  const renderPlayerActions = (p: GeneratorPlayer, i: number) => {
+    if (courts <= 1) return null;
     return (
-      <li key={p.id} className="player-item">
-        <span className="player-number">{i + 1}.</span>
-        <span className="player-name">{p.name}</span>
-
-        {courts > 1 && (
-          <select
-            className="court-lock-select"
-            value={p.lockedCourt || ""}
-            onChange={(e) => {
-              const val = e.target.value ? parseInt(e.target.value) : null;
-              const newPlayers = [...players];
-              newPlayers[i] = { ...newPlayers[i], lockedCourt: val };
-              dispatch({
-                type: "SET_STATE",
-                payload: { players: newPlayers },
-              });
-            }}
-            title="Lock to Court"
-          >
-            <option value="">Auto</option>
-            {Array.from({ length: courts }, (_, c) => c + 1).map((c) => (
-              <option key={c} value={c}>
-                Court {c}
-              </option>
-            ))}
-          </select>
-        )}
-
-        <button
-          className="player-remove"
-          onClick={() => {
-            dispatch({ type: "REMOVE_PLAYER", playerId: p.id });
-          }}
-        >
-          ×
-        </button>
-      </li>
+      <select
+        className="court-lock-select bg-black/20 text-xs p-1 rounded border border-white/10 outline-none"
+        value={p.lockedCourt || ""}
+        onChange={(e) => {
+          const val = e.target.value ? parseInt(e.target.value) : null;
+          const newPlayers = [...players];
+          newPlayers[i] = { ...newPlayers[i], lockedCourt: val };
+          dispatch({
+            type: "SET_STATE",
+            payload: { players: newPlayers },
+          });
+        }}
+        title="Lock to Court"
+      >
+        <option value="">Auto</option>
+        {Array.from({ length: courts }, (_, c) => c + 1).map((c) => (
+          <option key={c} value={c}>
+            Court {c}
+          </option>
+        ))}
+      </select>
     );
   };
 
@@ -173,14 +177,26 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
                 });
                 showToast(`Imported ${addedPlayers.length} players`, "success");
               }}
-              renderItem={renderPlayerItem}
+              renderActions={renderPlayerActions}
+              onReorder={(from: number, to: number) => {
+                const newPlayers = [...players];
+                const [moved] = newPlayers.splice(from, 1);
+                newPlayers.splice(to, 0, moved);
+                dispatch({
+                  type: "SET_STATE",
+                  payload: { players: newPlayers },
+                });
+              }}
               hintText={
-                <div className="players-hint">
-                  {players.length} ready | {courts} courts ({courts * 4} playing).
+                <div className="text-xs text-text-muted mt-2 flex items-center gap-2">
+                  <span className="text-brand-primary">✓</span>
+                  <span>{players.length} ready</span>
+                  <span className="opacity-50">|</span>
+                  <span>
+                    {courts} courts ({courts * 4} players ideal)
+                  </span>
                   {players.length % 4 !== 0 && (
-                    <span style={{ color: "var(--warning)", marginLeft: "4px" }}>
-                      Queue enabled.
-                    </span>
+                    <span className="text-warning ml-1">(Queue enabled)</span>
                   )}
                 </div>
               }

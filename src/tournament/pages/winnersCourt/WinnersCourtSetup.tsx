@@ -5,13 +5,13 @@ import { PlayerList } from "@/components/tournament/PlayerList";
 import { StorageService } from "@/shared/storage";
 import { showToast } from "@/shared/utils";
 // Functions from logic.js (we'll import these)
-import { initWinnersCourt, clearWinnersCourt } from "./logic.js";
-import { HELP_SKILL_LEVELS, HELP_WINNERS_INTRO } from "../../content/help.js";
+import { initWinnersCourt, clearWinnersCourt } from "./logic";
+import { HELP_SKILL_LEVELS, HELP_WINNERS_INTRO } from "../../content/help";
 import {
   showInfoModal,
   showInputModal,
   showConfirmModal,
-} from "../../core/modals.js";
+} from "../../core/modals";
 import { useTournament } from "@/context/TournamentContext";
 import { state as legacyState } from "../../core/state";
 
@@ -37,6 +37,8 @@ export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
   const [isTwist, setIsTwist] = useState(false); // Default to false, or load pref if we had one
   const [courtCountInput, setCourtCountInput] = useState<number | null>(null);
 
+  const [isLoaded, setIsLoaded] = useState(false);
+
   // --- Effects ---
   useEffect(() => {
     // Load setup players
@@ -44,11 +46,14 @@ export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
     if (saved && Array.isArray(saved)) {
       setPlayers(saved);
     }
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    StorageService.setItem("wc_setup_players", players);
-  }, [players]);
+    if (isLoaded) {
+      StorageService.setItem("wc_setup_players", players);
+    }
+  }, [players, isLoaded]);
 
   useEffect(() => {
     StorageService.setItem("wc_split_sides", String(splitSides));
@@ -170,69 +175,48 @@ export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
   };
 
   // --- Render Items ---
-  const renderItem = (p: WCPlayer, i: number) => {
-    // We want to show headers if split sides
-    // But flat list rendering makes headers tricky inside the map unless we sort or group.
-    // PlayerList just renders a list.
-    // We can group them visually with colors or badges.
-
-    const isSideB = p.side === "B";
-
+  // --- Render Items ---
+  const renderPlayerPrefix = (p: WCPlayer, i: number) => {
+    if (!splitSides) return null;
     return (
-      <li
-        key={i}
-        className={`player-item flex justify-between items-center p-2 rounded mb-2 ${
-          isSideB && splitSides
-            ? "bg-orange-500/10 border-l-2 border-orange-500"
-            : "bg-bg-tertiary border-l-2 border-blue-500"
-        }`}
+      <button
+        className="text-xs px-2 py-1 rounded bg-black/20 hover:bg-black/40 text-text-muted font-bold w-8 mr-2"
+        onClick={() => {
+          // Find real index in original list is complex if sorted list is passed to list
+          // But PlayerList renders items array passed to it.
+          // We need original player update.
+          const realIndex = players.indexOf(p);
+          if (realIndex === -1) return;
+          const newP = [...players];
+          newP[realIndex].side = newP[realIndex].side === "B" ? "A" : "B";
+          setPlayers(newP);
+        }}
       >
-        <div className="flex items-center gap-3">
-          {splitSides && (
-            <button
-              className="text-xs px-2 py-1 rounded bg-black/20 hover:bg-black/40 text-text-muted font-bold w-8"
-              onClick={() => {
-                const newP = [...players];
-                newP[i].side = newP[i].side === "B" ? "A" : "B";
-                setPlayers(newP);
-              }}
-            >
-              {p.side === "B" ? "B" : "A"}
-            </button>
-          )}
+        {p.side === "B" ? "B" : "A"}
+      </button>
+    );
+  };
 
-          <span className="font-medium">{p.name}</span>
-
-          {/* Skill Selector */}
-          <select
-            className="compact-select bg-black/20 text-xs p-1 rounded border border-white/10 outline-none"
-            value={p.skill}
-            onChange={(e) => {
-              const newP = [...players];
-              newP[i].skill = parseInt(e.target.value);
-              setPlayers(newP);
-            }}
-          >
-            <option value="0">-</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          className="text-text-muted hover:text-red-400 px-2 font-bold"
-          onClick={() => {
-            const newP = [...players];
-            newP.splice(i, 1);
-            setPlayers(newP);
-          }}
-        >
-          ×
-        </button>
-      </li>
+  const renderPlayerActions = (p: WCPlayer, i: number) => {
+    return (
+      <select
+        className="compact-select bg-black/20 text-xs p-1 rounded border border-white/10 outline-none"
+        value={p.skill}
+        onChange={(e) => {
+          const realIndex = players.indexOf(p);
+          if (realIndex === -1) return;
+          const newP = [...players];
+          newP[realIndex].skill = parseInt(e.target.value);
+          setPlayers(newP);
+        }}
+      >
+        <option value="0">Skill: -</option>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
     );
   };
 
@@ -249,128 +233,139 @@ export const WinnersCourtSetup: React.FC<WinnersCourtSetupProps> = ({
     : players;
 
   return (
-    <div className="tournament-setup-view wc-setup">
-      {/* 1. Header (Simplest to keep outside or replicate) */}
-      {/* Let's rely on index.js for header or replicate it if we want full control */}
-      {/* We'll assume index.js is cleared or we replace standard header */}
-      <div className="page-intro-header text-center max-w-[600px] mx-auto my-8 px-4">
-        <h2 className="text-3xl mb-1 bg-gradient-to-br from-blue-400 to-green-300 bg-clip-text text-transparent">
-          Winners Court
-        </h2>
-        <p className="text-text-muted">Skill-based court promotion.</p>
+    <div className="tournament-setup-view container animate-fade-in">
+      <div className="page-intro-header">
+        <h2>Winners Court Setup</h2>
+        <p>Skill-based court promotion. Win to move up, lose to move down.</p>
       </div>
 
-      {/* 2. Player Manager */}
-      <Card>
-        <PlayerList<WCPlayer>
-          title="Players"
-          items={sortedPlayers}
-          onAdd={handleAddPlayer}
-          onRemove={(idx) => {
-            // If sorted, indices mismatch with original 'players' state?
-            // Yes. We need to find the item in real state.
-            const itemToRemove = sortedPlayers[idx];
-            setPlayers(players.filter((p) => p !== itemToRemove));
-          }}
-          onClear={() => setPlayers([])}
-          onImport={(text) => {
-            const lines = text.split("\n");
-            const newP = [...players];
-            let added = 0;
-            lines.forEach((l) => {
-              const parts = l.split(":");
-              const name = parts[0].trim();
-              let skill = 0;
-              if (parts[1]) skill = parseInt(parts[1]) || 0;
+      <div className="setup-grid">
+        <div className="setup-main">
+          <Card>
+            <PlayerList
+              title="Players"
+              singularTitle="Player"
+              items={sortedPlayers}
+              onAdd={handleAddPlayer}
+              onRemove={(idx: number) => {
+                const itemToRemove = sortedPlayers[idx];
+                setPlayers(players.filter((p) => p !== itemToRemove));
+              }}
+              onClear={() => {
+                setPlayers([]);
+                showToast("Cleared all players");
+              }}
+              onImport={(text: string) => {
+                const lines = text.split("\n");
+                let added = 0;
+                const newP = [...players];
+                lines.forEach((l: string) => {
+                  const parts = l.split(":");
+                  const name = parts[0].trim();
+                  let skill = 0;
+                  if (parts[1]) skill = parseInt(parts[1]) || 0;
 
-              if (
-                name &&
-                !newP.some((p) => p.name.toLowerCase() === name.toLowerCase())
-              ) {
-                newP.push({ name, skill, side: splitSides ? "A" : null });
-                added++;
+                  if (
+                    name &&
+                    !newP.some(
+                      (p) => p.name.toLowerCase() === name.toLowerCase()
+                    )
+                  ) {
+                    newP.push({ name, skill, side: splitSides ? "A" : null });
+                    added++;
+                  }
+                });
+                setPlayers(newP);
+                showToast(`Imported ${added} players`, "success");
+              }}
+              renderPrefix={renderPlayerPrefix}
+              renderActions={renderPlayerActions}
+              hintText={
+                <div className="text-xs text-text-muted mt-2 flex items-center gap-2">
+                  <span className="text-brand-primary">✓</span>
+                  <span>{players.length} players ready</span>
+                  {splitSides && (
+                    <>
+                      <span className="opacity-50">|</span>
+                      <span>
+                        A: {players.filter((p) => p.side !== "B").length} / B:{" "}
+                        {players.filter((p) => p.side === "B").length}
+                      </span>
+                    </>
+                  )}
+                </div>
               }
-            });
-            setPlayers(newP);
-            showToast(`Imported ${added} players`, "success");
-          }}
-          renderItem={(item) => {
-            // We need to find the REAL index of 'item' in 'players' array to update it correctly
-            const realIndex = players.indexOf(item);
-            return renderItem(item, realIndex);
-          }}
-          hintText={
-            <div className="flex justify-between text-xs text-text-muted mt-2">
-              <span>Total: {players.length}</span>
-              {splitSides && (
-                <span>
-                  Side A: {players.filter((p) => p.side !== "B").length} / Side
-                  B: {players.filter((p) => p.side === "B").length}
-                </span>
-              )}
-            </div>
-          }
-        />
-      </Card>
-
-      {/* 3. Settings */}
-      <Card className="mt-4">
-        <div className="flex justify-center flex-wrap gap-4 items-center">
-          {/* Courts Selector (Only if NOT split sides) */}
-          {!splitSides && maxCourts > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-text-secondary">Courts:</span>
-              <select
-                className="p-1 px-2 text-sm bg-black/20 border border-border-color rounded text-white outline-none"
-                value={selectedCourts}
-                onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
-              >
-                {Array.from({ length: maxCourts }, (_, i) => i + 1).map((n) => (
-                  <option key={n} value={n}>
-                    {n} ({n * 4} players)
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Twist Mode */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={isTwist}
-              onChange={(e) => setIsTwist(e.target.checked)}
             />
-            <span>Twist Mode</span>
-          </label>
-
-          {/* Split Sides */}
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={splitSides}
-              onChange={(e) => setSplitSides(e.target.checked)}
-            />
-            <span>Split Sides</span>
-          </label>
-
-          {/* Auto Assign */}
-          {splitSides && (
-            <Button size="sm" variant="secondary" onClick={autoAssign}>
-              Auto-Assign by Skill
-            </Button>
-          )}
+          </Card>
         </div>
-      </Card>
 
-      {/* 4. Actions */}
-      <div className="mt-8 flex justify-center">
+        <div className="setup-sidebar">
+          <Card className="p-4">
+            <h3 className="text-sm font-bold text-white mb-4">Settings</h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Courts:</span>
+                <select
+                  className="p-1 px-2 text-sm bg-black/20 border border-white/10 rounded text-white outline-none"
+                  value={selectedCourts}
+                  onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
+                >
+                  <option value={maxCourts}>Auto ({maxCourts})</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">Twist Mode:</span>
+                <input
+                  type="checkbox"
+                  checked={isTwist}
+                  onChange={(e) => setIsTwist(e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-secondary">
+                  Split Sides:
+                </span>
+                <input
+                  type="checkbox"
+                  checked={splitSides}
+                  onChange={(e) => setSplitSides(e.target.checked)}
+                  className="w-5 h-5"
+                />
+              </div>
+
+              <div className="pt-2 text-xs text-text-muted">
+                {splitSides && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={autoAssign}
+                    className="w-full mb-2"
+                  >
+                    Auto-Assign
+                  </Button>
+                )}
+                <p>Winners move towards Court 1.</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      <div className="mt-8 flex justify-center pb-12">
         <Button
           size="lg"
           disabled={players.length < 4}
           onClick={handleGenerate}
         >
-          Generate Winners Court
+          Start Session
         </Button>
       </div>
     </div>

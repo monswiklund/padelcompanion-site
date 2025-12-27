@@ -11,7 +11,7 @@ import {
   getFinalStandings,
   getRoundName,
 } from "../../bracket/index.js";
-import { showConfirmModal } from "../../core/modals.js";
+import { showConfirmModal } from "../../core/modals";
 import { state as legacyState } from "../../core/state";
 
 export const BracketView: React.FC = () => {

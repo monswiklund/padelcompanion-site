@@ -3,8 +3,8 @@ import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { WCCourt } from "./WCCourt";
-import { recordCourtResult, nextRound, clearWinnersCourt } from "./logic.js";
-import { showConfirmModal } from "../../core/modals.js";
+import { recordCourtResult, nextRound, clearWinnersCourt } from "./logic";
+import { showConfirmModal } from "../../core/modals";
 import { showToast } from "@/shared/utils";
 import { state as legacyState } from "../../core/state";
 
@@ -42,21 +42,20 @@ export const WinnersCourtActiveView: React.FC = () => {
       "This will reset this side.",
       "Clear",
       () => {
-        if (legacyState.winnersCourt.sides[side]) {
+        if (legacyState.winnersCourt?.sides[side]) {
           delete legacyState.winnersCourt.sides[side];
-          if (Object.keys(legacyState.winnersCourt.sides).length === 0) {
+          if (Object.keys(legacyState.winnersCourt?.sides || {}).length === 0) {
             legacyState.winnersCourt = null;
           }
           syncState();
           showToast(`Side ${side} cleared`);
         }
-      },
-      true
+      }
     );
   };
 
-  const handleWin = (side: string, courtId: number, winner: number) => {
-    recordCourtResult(side, courtId, winner, 0, 0);
+  const handleWin = (side: string, courtId: number, winner: 1 | 2) => {
+    recordCourtResult(side, courtId, winner);
     syncState();
   };
 

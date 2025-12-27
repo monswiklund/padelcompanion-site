@@ -31,7 +31,7 @@ export interface Match {
 
 export interface Round {
   number: number;
-  completed: boolean;
+  completed?: boolean;
   matches: Match[];
   byes?: Player[];
 }
@@ -335,16 +335,16 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           const newSchedule = [...prev.schedule];
           newSchedule[currentRoundIdx] = { ...currentRound, completed: true };
 
-          // 4. Generate next round logic...
+          // 4. Generate next round logic
           let nextRoundBase: Round | null = null;
-          const nextRoundNum = prev.currentRound + 1;
+          const nextRoundIndex = newSchedule.length; // Index for the NEW round (e.g. 1 if round 1 just completed)
 
           if (
             (prev.format === "americano" || prev.format === "team") &&
             prev.allRounds &&
-            nextRoundNum < prev.allRounds.length
+            nextRoundIndex < prev.allRounds.length
           ) {
-            nextRoundBase = { ...prev.allRounds[nextRoundNum] };
+            nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
           } else if (
             prev.format === "mexicano" ||
             prev.format === "teamMexicano"
@@ -365,7 +365,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             ...prev,
             schedule: newSchedule,
             leaderboard: newLeaderboard,
-            currentRound: nextRoundNum,
+            currentRound: nextRoundIndex,
             manualByes: [],
           };
         }

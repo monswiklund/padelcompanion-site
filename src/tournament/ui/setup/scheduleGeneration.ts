@@ -33,7 +33,7 @@ export function setRenderScheduleCallback(fn: () => void): void {
  * Generate tournament schedule.
  * Updates legacy state and triggers re-render.
  */
-export function generateSchedule(): void {
+export function generateSchedule(): Promise<any> {
   const isTeam = state.format === "team" || state.format === "teamMexicano";
   const minPlayers = isTeam ? 2 : 4;
 
@@ -42,7 +42,7 @@ export function generateSchedule(): void {
       `Not enough ${isTeam ? "teams" : "players"} (min ${minPlayers})`,
       "error"
     );
-    return;
+    return Promise.resolve();
   }
 
   state.currentRound = 1;
@@ -93,7 +93,7 @@ export function generateSchedule(): void {
         "Not Enough Players",
         `You need at least ${playersNeededPerCourt} players/teams to start!`
       );
-      return;
+      return Promise.resolve();
     }
 
     const oldCourts = state.courts;
@@ -101,8 +101,15 @@ export function generateSchedule(): void {
     showToast(`Adjusted courts: ${oldCourts} → ${maxPossibleCourts}`);
   }
 
-  showCountdown().then(() => {
+  return showCountdown().then(() => {
     startGeneration();
+    return {
+      schedule: state.schedule,
+      allRounds: state.allRounds,
+      leaderboard: state.leaderboard,
+      currentRound: state.currentRound,
+      isLocked: state.isLocked,
+    };
   });
 }
 

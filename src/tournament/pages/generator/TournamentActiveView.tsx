@@ -128,35 +128,93 @@ const TournamentActiveView: React.FC = () => {
 
           <MatchTimer />
 
-          <div className="tournament-toolbar">
-            <button
-              className="btn btn-secondary toolbar-btn"
-              onClick={handleUndo}
-              title="Undo last action"
-            >
-              <span className="icon">↩</span> Undo
-            </button>
-            <button
-              className="btn btn-secondary toolbar-btn"
-              onClick={handleAddLatePlayer}
-              title="Add a player to active tournament"
-            >
-              <span className="icon">👤+</span> Add Player
-            </button>
-            <button
-              className="btn btn-secondary toolbar-btn"
-              onClick={handleReset}
-              title="Reset all scores"
-            >
-              <span className="icon">🔄</span> Reset
-            </button>
-            <button
-              className="btn btn-error toolbar-btn"
-              onClick={handleEnd}
-              title="End tournament"
-            >
-              <span className="icon">✖</span> End
-            </button>
+          {/* Unified Tool Panel */}
+          <div className="bg-base-300/50 backdrop-blur-md border border-white/10 rounded-2xl p-4 mb-6 shadow-xl max-w-4xl mx-auto w-full">
+            {/* Top Row: Actions */}
+            <div className="flex flex-wrap gap-3 justify-center items-center mb-4">
+              <button
+                className="btn btn-sm btn-ghost gap-2 normal-case"
+                onClick={handleUndo}
+                title="Undo last action"
+              >
+                <span className="icon">↩</span> Undo
+              </button>
+              <div className="w-px h-6 bg-white/10 mx-2 hidden sm:block"></div>
+              <button
+                className="btn btn-sm btn-primary gap-2 normal-case shadow-lg shadow-primary/20"
+                onClick={handleAddLatePlayer}
+              >
+                <span className="icon text-lg">+</span> Add Player
+              </button>
+              <div className="flex-1"></div>{" "}
+              {/* Spacer to push dangerous actions right on desktop */}
+              <button
+                className="btn btn-sm btn-ghost text-error/80 hover:bg-error/10 hover:text-error gap-2 normal-case"
+                onClick={handleEnd}
+              >
+                <span className="icon">✖</span> End
+              </button>
+              <button
+                className="btn btn-sm btn-ghost hover:bg-white/5 gap-2 normal-case opacity-70 hover:opacity-100"
+                onClick={handleReset}
+              >
+                <span className="icon">🔄</span> Reset
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-white/5 w-full mb-4"></div>
+
+            {/* Bottom Row: View Settings */}
+            <div className="flex flex-wrap gap-8 justify-center items-center text-sm">
+              <div className="flex items-center gap-3 bg-base-100/30 px-3 py-2 rounded-lg border border-white/5">
+                <span className="text-xs font-bold uppercase tracking-wider opacity-60">
+                  Grid
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="4"
+                  step="1"
+                  className="range range-xs range-secondary w-24"
+                  value={state.gridColumns}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      key: "gridColumns",
+                      value: parseInt(e.target.value),
+                    })
+                  }
+                />
+                <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1">
+                  {state.gridColumns || "Auto"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 bg-base-100/30 px-3 py-2 rounded-lg border border-white/5">
+                <span className="text-xs font-bold uppercase tracking-wider opacity-60">
+                  Text Size
+                </span>
+                <input
+                  type="range"
+                  min="50"
+                  max="350"
+                  step="10"
+                  className="range range-xs range-secondary w-32"
+                  value={state.textSize}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "UPDATE_FIELD",
+                      key: "textSize",
+                      value: parseInt(e.target.value),
+                    })
+                  }
+                />
+                <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1">
+                  {state.textSize}%
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
