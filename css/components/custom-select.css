@@ -195,6 +195,14 @@
     border: 1px solid var(--border-color);
   }
 
+  .slider.round {
+    border-radius: 24px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
   .slider:before {
     position: absolute;
     content: "";
@@ -221,5 +229,4 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-
 }

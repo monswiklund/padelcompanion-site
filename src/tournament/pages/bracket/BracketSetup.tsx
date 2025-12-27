@@ -258,15 +258,9 @@ export const BracketSetup: React.FC<BracketSetupProps> = ({ onComplete }) => {
                 type="checkbox"
                 checked={mode === "players"}
                 readOnly
-                className="opacity-0 w-0 h-0"
+                className="sr-only"
               />
-              <span
-                className={`slider round absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-bg-tertiary rounded-full border border-border-color transition-all duration-300 before:content-[''] before:absolute before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-text-muted before:rounded-full before:transition-all ${
-                  mode === "players"
-                    ? "bg-accent border-accent before:translate-x-6 before:bg-white"
-                    : ""
-                }`}
-              ></span>
+              <span className="slider round"></span>
             </div>
             <span
               className={
