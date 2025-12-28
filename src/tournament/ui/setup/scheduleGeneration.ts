@@ -73,10 +73,17 @@ export function generateSchedule(): Promise<any> {
       state.allRounds = generateTeamSchedule();
       state.schedule = [state.allRounds[0]];
     } else if (state.format === "teamMexicano") {
-      state.schedule = generateTeamMexicanoFirstRound();
+      state.schedule = generateTeamMexicanoFirstRound(
+        state.players,
+        state.courts
+      );
       state.allRounds = null;
     } else {
-      state.schedule = generateMexicanoFirstRound();
+      state.schedule = generateMexicanoFirstRound(
+        state.players,
+        state.courts,
+        state.preferredPartners
+      );
       state.allRounds = null;
     }
 
@@ -155,7 +162,7 @@ export function endTournament(
         (a: any, b: any) => b.points - a.points
       );
 
-      saveToHistory(state);
+      saveToHistory(state as any);
       showToast("Tournament saved to history");
 
       if (showFinalStandingsCallback) {

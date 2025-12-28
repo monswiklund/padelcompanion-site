@@ -3,7 +3,6 @@
  * Dynamic pairing for Team Mexicano format.
  */
 
-import { state } from "../core/state";
 import { shuffleArray } from "../../shared/utils";
 
 interface Player {
@@ -27,11 +26,13 @@ interface Round {
 /**
  * Generate Team Mexicano first round.
  */
-export function generateTeamMexicanoFirstRound(): Round[] {
-  const teams: Player[] = [...state.players];
+export function generateTeamMexicanoFirstRound(
+  players: Player[],
+  courts: number
+): Round[] {
+  const teams: Player[] = [...players];
   shuffleArray(teams);
 
-  const courts = state.courts;
   const matches: Match[] = [];
   const playersInMatches = new Set<string | number>();
 
@@ -50,19 +51,27 @@ export function generateTeamMexicanoFirstRound(): Round[] {
   return [{ number: 1, matches, byes }];
 }
 
+export interface TeamMexicanoNextRoundConfig {
+  leaderboard: Player[];
+  manualByes: (string | number)[];
+  courts: number;
+  scheduleLength?: number;
+}
+
 /**
  * Generate Team Mexicano next round based on standings.
  */
-export function generateTeamMexicanoNextRound(): Round {
-  const sorted: Player[] = [...state.leaderboard].sort(
+export function generateTeamMexicanoNextRound(
+  config: TeamMexicanoNextRoundConfig
+): Round {
+  const { leaderboard, manualByes, courts, scheduleLength = 0 } = config;
+
+  const sorted: Player[] = [...leaderboard].sort(
     (a: Player, b: Player) => (b.points || 0) - (a.points || 0)
   );
-  const courts = state.courts;
 
-  const available = sorted.filter((t) => !state.manualByes.includes(t.id));
-  const manualByePlayers = sorted.filter((t) =>
-    state.manualByes.includes(t.id)
-  );
+  const available = sorted.filter((t) => !manualByes.includes(t.id));
+  const manualByePlayers = sorted.filter((t) => manualByes.includes(t.id));
 
   const matches: Match[] = [];
   const playersInMatches = new Set<string | number>();
@@ -82,5 +91,5 @@ export function generateTeamMexicanoNextRound(): Round {
     ...available.filter((t) => !playersInMatches.has(t.id)),
   ];
 
-  return { number: state.schedule.length + 1, matches, byes };
+  return { number: scheduleLength + 1, matches, byes };
 }

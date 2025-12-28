@@ -3,7 +3,6 @@
  * Dynamic pairing for Mexicano format with preferred partners.
  */
 
-import { state } from "../core/state";
 import { shuffleArray } from "../../shared/utils";
 
 interface Player {
@@ -43,9 +42,12 @@ interface Round {
   byes: Player[];
 }
 
-function getPreferredPartnerId(pid: string | number): string | number | null {
-  if (!state.preferredPartners) return null;
-  const pair = state.preferredPartners.find(
+function getPreferredPartnerId(
+  pid: string | number,
+  preferredPartners: PreferredPartner[] = []
+): string | number | null {
+  if (!preferredPartners) return null;
+  const pair = preferredPartners.find(
     (pp: PreferredPartner) => pp.player1Id === pid || pp.player2Id === pid
   );
   if (!pair) return null;
@@ -54,7 +56,8 @@ function getPreferredPartnerId(pid: string | number): string | number | null {
 
 function buildEntities(
   players: Player[],
-  excludeIds: Set<string | number> = new Set()
+  excludeIds: Set<string | number> = new Set(),
+  preferredPartners: PreferredPartner[] = []
 ): Entity[] {
   const entities: Entity[] = [];
   const processedIds = new Set<string | number>();
@@ -63,7 +66,8 @@ function buildEntities(
     if (processedIds.has(p.id)) return;
     if (excludeIds.has(p.id)) return;
 
-    const partnerId = getPreferredPartnerId(p.id);
+    const partnerId = getPreferredPartnerId(p.id, preferredPartners);
+
     if (partnerId) {
       const partner = players.find((pl) => pl.id === partnerId);
       if (partner) {
@@ -137,11 +141,19 @@ function assignCourts(
   return { matches, pInMatch };
 }
 
-export function generateMexicanoFirstRound(): Round[] {
-  const courts = state.courts;
+export function generateMexicanoFirstRound(
+  players: Player[],
+  courts: number,
+  preferredPartners: PreferredPartner[] = []
+): Round[] {
   const playersNeeded = courts * 4;
 
-  const availableEntities = buildEntities(state.players);
+  const availableEntities = buildEntities(
+    players,
+    new Set(),
+    preferredPartners
+  );
+
   const byes: Player[] = [];
 
   shuffleArray(availableEntities);
@@ -205,13 +217,39 @@ export function generateMexicanoFirstRound(): Round[] {
   return [{ number: 1, matches, byes }];
 }
 
-export function generateMexicanoNextRound(leaderboard: Player[]): Round {
-  const courts = state.courts;
+export interface MexicanoNextRoundConfig {
+  leaderboard: Player[];
+  manualByes: (string | number)[];
+  courts: number;
+  preferredPartners?: PreferredPartner[];
+  pairingStrategy?: string;
+  maxRepeats?: number;
+  strictStrategy?: boolean;
+  scheduleLength?: number;
+}
+
+export function generateMexicanoNextRound(
+  config: MexicanoNextRoundConfig
+): Round {
+  const {
+    leaderboard,
+    manualByes,
+    courts,
+    preferredPartners = [],
+    pairingStrategy = "optimal",
+    maxRepeats = 99,
+    strictStrategy = false,
+    scheduleLength = 0,
+  } = config;
   const playersNeeded = courts * 4;
-  const manualByIds = new Set<string | number>(state.manualByes);
+  const manualByIds = new Set<string | number>(manualByes);
   const allPlayers = [...leaderboard];
 
-  const availableEntities = buildEntities(allPlayers, manualByIds);
+  const availableEntities = buildEntities(
+    allPlayers,
+    manualByIds,
+    preferredPartners
+  );
 
   availableEntities.sort((a, b) => {
     const getMetrics = (e: Entity) => {
@@ -256,7 +294,14 @@ export function generateMexicanoNextRound(leaderboard: Player[]): Round {
   });
 
   singles.sort((a, b) => (b.points || 0) - (a.points || 0));
-  pairSinglesWithStrategy(singles, teams, leaderboard);
+  pairSinglesWithStrategy(
+    singles,
+    teams,
+    leaderboard,
+    pairingStrategy,
+    maxRepeats,
+    strictStrategy
+  );
 
   const remainingSingles = singles.filter(
     (s) => !teams.some((t) => t.includes(s))
@@ -300,7 +345,7 @@ export function generateMexicanoNextRound(leaderboard: Player[]): Round {
     }
   });
 
-  return { number: state.schedule.length + 1, matches, byes };
+  return { number: scheduleLength + 1, matches, byes };
 }
 
 interface Pairing {
@@ -312,7 +357,10 @@ interface Pairing {
 function pairSinglesWithStrategy(
   singles: Player[],
   teams: Player[][],
-  leaderboard: Player[]
+  leaderboard: Player[],
+  pairingStrategy: string,
+  maxRepeats: number,
+  strictStrategy: boolean
 ): void {
   let i = 0;
   for (; i < singles.length - 3; i += 4) {
@@ -327,7 +375,13 @@ function pairSinglesWithStrategy(
       { name: "oneFour", team1: [p1, p4], team2: [p2, p3] },
     ];
 
-    const selectedPairing = selectPairing(pairings, leaderboard);
+    const selectedPairing = selectPairing(
+      pairings,
+      leaderboard,
+      pairingStrategy,
+      maxRepeats,
+      strictStrategy
+    );
     teams.push(selectedPairing.team1);
     teams.push(selectedPairing.team2);
   }
@@ -337,10 +391,15 @@ function pairSinglesWithStrategy(
   }
 }
 
-function selectPairing(pairings: Pairing[], leaderboard: Player[]): Pairing {
-  const patternHard =
-    state.pairingStrategy !== "optimal" && state.strictStrategy;
-  const maxRep = state.maxRepeats !== undefined ? state.maxRepeats : 99;
+function selectPairing(
+  pairings: Pairing[],
+  leaderboard: Player[],
+  pairingStrategy: string,
+  maxRepeats: number,
+  strictStrategy: boolean
+): Pairing {
+  const patternHard = pairingStrategy !== "optimal" && strictStrategy;
+  const maxRep = maxRepeats;
 
   const getRepeatCount = (pid1: string | number, pid2: string | number) => {
     const player = leaderboard.find((p) => p.id === pid1);
@@ -360,7 +419,7 @@ function selectPairing(pairings: Pairing[], leaderboard: Player[]): Pairing {
     const rankingImbalance = Math.abs(team1Rank - team2Rank);
 
     const violatesRepeats = maxRep < 99 && repeatPenalty > maxRep;
-    const isPreferred = pairing.name === state.pairingStrategy;
+    const isPreferred = pairing.name === pairingStrategy;
 
     const tieBreaker =
       Number(pairing.team1[0].id) * 1000000 +
@@ -380,7 +439,7 @@ function selectPairing(pairings: Pairing[], leaderboard: Player[]): Pairing {
 
   scoredPairings.sort((a, b) => a.tieBreaker - b.tieBreaker);
 
-  if (state.pairingStrategy === "optimal") {
+  if (pairingStrategy === "optimal") {
     const sorted = [...scoredPairings].sort((a, b) => {
       if (a.repeatPenalty !== b.repeatPenalty)
         return a.repeatPenalty - b.repeatPenalty;

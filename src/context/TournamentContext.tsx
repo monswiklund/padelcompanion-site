@@ -381,9 +381,23 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           ) {
             nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
           } else if (prev.format === "mexicano") {
-            nextRoundBase = generateMexicanoNextRound(newLeaderboard) as any;
+            nextRoundBase = generateMexicanoNextRound({
+              leaderboard: newLeaderboard,
+              manualByes: prev.manualByes,
+              courts: prev.courts,
+              preferredPartners: prev.preferredPartners,
+              pairingStrategy: prev.pairingStrategy,
+              maxRepeats: prev.maxRepeats,
+              strictStrategy: prev.strictStrategy,
+              scheduleLength: newSchedule.length,
+            }) as any;
           } else if (prev.format === "teamMexicano") {
-            nextRoundBase = generateTeamMexicanoNextRound() as any;
+            nextRoundBase = generateTeamMexicanoNextRound({
+              leaderboard: newLeaderboard,
+              manualByes: prev.manualByes,
+              courts: prev.courts,
+              scheduleLength: newSchedule.length,
+            }) as any;
           }
 
           if (nextRoundBase) {
