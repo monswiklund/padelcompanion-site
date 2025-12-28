@@ -6,6 +6,7 @@ import { showConfirmModal, showInputModal } from "@/tournament/core/modals";
 import { showToast, createId } from "@/shared/utils";
 import { MatchTimer } from "@/tournament/ui/components/MatchTimer";
 import { launchConfetti } from "@/tournament/confetti";
+import { saveToHistory } from "@/tournament/history/repository";
 
 const TournamentActiveView: React.FC = () => {
   const { state, dispatch } = useTournament();
@@ -31,7 +32,7 @@ const TournamentActiveView: React.FC = () => {
   const handleEnd = () => {
     showConfirmModal(
       "Finish Tournament",
-      "Are you sure you want to finish the tournament? This will reveal the final standings!",
+      "Are you sure you want to finish the tournament? This will reveal the final standings and save it to history!",
       "Finish & Celebrate 🎉",
       () => {
         dispatch({
@@ -44,13 +45,17 @@ const TournamentActiveView: React.FC = () => {
           key: "showPositionChanges",
           value: false,
         });
+
+        // Save to history
+        saveToHistory(state);
+
         launchConfetti();
 
         // Scroll to leaderboard
         const el = document.querySelector(".leaderboard-section");
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-        showToast("Tournament Finished! 🏆");
+        showToast("Tournament Finished & Saved! 🏆");
       }
     );
   };

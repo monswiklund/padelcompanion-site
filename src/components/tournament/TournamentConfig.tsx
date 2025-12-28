@@ -8,6 +8,8 @@ export interface TournamentConfigState {
   maxRepeats: number;
   pairingStrategy: "optimal" | "oneThree" | "oneTwo" | "oneFour";
   strictStrategy: boolean;
+  courtFormat: "number" | "court" | "custom";
+  customCourtNames: string[];
 }
 
 interface TournamentConfigProps {
@@ -41,6 +43,11 @@ const CONFIG_OPTIONS = {
     { value: "oneTwo", label: "1&2 vs 3&4" },
     { value: "oneFour", label: "1&4 vs 2&3" },
   ],
+  courtFormat: [
+    { value: "number", label: "Numbered (1)" },
+    { value: "court", label: "Court Label (Court 1)" },
+    { value: "custom", label: "Custom Names" },
+  ],
 };
 
 export const TournamentConfig: React.FC<TournamentConfigProps> = ({
@@ -71,17 +78,24 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
   return (
     <div className="config-grid">
-      
       {/* Quick Change Format Selector */}
-      <div className="config-full-width" style={{ marginBottom: "var(--space-sm)" }}>
-        <label className="config-label" style={{ width: "100%", marginBottom: "8px", display: "block" }}>
+      <div
+        className="config-full-width"
+        style={{ marginBottom: "var(--space-sm)" }}
+      >
+        <label
+          className="config-label"
+          style={{ width: "100%", marginBottom: "8px", display: "block" }}
+        >
           Tournament Format:
         </label>
         <div className="format-grid">
           {CONFIG_OPTIONS.format.map((o) => (
             <div
               key={o.value}
-              className={`segmented-option ${config.format === o.value ? "selected" : ""}`}
+              className={`segmented-option ${
+                config.format === o.value ? "selected" : ""
+              }`}
               onClick={() => onChange("format", o.value)}
             >
               {o.label}
@@ -90,46 +104,82 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
         </div>
       </div>
 
+      <div
+        className="config-spacer config-full-width"
+        style={{
+          borderBottom: "1px solid var(--border-color)",
+          margin: "var(--space-sm) 0",
+        }}
+      ></div>
+
+      {/* Courts */}
+      <ConfigRow label="Courts">
+        <Stepper
+          value={config.courts}
+          min={1}
+          max={effectiveMaxCourts}
+          onChange={(v) =>
+            handleNumberChange("courts", v, 1, effectiveMaxCourts)
+          }
+          disabledMax={config.courts >= effectiveMaxCourts}
+          maxTooltip={
+            config.courts >= effectiveMaxCourts
+              ? `Max courts for ${playerCount} players`
+              : undefined
+          }
+        />
+      </ConfigRow>
+
+      {/* Scoring */}
+      <ConfigRow label="Scoring">
+        <select
+          className="form-select w-full"
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "var(--radius-md)",
+            background: "var(--input-bg)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-color)",
+          }}
+          value={config.scoringMode}
+          onChange={(e) => onChange("scoringMode", e.target.value)}
+        >
+          {CONFIG_OPTIONS.scoringMode.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </ConfigRow>
+
+      {/* Points */}
+      <ConfigRow label={getPointsLabel()}>
+        <Stepper
+          value={config.pointsPerMatch}
+          min={4}
+          max={50}
+          step={config.scoringMode === "time" ? 1 : 2}
+          onChange={(v) => handleNumberChange("pointsPerMatch", v, 4, 50)}
+        />
+      </ConfigRow>
+
       {isMexicano && (
         <>
-          <div className="config-spacer config-full-width" style={{ borderBottom: "1px solid var(--border-color)", margin: "var(--space-sm) 0" }}></div>
-
-          {/* Scoring */}
-          <ConfigRow label="Scoring">
-            <select
-              className="form-select w-full"
-              style={{ width: "100%", padding: "8px", borderRadius: "var(--radius-md)", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border-color)" }}
-              value={config.scoringMode}
-              onChange={(e) => onChange("scoringMode", e.target.value)}
-            >
-              {CONFIG_OPTIONS.scoringMode.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </ConfigRow>
-
-          {/* Points */}
-          <ConfigRow label={getPointsLabel()}>
-            <Stepper
-              value={config.pointsPerMatch}
-              min={4}
-              max={50}
-              step={config.scoringMode === "time" ? 1 : 2}
-              onChange={(v) => handleNumberChange("pointsPerMatch", v, 4, 50)}
-            />
-          </ConfigRow>
-
           {/* Repeats */}
           <ConfigRow label="Repeats">
             <select
               className="form-select w-full"
-              style={{ width: "100%", padding: "8px", borderRadius: "var(--radius-md)", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border-color)" }}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "var(--radius-md)",
+                background: "var(--input-bg)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-color)",
+              }}
               value={config.maxRepeats}
-              onChange={(e) =>
-                onChange("maxRepeats", parseInt(e.target.value))
-              }
+              onChange={(e) => onChange("maxRepeats", parseInt(e.target.value))}
             >
               {CONFIG_OPTIONS.maxRepeats.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -139,29 +189,18 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
             </select>
           </ConfigRow>
 
-          {/* Courts */}
-          <ConfigRow label="Courts">
-            <Stepper
-              value={config.courts}
-              min={1}
-              max={effectiveMaxCourts}
-              onChange={(v) =>
-                handleNumberChange("courts", v, 1, effectiveMaxCourts)
-              }
-              disabledMax={config.courts >= effectiveMaxCourts}
-              maxTooltip={
-                config.courts >= effectiveMaxCourts
-                  ? `Max courts for ${playerCount} players`
-                  : undefined
-              }
-            />
-          </ConfigRow>
-
           {/* Pairing */}
           <ConfigRow label="Pairing">
             <select
               className="form-select w-full"
-              style={{ width: "100%", padding: "8px", borderRadius: "var(--radius-md)", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border-color)" }}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "var(--radius-md)",
+                background: "var(--input-bg)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-color)",
+              }}
               value={config.pairingStrategy}
               onChange={(e) => onChange("pairingStrategy", e.target.value)}
             >
@@ -175,8 +214,10 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
           {/* Strict */}
           <ConfigRow label="Prioritize Pattern">
-            <div 
-              className={`ui-toggle ${config.strictStrategy ? "active" : ""} ${config.pairingStrategy === "optimal" ? "disabled" : ""}`}
+            <div
+              className={`ui-toggle ${config.strictStrategy ? "active" : ""} ${
+                config.pairingStrategy === "optimal" ? "disabled" : ""
+              }`}
               onClick={() => {
                 if (config.pairingStrategy !== "optimal") {
                   onChange("strictStrategy", !config.strictStrategy);
@@ -191,53 +232,56 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
         </>
       )}
 
-      {!isMexicano && (
-        <>
-          {/* Courts */}
-          <ConfigRow label="Courts">
-            <Stepper
-              value={config.courts}
-              min={1}
-              max={effectiveMaxCourts}
-              onChange={(v) =>
-                handleNumberChange("courts", v, 1, effectiveMaxCourts)
-              }
-              disabledMax={config.courts >= effectiveMaxCourts}
-              maxTooltip={
-                config.courts >= effectiveMaxCourts
-                  ? `Max courts for ${playerCount} players`
-                  : undefined
-              }
-            />
-          </ConfigRow>
+      <div
+        className="config-spacer config-full-width"
+        style={{
+          borderBottom: "1px solid var(--border-color)",
+          margin: "var(--space-sm) 0",
+        }}
+      ></div>
 
-          {/* Scoring */}
-          <ConfigRow label="Scoring">
-            <select
-              className="form-select w-full"
-              style={{ width: "100%", padding: "8px", borderRadius: "var(--radius-md)", background: "var(--input-bg)", color: "var(--text-primary)", border: "1px solid var(--border-color)" }}
-              value={config.scoringMode}
-              onChange={(e) => onChange("scoringMode", e.target.value)}
-            >
-              {CONFIG_OPTIONS.scoringMode.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </ConfigRow>
+      {/* Court Naming */}
+      <ConfigRow label="Court Naming">
+        <select
+          className="form-select w-full"
+          style={{
+            width: "100%",
+            padding: "8px",
+            borderRadius: "var(--radius-md)",
+            background: "var(--input-bg)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border-color)",
+          }}
+          value={config.courtFormat}
+          onChange={(e) => onChange("courtFormat", e.target.value)}
+        >
+          {CONFIG_OPTIONS.courtFormat.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </ConfigRow>
 
-          {/* Points */}
-          <ConfigRow label={getPointsLabel()}>
-            <Stepper
-              value={config.pointsPerMatch}
-              min={4}
-              max={50}
-              step={config.scoringMode === "time" ? 1 : 2}
-              onChange={(v) => handleNumberChange("pointsPerMatch", v, 4, 50)}
-            />
-          </ConfigRow>
-        </>
+      {config.courtFormat === "custom" && (
+        <div className="config-full-width">
+          <div className="custom-court-grid">
+            {Array.from({ length: config.courts }).map((_, i) => (
+              <input
+                key={i}
+                type="text"
+                className="custom-court-input"
+                placeholder={`Court ${i + 1} name...`}
+                value={config.customCourtNames[i] || ""}
+                onChange={(e) => {
+                  const newNames = [...config.customCourtNames];
+                  newNames[i] = e.target.value;
+                  onChange("customCourtNames", newNames);
+                }}
+              />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -248,9 +292,7 @@ const ConfigRow: React.FC<{ label: string; children: React.ReactNode }> = ({
   children,
 }) => (
   <div className="config-row">
-    <label className="config-label">
-      {label}:
-    </label>
+    <label className="config-label">{label}:</label>
     <div className="config-input-wrapper">{children}</div>
   </div>
 );
@@ -272,9 +314,7 @@ const Stepper: React.FC<{
     >
       −
     </button>
-    <div className="stepper-input">
-      {value}
-    </div>
+    <div className="stepper-input">{value}</div>
     <button
       className="stepper-btn"
       disabled={disabledMax || value >= max}

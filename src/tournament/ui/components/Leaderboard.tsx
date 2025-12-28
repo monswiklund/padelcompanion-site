@@ -52,36 +52,16 @@ const Leaderboard: React.FC = () => {
     >
       {/* Header & Controls */}
       <div className="leaderboard-header flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-          <div className="flex items-center gap-3">
-            <span className="text-xl">🏆</span>
-            <h3 className="text-lg font-bold text-white tracking-wide">
-              Standings
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
+          <div className="flex items-center gap-3 self-start sm:self-center">
+            <h3 className="text-2xl font-bold text-white tracking-wide whitespace-nowrap">
+              Leaderboard
             </h3>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
-            {/* Grid Selector */}
-            <div className="leaderboard-controls-group leaderboard-grid-selector flex">
-              {[1, 2, 3].map((num) => (
-                <button
-                  key={num}
-                  className={`leaderboard-tab ${
-                    leaderboardColumns === num ||
-                    (num === 1 && !leaderboardColumns)
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() => setLeaderboardColumns(num)}
-                  title={`${num} Column${num > 1 ? "s" : ""}`}
-                >
-                  {num} col
-                </button>
-              ))}
-            </div>
-
+          <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             {/* Criteria Tabs */}
-            <div className="leaderboard-controls-group">
+            <div className="leaderboard-controls-group w-full sm:w-auto justify-center">
               {[
                 { id: "points", label: "Points" },
                 { id: "wins", label: "Wins" },
@@ -90,7 +70,7 @@ const Leaderboard: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  className={`leaderboard-tab ${
+                  className={`leaderboard-tab flex-1 sm:flex-initial ${
                     rankingCriteria === tab.id ? "active" : ""
                   }`}
                   onClick={() => setCriteria(tab.id as any)}
@@ -100,32 +80,53 @@ const Leaderboard: React.FC = () => {
               ))}
             </div>
 
-            {/* Toggles */}
-            <div className="leaderboard-actions">
-              <button
-                className={`leaderboard-action-btn ${
-                  !hideLeaderboard ? "active" : ""
-                }`}
-                onClick={toggleVisibility}
-                title="Toggle Scores"
-              >
-                Scores
-              </button>
-              <button
-                className={`leaderboard-action-btn ${
-                  showPositionChanges ? "active" : ""
-                }`}
-                onClick={toggleRanks}
-                title="Toggle Rank Changes"
-              >
-                Ranks
-              </button>
+            <div className="flex gap-3 items-center w-full sm:w-auto justify-center">
+              {/* Grid Selector */}
+              <div className="leaderboard-controls-group leaderboard-grid-selector flex">
+                {[1, 2, 3].map((num) => (
+                  <button
+                    key={num}
+                    className={`leaderboard-tab ${
+                      leaderboardColumns === num ||
+                      (num === 1 && !leaderboardColumns)
+                        ? "active"
+                        : ""
+                    }`}
+                    onClick={() => setLeaderboardColumns(num)}
+                    title={`${num} Column${num > 1 ? "s" : ""}`}
+                  >
+                    {num} col
+                  </button>
+                ))}
+              </div>
+
+              {/* Toggles */}
+              <div className="leaderboard-actions">
+                <button
+                  className={`leaderboard-action-btn ${
+                    !hideLeaderboard ? "active" : ""
+                  }`}
+                  onClick={toggleVisibility}
+                  title="Toggle Scores"
+                >
+                  Scores
+                </button>
+                <button
+                  className={`leaderboard-action-btn ${
+                    showPositionChanges ? "active" : ""
+                  }`}
+                  onClick={toggleRanks}
+                  title="Toggle Rank Changes"
+                >
+                  Ranks
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="leaderboard-search-container">
+        <div className="leaderboard-search-container w-full">
           <span className="search-icon">🔍</span>
           <input
             type="text"
@@ -153,14 +154,13 @@ const Leaderboard: React.FC = () => {
               <table className="leaderboard-table">
                 <thead>
                   <tr>
-                    <th className="w-[80px] text-center sticky-col">Rank</th>
+                    <th className="w-[60px] text-center sticky-col">Rank</th>
                     <th className="sticky-col">Player</th>
-                    <th className="w-[15%] text-center">Pts</th>
+                    <th className="w-[12%] text-center">Pts</th>
                     <th className="w-[10%] text-center">W</th>
-                    <th className="w-[10%] text-center hidden sm:table-cell">
-                      +/-
-                    </th>
-                    <th className="w-[10%] text-center">Matches</th>
+                    <th className="w-[12%] text-center">Win%</th>
+                    <th className="w-[12%] text-center">Pts%</th>
+                    <th className="w-[10%] text-center">M</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,24 +221,30 @@ const Leaderboard: React.FC = () => {
                           </span>
                         </td>
 
-                        {/* Diff */}
-                        <td className="text-center hidden sm:table-cell">
-                          {!hideLeaderboard ? (
-                            <span
-                              className={`diff-badge ${
-                                diff > 0
-                                  ? "diff-plus"
-                                  : diff < 0
-                                  ? "diff-minus"
-                                  : "diff-zero"
-                              }`}
-                            >
-                              {diff > 0 ? "+" : ""}
-                              {diff}
-                            </span>
-                          ) : (
-                            "-"
-                          )}
+                        {/* Win % */}
+                        <td className="text-center">
+                          <span className="stat-value dim">
+                            {!hideLeaderboard && player.played > 0
+                              ? `${Math.round(
+                                  (player.wins / player.played) * 100
+                                )}%`
+                              : "-"}
+                          </span>
+                        </td>
+
+                        {/* Pts % */}
+                        <td className="text-center">
+                          <span className="stat-value dim">
+                            {!hideLeaderboard &&
+                            player.points + (player.pointsLost || 0) > 0
+                              ? `${Math.round(
+                                  (player.points /
+                                    (player.points +
+                                      (player.pointsLost || 0))) *
+                                    100
+                                )}%`
+                              : "-"}
+                          </span>
                         </td>
 
                         {/* Matches Played */}

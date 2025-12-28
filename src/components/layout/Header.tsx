@@ -26,7 +26,24 @@ const Header: React.FC = () => {
 
   const isActive = (path: string) => {
     if (path === "/" && location.pathname === "/") return "active";
-    if (path !== "/" && location.pathname.startsWith(path)) return "active";
+    if (
+      path === "/tournament/history" &&
+      location.pathname === "/tournament/history"
+    )
+      return "active";
+    if (
+      path === "/tournament" &&
+      location.pathname.startsWith("/tournament") &&
+      !location.pathname.startsWith("/tournament/history")
+    )
+      return "active";
+    if (
+      path !== "/" &&
+      path !== "/tournament" &&
+      path !== "/tournament/history" &&
+      location.pathname.startsWith(path)
+    )
+      return "active";
     return "";
   };
 
@@ -42,13 +59,13 @@ const Header: React.FC = () => {
             <Link to="/" className={isActive("/")} onClick={closeNav}>
               Home
             </Link>
-            <a
-              href="/#features"
-              className={location.hash === "#features" ? "active" : ""}
+            <Link
+              to="/tournament/history"
+              className={isActive("/tournament/history")}
               onClick={closeNav}
             >
-              Features
-            </a>
+              History
+            </Link>
             <Link
               to="/tournament/generator"
               className={isActive("/tournament")}

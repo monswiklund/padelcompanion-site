@@ -92,6 +92,11 @@ export interface TournamentState {
     teamsA?: any[];
     teamsB?: any[];
   } | null;
+  bracketConfig?: {
+    scoreType: string;
+    mode: "teams" | "players";
+    bracketCount?: number;
+  };
   ui: {
     currentRoute: string;
     selectedMatchId: string | null;
@@ -163,6 +168,7 @@ type StateAction =
   | { type: "RESET_TOURNAMENT" }
   | { type: "COMPLETE_ROUND" }
   | { type: "EDIT_ROUND"; roundIndex: number }
+  | { type: "SET_BRACKET"; bracket: any; config?: any }
   | {
       type: "UPDATE_BRACKET_RESULT";
       matchId: number;
@@ -209,10 +215,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           return { ...prev, ...action.payload };
         case "UPDATE_FIELD":
           return { ...prev, [action.key]: action.value };
-        case "UPDATE_BRACKET_RESULT":
-          return state; // Placeholder, logic will be handled outside for now
+        case "SET_BRACKET":
+          return {
+            ...prev,
+            bracket: action.bracket,
+            bracketConfig: action.config || prev.bracketConfig,
+          };
+        case "UPDATE_BRACKET_RESULT": {
+          if (!prev.bracket) return prev;
+          // Using inline logic to avoid import issues
+          // This will be replaced with proper import when bracketCore is fully integrated
+          return prev; // Placeholder - will handle in BracketView for now
+        }
         case "CLEAR_BRACKET":
-          return { ...prev, bracket: null };
+          return { ...prev, bracket: null, bracketConfig: undefined };
         case "UPDATE_BRACKET_SCALE":
           return { ...prev, bracketScale: action.scale };
         case "SET_HISTORY":

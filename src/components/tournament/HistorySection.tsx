@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
 import { getHistory, deleteFromHistory } from "@/tournament/history/repository";
@@ -22,6 +23,7 @@ interface HistoryItem {
 
 export const HistorySection: React.FC = () => {
   const { dispatch } = useTournament();
+  const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [search, setSearch] = useState("");
 
@@ -34,6 +36,19 @@ export const HistorySection: React.FC = () => {
     setHistory(data);
   };
 
+  const getTargetRoute = (data: any): string => {
+    // Check if it's a Winners Court tournament
+    if (data.winnersCourt) {
+      return "/tournament/winners-court";
+    }
+    // Check if it's a Bracket tournament
+    if (data.bracket) {
+      return "/tournament/bracket";
+    }
+    // Default to Generator (Americano/Mexicano)
+    return "/tournament/generator";
+  };
+
   const handleLoad = (item: HistoryItem) => {
     showConfirmModal(
       "Load Tournament",
@@ -44,7 +59,10 @@ export const HistorySection: React.FC = () => {
       () => {
         dispatch({ type: "SET_STATE", payload: item.data });
         showToast("Tournament loaded");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // Navigate to the appropriate page based on tournament type
+        const targetRoute = getTargetRoute(item.data);
+        navigate(targetRoute);
       }
     );
   };

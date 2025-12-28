@@ -1,320 +1,470 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useTournament } from "@/context/TournamentContext";
-import { Card } from "@/components/ui/Card";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
-import { BracketMatch } from "./BracketMatch";
-import { BracketScoreModal } from "./BracketScoreModal";
 import {
+  Bracket,
+  DualBracket,
+  SingleBracket,
+  BracketMatch,
   updateMatchResult,
-  getBracketRounds,
-  isBracketComplete,
-  getFinalStandings,
-  getRoundName,
-} from "../../bracket/index.js";
-import { showConfirmModal } from "../../core/modals";
-import { state as legacyState } from "../../core/state";
+} from "@/tournament/bracket/bracketCore";
+import { BracketScoreModal } from "./BracketScoreModal";
+
+// ============ HELPERS ============
+
+function getRoundName(round: number, totalRounds: number): string {
+  const remaining = totalRounds - round + 1;
+  if (remaining === 1) return "FINAL";
+  if (remaining === 2) return "SEMI-FINALS";
+  if (remaining === 3) return "QUARTER-FINALS";
+  return `ROUND ${round}`;
+}
+
+// ============ MATCH COMPONENT ============
+
+interface MatchProps {
+  match: BracketMatch;
+  onClick: (matchId: number) => void;
+  editable?: boolean;
+}
+
+const Match: React.FC<MatchProps> = ({ match, onClick, editable = true }) => {
+  const isEditable = editable && match.team1 && match.team2;
+
+  return (
+    <div
+      className={`bracket-match ${isEditable ? "editable" : ""}`}
+      onClick={() => isEditable && onClick(match.id)}
+      style={{
+        background: "var(--bg-tertiary)",
+        border: "1px solid var(--border-color)",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        marginBottom: "8px",
+        cursor: isEditable ? "pointer" : "default",
+        minWidth: "140px",
+      }}
+    >
+      <div
+        className={`match-team ${
+          match.winner?.id === match.team1?.id ? "winner" : ""
+        }`}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "4px 0",
+          fontWeight: match.winner?.id === match.team1?.id ? 600 : 400,
+          color:
+            match.winner?.id === match.team1?.id
+              ? "var(--success)"
+              : "var(--text-primary)",
+        }}
+      >
+        <span>{match.team1?.name || "TBD"}</span>
+        <span style={{ color: "var(--accent)" }}>{match.score1 ?? "-"}</span>
+      </div>
+      <div
+        className={`match-team ${
+          match.winner?.id === match.team2?.id ? "winner" : ""
+        }`}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: "4px 0",
+          fontWeight: match.winner?.id === match.team2?.id ? 600 : 400,
+          color:
+            match.winner?.id === match.team2?.id
+              ? "var(--success)"
+              : "var(--text-primary)",
+        }}
+      >
+        <span>{match.team2?.name || "TBD"}</span>
+        <span style={{ color: "var(--accent)" }}>{match.score2 ?? "-"}</span>
+      </div>
+    </div>
+  );
+};
+
+// ============ ROUND COMPONENT ============
+
+interface RoundProps {
+  matches: BracketMatch[];
+  roundNum: number;
+  totalRounds: number;
+  onMatchClick: (matchId: number) => void;
+}
+
+const Round: React.FC<RoundProps> = ({
+  matches,
+  roundNum,
+  totalRounds,
+  onMatchClick,
+}) => (
+  <div
+    className="bracket-round"
+    style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+  >
+    <div
+      className="round-header"
+      style={{
+        fontSize: "0.75rem",
+        fontWeight: 600,
+        color: "var(--text-muted)",
+        textTransform: "uppercase",
+        marginBottom: "12px",
+        letterSpacing: "0.05em",
+      }}
+    >
+      {getRoundName(roundNum, totalRounds)}
+    </div>
+    <div
+      className="round-matches"
+      style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+    >
+      {matches.map((m) => (
+        <Match key={m.id} match={m} onClick={onMatchClick} />
+      ))}
+    </div>
+  </div>
+);
+
+// ============ SINGLE BRACKET VIEW ============
+
+interface SingleBracketViewProps {
+  bracket: SingleBracket;
+  onMatchClick: (matchId: number) => void;
+}
+
+const SingleBracketView: React.FC<SingleBracketViewProps> = ({
+  bracket,
+  onMatchClick,
+}) => {
+  const rounds = useMemo(() => {
+    const grouped: { [round: number]: BracketMatch[] } = {};
+    bracket.matches.forEach((m) => {
+      if (!grouped[m.round]) grouped[m.round] = [];
+      grouped[m.round].push(m);
+    });
+    return Object.entries(grouped).map(([round, matches]) => ({
+      roundNum: parseInt(round),
+      matches,
+    }));
+  }, [bracket.matches]);
+
+  return (
+    <div
+      className="single-bracket-view"
+      style={{
+        display: "flex",
+        gap: "32px",
+        overflowX: "auto",
+        padding: "16px",
+        justifyContent: "center",
+      }}
+    >
+      {rounds.map(({ roundNum, matches }) => (
+        <Round
+          key={roundNum}
+          matches={matches}
+          roundNum={roundNum}
+          totalRounds={bracket.numRounds}
+          onMatchClick={onMatchClick}
+        />
+      ))}
+    </div>
+  );
+};
+
+// ============ DUAL BRACKET VIEW ============
+
+interface DualBracketViewProps {
+  bracket: DualBracket;
+  onMatchClick: (matchId: number) => void;
+}
+
+const DualBracketView: React.FC<DualBracketViewProps> = ({
+  bracket,
+  onMatchClick,
+}) => {
+  const roundsA = useMemo(() => {
+    const grouped: { [round: number]: BracketMatch[] } = {};
+    bracket.matchesA.forEach((m) => {
+      if (!grouped[m.round]) grouped[m.round] = [];
+      grouped[m.round].push(m);
+    });
+    return Object.entries(grouped).map(([round, matches]) => ({
+      roundNum: parseInt(round),
+      matches,
+    }));
+  }, [bracket.matchesA]);
+
+  const roundsB = useMemo(() => {
+    const grouped: { [round: number]: BracketMatch[] } = {};
+    bracket.matchesB.forEach((m) => {
+      if (!grouped[m.round]) grouped[m.round] = [];
+      grouped[m.round].push(m);
+    });
+    return Object.entries(grouped).map(([round, matches]) => ({
+      roundNum: parseInt(round),
+      matches,
+    }));
+  }, [bracket.matchesB]);
+
+  return (
+    <div
+      className="dual-bracket-view"
+      style={{
+        display: "flex",
+        gap: "24px",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        padding: "16px",
+      }}
+    >
+      {/* Side A */}
+      <div
+        className="bracket-side side-a"
+        style={{
+          flex: 1,
+          minWidth: "280px",
+          maxWidth: "400px",
+          border: "2px solid rgba(59, 130, 246, 0.3)",
+          borderRadius: "12px",
+          padding: "16px",
+          background: "rgba(59, 130, 246, 0.05)",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "16px" }}>
+          <span style={{ fontWeight: "bold", color: "var(--accent)" }}>
+            Side A
+          </span>
+          <span
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--text-muted)",
+              marginLeft: "8px",
+            }}
+          >
+            ({bracket.teamsA.length} teams)
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: "24px",
+            overflowX: "auto",
+            justifyContent: "center",
+          }}
+        >
+          {roundsA.map(({ roundNum, matches }) => (
+            <Round
+              key={roundNum}
+              matches={matches}
+              roundNum={roundNum}
+              totalRounds={bracket.numRoundsA}
+              onMatchClick={onMatchClick}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Grand Final */}
+      {bracket.grandFinal && (
+        <div
+          className="bracket-final"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--success)",
+              fontWeight: "bold",
+              marginBottom: "16px",
+            }}
+          >
+            🏆 GRAND FINAL 🏆
+          </div>
+          <Match match={bracket.grandFinal} onClick={onMatchClick} />
+        </div>
+      )}
+
+      {/* Side B */}
+      <div
+        className="bracket-side side-b"
+        style={{
+          flex: 1,
+          minWidth: "280px",
+          maxWidth: "400px",
+          border: "2px solid rgba(245, 158, 11, 0.3)",
+          borderRadius: "12px",
+          padding: "16px",
+          background: "rgba(245, 158, 11, 0.05)",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "16px" }}>
+          <span style={{ fontWeight: "bold", color: "var(--warning)" }}>
+            Side B
+          </span>
+          <span
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--text-muted)",
+              marginLeft: "8px",
+            }}
+          >
+            ({bracket.teamsB.length} teams)
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row-reverse",
+            gap: "24px",
+            overflowX: "auto",
+            justifyContent: "center",
+          }}
+        >
+          {roundsB.map(({ roundNum, matches }) => (
+            <Round
+              key={roundNum}
+              matches={matches}
+              roundNum={roundNum}
+              totalRounds={bracket.numRoundsB}
+              onMatchClick={onMatchClick}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============ MAIN VIEW ============
 
 export const BracketView: React.FC = () => {
   const { state, dispatch } = useTournament();
-  const { bracket, bracketScale, ui } = state;
-  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
+  const navigate = useNavigate();
+  const [selectedMatchId, setSelectedMatchId] = React.useState<number | null>(
+    null
+  );
 
-  if (!bracket) return null;
+  const bracket = state.bracket as Bracket | null;
 
-  const isDual = bracket.isDualBracket;
-  const isComplete = isBracketComplete();
+  const handleMatchClick = (matchId: number) => {
+    setSelectedMatchId(matchId);
+  };
 
-  const handleUpdateScore = (matchId: number, s1: number, s2: number) => {
-    // 1. Update legacy state
-    updateMatchResult(matchId, s1, s2);
+  const handleScoreSave = (score1: number, score2: number) => {
+    if (selectedMatchId === null || !bracket) return;
 
-    // 2. Sync back to context
-    dispatch({
-      type: "SET_STATE",
-      payload: { bracket: { ...legacyState.bracket } },
-    });
-
+    // Update bracket using pure function
+    const updatedBracket = updateMatchResult(
+      bracket,
+      selectedMatchId,
+      score1,
+      score2
+    );
+    dispatch({ type: "SET_BRACKET", bracket: updatedBracket });
     setSelectedMatchId(null);
   };
 
   const handleClear = () => {
-    showConfirmModal(
-      "Clear Bracket?",
-      "This will delete the entire bracket and all results.",
-      "Clear",
-      () => {
-        dispatch({ type: "CLEAR_BRACKET" });
-      },
-      true
+    dispatch({ type: "CLEAR_BRACKET" });
+  };
+
+  const selectedMatch = useMemo(() => {
+    if (!bracket || selectedMatchId === null) return null;
+
+    if (bracket.isDualBracket) {
+      const dual = bracket as DualBracket;
+      return (
+        dual.matchesA.find((m) => m.id === selectedMatchId) ||
+        dual.matchesB.find((m) => m.id === selectedMatchId) ||
+        (dual.grandFinal?.id === selectedMatchId ? dual.grandFinal : null)
+      );
+    } else {
+      const single = bracket as SingleBracket;
+      return single.matches.find((m) => m.id === selectedMatchId) || null;
+    }
+  }, [bracket, selectedMatchId]);
+
+  // No bracket - show setup prompt
+  if (!bracket) {
+    return (
+      <div className="bracket-page tournament-page">
+        <div className="bracket-view-container min-h-screen py-8">
+          <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
+            <h2 className="text-3xl mb-1 text-white">Tournament Bracket</h2>
+            <p className="text-text-muted">No bracket created yet.</p>
+          </div>
+          <div className="flex justify-center">
+            <Button onClick={() => navigate("/tournament/bracket/setup")}>
+              Create Bracket
+            </Button>
+          </div>
+        </div>
+      </div>
     );
-  };
+  }
 
-  const handleScaleChange = (val: number) => {
-    dispatch({ type: "UPDATE_BRACKET_SCALE", scale: val });
-  };
-
-  const renderRounds = (rounds: any[][], numRounds: number) => (
-    <div
-      className="bracket-container"
-      style={{ "--bracket-scale": bracketScale / 100 } as any}
-    >
-      {rounds.map((roundMatches, i) => (
-        <div className="bracket-round" key={i} data-round={i + 1}>
-          <div className="round-header">{getRoundName(i + 1, numRounds)}</div>
-          <div className="round-matches">
-            {roundMatches.map((match) => (
-              <BracketMatch
-                key={match.id}
-                match={match}
-                onClick={(id) => setSelectedMatchId(id)}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const selectedMatch = selectedMatchId
-    ? bracket.matches.find((m: any) => m.id === selectedMatchId)
-    : null;
-
-  const standings = isComplete ? getFinalStandings() : [];
+  const subtitle = bracket.isDualBracket
+    ? `Side A vs Side B${
+        (bracket as DualBracket).hasSharedFinal
+          ? " • Winners meet in Grand Final"
+          : ""
+      }`
+    : `${bracket.teams.length} teams • Single Elimination`;
 
   return (
-    <div className="bracket-view-container min-h-screen py-8">
-      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
-        <h2 className="text-3xl mb-1 text-white">Tournament Bracket</h2>
-        <p className="text-text-muted">
-          {isDual
-            ? "Side A vs Side B • Winners meet in Grand Final"
-            : "Single elimination tournament bracket"}
-        </p>
-      </div>
+    <div className="bracket-page tournament-page">
+      <div className="bracket-view-container min-h-screen py-8">
+        {/* Header */}
+        <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
+          <h2 className="text-3xl mb-1 text-white">Tournament Bracket</h2>
+          <p className="text-text-muted">{subtitle}</p>
+        </div>
 
-      <div className="bracket-actions flex justify-center items-center gap-4 mb-8 flex-wrap">
-        <div className="scale-control flex items-center gap-2">
-          <span className="text-xs text-text-muted">Size</span>
-          <input
-            type="range"
-            min="50"
-            max="150"
-            value={bracketScale}
-            onChange={(e) => handleScaleChange(parseInt(e.target.value))}
-            className="accent-accent w-24"
+        {/* Actions */}
+        <div className="bracket-actions flex justify-center items-center gap-4 mb-8 flex-wrap">
+          <Button variant="secondary" size="sm" onClick={() => window.print()}>
+            Print
+          </Button>
+          <Button variant="danger" size="sm" onClick={handleClear}>
+            Clear
+          </Button>
+        </div>
+
+        {/* Bracket */}
+        {bracket.isDualBracket ? (
+          <DualBracketView
+            bracket={bracket as DualBracket}
+            onMatchClick={handleMatchClick}
           />
-          <span className="text-xs text-text-muted w-8">{bracketScale}%</span>
-        </div>
-
-        <div className="w-[1px] h-6 bg-white/10 hidden sm:block"></div>
-
-        <Button variant="secondary" size="sm" onClick={() => window.print()}>
-          Print
-        </Button>
-        <Button variant="danger" size="sm" onClick={handleClear}>
-          Clear
-        </Button>
-      </div>
-
-      {isDual ? (
-        <DualBracketView
-          bracket={bracket}
-          bracketScale={bracketScale}
-          onMatchClick={(id) => setSelectedMatchId(id)}
-        />
-      ) : (
-        renderRounds(getBracketRounds(), bracket.numRounds || 0)
-      )}
-
-      {isComplete && <ChampionsView standings={standings} />}
-
-      {selectedMatch && (
-        <BracketScoreModal
-          match={selectedMatch}
-          onClose={() => setSelectedMatchId(null)}
-          onSave={(s1, s2) => handleUpdateScore(selectedMatch.id, s1, s2)}
-        />
-      )}
-    </div>
-  );
-};
-
-const DualBracketView: React.FC<{
-  bracket: any;
-  bracketScale: number;
-  onMatchClick: (id: number) => void;
-}> = ({ bracket, bracketScale, onMatchClick }) => {
-  const { state, dispatch } = useTournament();
-  const activeTab = state.ui.activeBracketTab || "A";
-
-  const roundsA = useMemo(() => {
-    const grouped: any = {};
-    (bracket.matchesA || []).forEach((m: any) => {
-      if (!grouped[m.round]) grouped[m.round] = [];
-      grouped[m.round].push(m);
-    });
-    return Object.values(grouped);
-  }, [bracket.matchesA]);
-
-  const roundsB = useMemo(() => {
-    const grouped: any = {};
-    (bracket.matchesB || []).forEach((m: any) => {
-      if (!grouped[m.round]) grouped[m.round] = [];
-      grouped[m.round].push(m);
-    });
-    return Object.values(grouped);
-  }, [bracket.matchesB]);
-
-  const setTab = (tab: string) => {
-    dispatch({
-      type: "UPDATE_FIELD",
-      key: "ui" as any,
-      value: { ...state.ui, activeBracketTab: tab },
-    });
-  };
-
-  return (
-    <div className="dual-bracket-wrapper">
-      <div className="mobile-bracket-tabs flex justify-center gap-2 mb-4 sm:hidden">
-        {["A", "Final", "B"].map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 rounded text-sm font-bold ${
-              activeTab === tab
-                ? "bg-accent text-white"
-                : "bg-black/20 text-text-muted"
-            }`}
-            onClick={() => setTab(tab)}
-          >
-            {tab === "A" ? "Side A" : tab === "B" ? "Side B" : "Final"}
-          </button>
-        ))}
-      </div>
-
-      <div
-        className="dual-bracket-layout flex gap-8 items-start justify-center flex-wrap"
-        style={{ "--bracket-scale": bracketScale / 100 } as any}
-      >
-        {/* Side A */}
-        <div
-          className={`bracket-side side-a flex-1 border-2 border-accent/30 rounded-xl p-4 bg-accent/5 ${
-            activeTab === "A" ? "mobile-active" : "hidden sm:block"
-          }`}
-        >
-          <div className="text-center mb-4">
-            <span className="font-bold text-accent">Side A</span>
-            <span className="text-xs text-text-muted ml-2">
-              ({bracket.teamsA?.length || 0} teams)
-            </span>
-          </div>
-          <div className="bracket-container flex gap-4 overflow-x-auto">
-            {roundsA.map((roundMatches: any, i) => (
-              <div className="bracket-round" key={i}>
-                <div className="round-header">
-                  {getRoundName(i + 1, bracket.numRoundsA)}
-                </div>
-                <div className="round-matches">
-                  {roundMatches.map((m: any) => (
-                    <BracketMatch key={m.id} match={m} onClick={onMatchClick} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Grand Final */}
-        <div
-          className={`bracket-final flex-0 flex flex-col items-center justify-center p-8 ${
-            activeTab === "Final" ? "mobile-active" : "hidden md:flex"
-          }`}
-        >
-          <div className="text-xs text-success font-bold mb-4">
-            🏆 GRAND FINAL 🏆
-          </div>
-          {bracket.grandFinal ? (
-            <BracketMatch match={bracket.grandFinal} onClick={onMatchClick} />
-          ) : (
-            <div className="text-text-muted">TBD</div>
-          )}
-        </div>
-
-        {/* Side B */}
-        <div
-          className={`bracket-side side-b flex-1 border-2 border-warning/30 rounded-xl p-4 bg-warning/5 ${
-            activeTab === "B" ? "mobile-active" : "hidden sm:block"
-          }`}
-        >
-          <div className="text-center mb-4">
-            <span className="font-bold text-warning">Side B</span>
-            <span className="text-xs text-text-muted ml-2">
-              ({bracket.teamsB?.length || 0} teams)
-            </span>
-          </div>
-          <div className="bracket-container flex gap-4 overflow-x-auto">
-            {[...roundsB].reverse().map((roundMatches: any, i) => {
-              const roundNum = bracket.numRoundsB - i;
-              return (
-                <div className="bracket-round" key={i}>
-                  <div className="round-header">
-                    {getRoundName(roundNum, bracket.numRoundsB)}
-                  </div>
-                  <div className="round-matches">
-                    {roundMatches.map((m: any) => (
-                      <BracketMatch
-                        key={m.id}
-                        match={m}
-                        onClick={onMatchClick}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ChampionsView: React.FC<{ standings: any[] }> = ({ standings }) => {
-  const first = standings.find((s) => s.place === 1);
-  const second = standings.find((s) => s.place === 2);
-  const thirds = standings.filter((s) => s.place === 3);
-
-  return (
-    <div className="bracket-champions mt-12 text-center animate-fade-in">
-      <h3 className="text-2xl font-bold mb-8 italic">Champions</h3>
-      <div className="podium flex items-end justify-center gap-4 max-w-lg mx-auto">
-        {second && (
-          <div className="podium-place second flex-1">
-            <div className="podium-medal text-xl font-bold mb-2">2</div>
-            <div className="podium-team text-sm mb-4 truncate px-2">
-              {second.team.name}
-            </div>
-            <div className="podium-block h-24 bg-gradient-to-t from-zinc-800 to-zinc-700 rounded-t-lg"></div>
-          </div>
+        ) : (
+          <SingleBracketView
+            bracket={bracket as SingleBracket}
+            onMatchClick={handleMatchClick}
+          />
         )}
-        {first && (
-          <div className="podium-place first flex-1">
-            <div className="podium-medal text-3xl mb-2">🏆</div>
-            <div className="podium-team font-bold text-lg mb-4 truncate px-2 text-success">
-              {first.team.name}
-            </div>
-            <div className="podium-block h-40 bg-gradient-to-t from-success/40 to-success/20 rounded-t-lg border-t-4 border-success"></div>
-          </div>
-        )}
-        {thirds[0] && (
-          <div className="podium-place third flex-1">
-            <div className="podium-medal text-lg font-bold mb-2">3</div>
-            <div className="podium-team text-sm mb-4 truncate px-2">
-              {thirds[0].team.name}
-            </div>
-            <div className="podium-block h-16 bg-gradient-to-t from-warn-800 to-warn-700 rounded-t-lg"></div>
-          </div>
+
+        {/* Score Modal */}
+        {selectedMatch && (
+          <BracketScoreModal
+            match={selectedMatch}
+            onClose={() => setSelectedMatchId(null)}
+            onSave={handleScoreSave}
+          />
         )}
       </div>
     </div>
   );
 };
+
+export default BracketView;

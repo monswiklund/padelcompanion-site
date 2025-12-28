@@ -26,6 +26,10 @@ interface DualBracket {
   numRoundsA: number;
   numRoundsB: number;
   isDualBracket: boolean;
+  teamsA?: BracketTeam[];
+  teamsB?: BracketTeam[];
+  matchesA?: BracketMatch[];
+  matchesB?: BracketMatch[];
 }
 
 /**
@@ -73,6 +77,10 @@ export function generateDualBracket(
     bracketB,
     grandFinal,
     teams: [...teamsA, ...teamsB],
+    teamsA,
+    teamsB,
+    matchesA: bracketA.matches,
+    matchesB: bracketB.matches,
     matches: [...bracketA.matches, ...bracketB.matches, grandFinal],
     numRoundsA: bracketA.numRounds,
     numRoundsB: bracketB.numRounds,
@@ -83,8 +91,17 @@ export function generateDualBracket(
 /**
  * Initialize bracket tournament with teams.
  */
+export interface BraceletConfig {
+  scoreType: string;
+  mode: "teams" | "players";
+}
+
+/**
+ * Initialize bracket tournament with teams.
+ */
 export function initBracketTournament(
-  teamNames: (string | { id?: string; name: string; side?: "A" | "B" })[]
+  teamNames: (string | { id?: string; name: string; side?: "A" | "B" })[],
+  config?: BraceletConfig
 ): void {
   const teams: BracketTeam[] = teamNames.map((t, i) => {
     if (typeof t === "string") {
@@ -95,6 +112,9 @@ export function initBracketTournament(
 
   (state.bracket as any) = generateBracket(teams);
   (state as any).bracketFormat = "single";
+  if (config) {
+    (state as any).bracketConfig = config;
+  }
   saveState();
 }
 
@@ -103,7 +123,8 @@ export function initBracketTournament(
  */
 export function initDualBracketTournament(
   teamNames: { id?: string; name: string; side?: "A" | "B" }[],
-  sharedFinal = true
+  sharedFinal = true,
+  config?: BraceletConfig
 ): void {
   const teams: BracketTeam[] = teamNames.map((t, i) => ({
     id: t.id || `team-${i}`,
@@ -132,6 +153,10 @@ export function initDualBracketTournament(
       bracketA,
       bracketB,
       teams,
+      teamsA,
+      teamsB,
+      matchesA: bracketA.matches,
+      matchesB: bracketB.matches,
       matches: [...bracketA.matches, ...bracketB.matches],
       numRoundsA: bracketA.numRounds,
       numRoundsB: bracketB.numRounds,
@@ -141,6 +166,9 @@ export function initDualBracketTournament(
   }
 
   (state as any).bracketFormat = "dual";
+  if (config) {
+    (state as any).bracketConfig = config;
+  }
   saveState();
 }
 

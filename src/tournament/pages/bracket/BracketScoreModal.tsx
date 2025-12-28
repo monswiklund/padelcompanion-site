@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { StorageService } from "@/shared/storage";
 import { showToast } from "@/shared/utils";
+import { useTournament } from "@/context/TournamentContext";
 
 interface BracketScoreModalProps {
   match: any;
@@ -14,10 +14,11 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const { state } = useTournament();
   const [score1, setScore1] = useState<string>(match.score1?.toString() || "");
   const [score2, setScore2] = useState<string>(match.score2?.toString() || "");
 
-  const savedScoreType = StorageService.getItem("bracket_score_type", "points");
+  const savedScoreType = state.bracketConfig?.scoreType || "points";
   const scoreTypeLabel =
     savedScoreType.charAt(0).toUpperCase() + savedScoreType.slice(1);
 

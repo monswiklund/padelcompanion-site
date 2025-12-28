@@ -775,4 +775,34 @@
     background: var(--error);
     color: white;
   }
+
+  /* ===== Custom Court Name Inputs ===== */
+  .tournament-page .custom-court-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+  }
+
+  .tournament-page .custom-court-input {
+    width: 100%;
+    padding: 10px;
+    font-size: 0.85rem;
+    border-radius: var(--radius-md);
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+
+  .tournament-page .custom-court-input:focus {
+    border-color: var(--accent);
+    background: var(--bg-card-hover);
+    outline: none;
+  }
+
+  .tournament-page .custom-court-input::placeholder {
+    color: var(--text-muted);
+  }
 }

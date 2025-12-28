@@ -127,6 +127,7 @@ export function generateBracket(teams: BracketTeam[]): Bracket {
 
 /**
  * Seed teams for bracket based on side assignments.
+ * For dual brackets, teams are already filtered by side, so just place them in order.
  */
 export function seedTeams(
   teams: BracketTeam[],
@@ -134,12 +135,24 @@ export function seedTeams(
 ): (BracketTeam | null)[] {
   const seeded = new Array<BracketTeam | null>(bracketSize).fill(null);
 
+  // If all teams have same side or no side, just place them in order
   const sideA = teams.filter((t) => t.side === "A");
   const sideB = teams.filter((t) => t.side === "B");
   const noSide = teams.filter(
     (t) => !t.side || (t.side !== "A" && t.side !== "B")
   );
 
+  // If all teams have the same side (typical for dual bracket sub-brackets),
+  // or if there's a mix without opposing sides, just place sequentially
+  if (sideA.length === 0 || sideB.length === 0) {
+    // All teams are on one side or have no side - place sequentially
+    teams.forEach((t, i) => {
+      if (i < bracketSize) seeded[i] = t;
+    });
+    return seeded;
+  }
+
+  // Standard seeding: separate A and B to opposite halves
   const topHalf = [...sideA];
   const bottomHalf = [...sideB];
 

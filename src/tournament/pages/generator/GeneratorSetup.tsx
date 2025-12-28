@@ -109,6 +109,14 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     dispatch({ type: "UPDATE_FIELD", key: key as any, value });
   };
 
+  const getCourtName = (num: number) => {
+    if (state.courtFormat === "custom" && state.customCourtNames[num - 1]) {
+      return state.customCourtNames[num - 1];
+    }
+    if (state.courtFormat === "number") return num.toString();
+    return `Court ${num}`;
+  };
+
   const renderPlayerActions = (p: GeneratorPlayer, i: number) => {
     if (courts <= 1) return null;
     return (
@@ -129,7 +137,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         <option value="">Auto</option>
         {Array.from({ length: courts }, (_, c) => c + 1).map((c) => (
           <option key={c} value={c}>
-            Court {c}
+            {getCourtName(c)}
           </option>
         ))}
       </select>
@@ -207,13 +215,15 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         <div className="setup-sidebar">
           <TournamentConfig
             config={{
-              format,
-              courts,
-              scoringMode,
-              pointsPerMatch,
-              maxRepeats,
-              pairingStrategy,
-              strictStrategy,
+              format: state.format,
+              courts: state.courts,
+              scoringMode: state.scoringMode,
+              pointsPerMatch: state.pointsPerMatch,
+              maxRepeats: state.maxRepeats,
+              pairingStrategy: state.pairingStrategy,
+              strictStrategy: state.strictStrategy,
+              courtFormat: state.courtFormat,
+              customCourtNames: state.customCourtNames,
             }}
             playerCount={players.length}
             onChange={updateConfig}

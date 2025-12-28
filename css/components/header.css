@@ -55,6 +55,23 @@
     color: var(--text-primary);
   }
 
+  .nav a.active {
+    color: var(--accent);
+    font-weight: 600;
+    position: relative;
+  }
+
+  .nav a.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
   /* Nav Dropdown */
   .nav-dropdown {
     position: relative;
@@ -132,5 +149,4 @@
     align-items: center;
     gap: var(--space-md);
   }
-
 }
