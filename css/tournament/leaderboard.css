@@ -2,7 +2,7 @@
   /* ===== Leaderboard ===== */
   .tournament-page .leaderboard-section {
     width: 100%;
-    max-width: 600px; /* Enforce max-width directly */
+    max-width: 800px; /* Increased for more dynamic/balanced feel */
     margin: 0 auto;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -59,6 +59,12 @@
     background: var(--accent);
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (max-width: 800px) {
+    .leaderboard-grid-selector {
+      display: none !important;
+    }
   }
 
   .leaderboard-actions {
@@ -132,7 +138,7 @@
   /* Rank Styling */
   .rank-cell {
     position: relative;
-    width: 60px;
+    width: 80px; /* Increased from 60px to prevent overlap */
     text-align: center;
   }
 
@@ -146,7 +152,10 @@
     font-weight: 800;
     font-size: 0.9rem;
     color: var(--text-muted);
-    margin: 0 auto;
+    /* margin: 0 auto;  Removed auto margin to allow manual positioning if needed, 
+       but with flex/absolute centering it might be fine. 
+       Let's keep it centered but ensure space for indicator. */
+    margin-right: 20px; /* offset to make room for indicator */
   }
 
   .rank-1 .rank-badge {
@@ -175,8 +184,8 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    right: 4px;
-    font-size: 0.65rem;
+    right: 8px; /* More space from edge */
+    font-size: 0.7rem; /* Slightly larger font */
     font-weight: 700;
     display: inline-flex;
     align-items: center;
@@ -198,25 +207,6 @@
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-  }
-
-  .player-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--bg-base);
-    color: var(--text-base);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.8rem;
-    border: 2px solid transparent;
-    transition: transform 0.2s;
-  }
-
-  .leaderboard-table tr:hover .player-avatar {
-    transform: scale(1.05);
   }
 
   .rank-1 .player-avatar {
@@ -273,7 +263,97 @@
     color: var(--error);
     background: rgba(255, 0, 0, 0.1);
   }
-  .diff-zero {
-    opacity: 0.3;
+  /* Search Bar */
+  .leaderboard-search-container {
+    position: relative;
+    width: 100%;
+    margin-top: var(--space-xs);
+  }
+
+  .leaderboard-search-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px 10px 38px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+
+  .leaderboard-search-input:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  .search-clear:hover {
+    opacity: 1;
+  }
+
+  /* Sticky Header */
+  .leaderboard-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Grid Layout Support */
+  .leaderboard-section.is-grid {
+    max-width: none;
+    width: 100%;
+  }
+
+  .leaderboard-grid-container {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 1), 1fr);
+    gap: var(--space-md);
+    width: 100%;
+  }
+
+  /* Responsive stacking for grid */
+  @media (max-width: 1200px) {
+    .leaderboard-grid-container {
+      grid-template-columns: repeat(min(var(--cols), 2), 1fr);
+    }
+  }
+
+  @media (max-width: 800px) {
+    .leaderboard-grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .leaderboard-column {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
   }
 }

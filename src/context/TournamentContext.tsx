@@ -58,6 +58,7 @@ export interface TournamentState {
   hideLeaderboard: boolean;
   showPositionChanges: boolean;
   gridColumns: number;
+  leaderboardColumns: number;
   textSize: number;
   bracketScale: number;
   isLocked: boolean;
@@ -114,8 +115,9 @@ const DEFAULT_STATE: TournamentState = {
   preferredPartners: [],
   manualByes: [],
   hideLeaderboard: true,
-  showPositionChanges: true,
+  showPositionChanges: false,
   gridColumns: 0,
+  leaderboardColumns: 1,
   textSize: 100,
   bracketScale: 100,
   isLocked: false,
@@ -260,10 +262,23 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
 
           const newLeaderboard = [...prev.leaderboard];
 
-          // 1. Snapshot previous ranks
-          // (Simplified: in reactive view, sorted leaderboard calculates rank on the fly)
+          // 1. Snapshot previous ranks - Sort by points (primary) then wins
+          const sortedCurrent = [...prev.leaderboard].sort((a, b) => {
+            if ((b.points || 0) !== (a.points || 0))
+              return (b.points || 0) - (a.points || 0);
+            if ((b.wins || 0) !== (a.wins || 0))
+              return (b.wins || 0) - (a.wins || 0);
+            return 0;
+          });
+
+          const currentRankMap = new Map();
+          sortedCurrent.forEach((p, idx) => currentRankMap.set(p.id, idx + 1));
+
           newLeaderboard.forEach((p, idx) => {
-            // We can calculate rank based on current sorted position if we want to store it
+            newLeaderboard[idx] = {
+              ...p,
+              previousRank: currentRankMap.get(p.id),
+            };
           });
 
           // 2. Update stats

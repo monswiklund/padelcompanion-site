@@ -5,6 +5,7 @@ import Schedule from "@/tournament/ui/components/Schedule";
 import { showConfirmModal, showInputModal } from "@/tournament/core/modals";
 import { showToast, createId } from "@/shared/utils";
 import { MatchTimer } from "@/tournament/ui/components/MatchTimer";
+import { launchConfetti } from "@/tournament/confetti";
 
 const TournamentActiveView: React.FC = () => {
   const { state, dispatch } = useTournament();
@@ -29,12 +30,27 @@ const TournamentActiveView: React.FC = () => {
 
   const handleEnd = () => {
     showConfirmModal(
-      "End Tournament",
-      "Are you sure you want to end this tournament and return to setup?",
-      "End Tournament",
+      "Finish Tournament",
+      "Are you sure you want to finish the tournament? This will reveal the final standings!",
+      "Finish & Celebrate 🎉",
       () => {
-        dispatch({ type: "RESET_TOURNAMENT" });
-        showToast("Tournament ended");
+        dispatch({
+          type: "UPDATE_FIELD",
+          key: "hideLeaderboard",
+          value: false,
+        });
+        dispatch({
+          type: "UPDATE_FIELD",
+          key: "showPositionChanges",
+          value: false,
+        });
+        launchConfetti();
+
+        // Scroll to leaderboard
+        const el = document.querySelector(".leaderboard-section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        showToast("Tournament Finished! 🏆");
       }
     );
   };
@@ -149,10 +165,10 @@ const TournamentActiveView: React.FC = () => {
               <div className="flex-1"></div>{" "}
               {/* Spacer to push dangerous actions right on desktop */}
               <button
-                className="btn btn-sm btn-ghost text-error/80 hover:bg-error/10 hover:text-error gap-2 normal-case"
+                className="btn btn-sm btn-ghost text-success hover:bg-success/10 gap-2 normal-case font-bold"
                 onClick={handleEnd}
               >
-                <span className="icon">✖</span> End
+                <span className="icon">🏆</span> Finish Tournament
               </button>
               <button
                 className="btn btn-sm btn-ghost hover:bg-white/5 gap-2 normal-case opacity-70 hover:opacity-100"
@@ -225,7 +241,7 @@ const TournamentActiveView: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-16 mb-24 w-full mx-auto px-4 max-w-xl">
+      <div className="mt-16 mb-24 w-full mx-auto px-4 max-w-7xl">
         <Leaderboard />
       </div>
     </div>
