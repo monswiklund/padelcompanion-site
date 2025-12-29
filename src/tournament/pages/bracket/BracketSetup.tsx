@@ -176,17 +176,9 @@ export const BracketSetup: React.FC = () => {
         <p>Set up a single elimination tournament bracket.</p>
       </div>
 
-      <div
-        className="bracket-setup-content"
-        style={{
-          display: "flex",
-          gap: "32px",
-          flexWrap: "wrap",
-          justifyContent: "center",
-        }}
-      >
+      <div className="setup-layout">
         {/* Teams List */}
-        <Card className="flex-1 min-w-[300px] max-w-[400px] p-6">
+        <Card className="setup-layout__main">
           <h3 className="text-lg font-bold mb-4">
             {mode === "teams" ? "Teams" : "Players"} ({teams.length})
           </h3>
@@ -271,10 +263,10 @@ export const BracketSetup: React.FC = () => {
         </Card>
 
         {/* Settings */}
-        <Card className="flex-1 min-w-[300px] max-w-[400px] p-6">
+        <Card className="setup-layout__sidebar">
           <h3 className="text-lg font-bold mb-4">Settings</h3>
 
-          <div className="config-grid" style={{ display: "grid", gap: "16px" }}>
+          <div className="flex flex-col gap-4">
             {/* Type */}
             <div className="config-row">
               <label className="config-label">Type:</label>
@@ -401,19 +393,17 @@ export const BracketSetup: React.FC = () => {
                 </div>
               </>
             )}
+            {/* Create Button */}
+            <Button
+              size="lg"
+              disabled={teams.length < 2}
+              onClick={handleCreateBracket}
+              className="w-full mt-2"
+            >
+              Create Bracket
+            </Button>
           </div>
         </Card>
-      </div>
-
-      {/* Create Button */}
-      <div className="mt-8 flex justify-center pb-12">
-        <Button
-          size="lg"
-          disabled={teams.length < 2}
-          onClick={handleCreateBracket}
-        >
-          Create Bracket
-        </Button>
       </div>
     </div>
   );

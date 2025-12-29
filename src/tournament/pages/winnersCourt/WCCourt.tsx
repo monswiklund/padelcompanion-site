@@ -20,8 +20,8 @@ export const WCCourt: React.FC<WCCourtProps> = ({
   onSelectWinner,
   readOnly = false,
 }) => {
-  const isComplete = court.winner != null;
-  const canSelect = !readOnly && !isComplete;
+  const isComplete = court.winner != null; // Keeping for display style
+  const canSelect = !readOnly; // Allow changing selection
 
   return (
     <div

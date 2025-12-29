@@ -10,6 +10,12 @@ import {
   generateMexicanoNextRound,
   generateTeamMexicanoNextRound,
 } from "@/tournament/scoring";
+import {
+  WinnersCourtState,
+  recordCourtResult,
+  advanceRound,
+  clearSide,
+} from "@/tournament/winnersCourt/winnersCourtCore";
 
 // --- Types ---
 export interface Player {
@@ -178,7 +184,17 @@ type StateAction =
   | { type: "CLEAR_BRACKET" }
   | { type: "UPDATE_BRACKET_SCALE"; scale: number }
   | { type: "SET_HISTORY"; history: any[] }
-  | { type: "UPDATE_TIMER"; payload: Partial<TournamentState["timer"]> };
+  | { type: "UPDATE_TIMER"; payload: Partial<TournamentState["timer"]> }
+  // WinnersCourt Actions
+  | { type: "SET_WINNERS_COURT"; winnersCourtState: WinnersCourtState | null }
+  | {
+      type: "UPDATE_WC_RESULT";
+      side: string;
+      courtIndex: number;
+      winner: 1 | 2;
+    }
+  | { type: "ADVANCE_WC_ROUND"; side: string }
+  | { type: "CLEAR_WC_SIDE"; side: string };
 
 const TournamentContext = createContext<TournamentContextType | undefined>(
   undefined
@@ -235,6 +251,33 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           return { ...prev, historyData: action.history };
         case "UPDATE_TIMER":
           return { ...prev, timer: { ...prev.timer, ...action.payload } };
+        // WinnersCourt handlers
+        case "SET_WINNERS_COURT":
+          return { ...prev, winnersCourt: action.winnersCourtState };
+        case "UPDATE_WC_RESULT": {
+          if (!prev.winnersCourt) return prev;
+          const updated = recordCourtResult(
+            prev.winnersCourt,
+            action.side,
+            action.courtIndex,
+            action.winner
+          );
+          return { ...prev, winnersCourt: updated };
+        }
+        case "ADVANCE_WC_ROUND": {
+          if (!prev.winnersCourt) return prev;
+          const result = advanceRound(prev.winnersCourt, action.side);
+          if ("error" in result) {
+            console.error("[WC] Advance round error:", result.error);
+            return prev;
+          }
+          return { ...prev, winnersCourt: result };
+        }
+        case "CLEAR_WC_SIDE": {
+          if (!prev.winnersCourt) return prev;
+          const cleared = clearSide(prev.winnersCourt, action.side);
+          return { ...prev, winnersCourt: cleared };
+        }
         case "ADD_PLAYER":
           return { ...prev, players: [...prev.players, action.player] };
         case "ADD_LATE_PLAYER": {

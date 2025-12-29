@@ -24,6 +24,67 @@
     margin-right: auto;
   }
 
+  /* Remove card-like styling when inside a Card in sidebar */
+  .tournament-page .setup-sidebar .setup-card .config-grid,
+  .tournament-page .setup-layout__sidebar .setup-card .config-grid {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+
+  /* ===== Unified Setup Layout ===== */
+  .tournament-page .setup-layout {
+    display: flex;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+  }
+
+  .tournament-page .setup-layout__main {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px;
+  }
+
+  .tournament-page .setup-layout__sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 320px;
+    position: sticky;
+    top: var(--space-lg);
+  }
+
+  @media (min-width: 800px) {
+    .tournament-page .setup-layout {
+      gap: var(--space-xl);
+    }
+    .tournament-page .setup-layout__main {
+      max-width: 550px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .tournament-page .setup-layout {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .tournament-page .setup-layout__main,
+    .tournament-page .setup-layout__sidebar {
+      max-width: 100%;
+      width: 100%;
+    }
+    .tournament-page .setup-layout__sidebar {
+      position: static;
+    }
+  }
+
   .tournament-page .config-row {
     display: flex;
     flex-direction: column; /* Stack label and input in grid mode */

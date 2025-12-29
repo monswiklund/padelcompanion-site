@@ -14,11 +14,7 @@ const WinnersCourtPage: React.FC = () => {
   return (
     <div className="winners-court-page tournament-page">
       <TournamentNav />
-      {!hasGame ? (
-        <WinnersCourtSetup onGameActive={() => {}} />
-      ) : (
-        <WinnersCourtActiveView />
-      )}
+      {!hasGame ? <WinnersCourtSetup /> : <WinnersCourtActiveView />}
     </div>
   );
 };

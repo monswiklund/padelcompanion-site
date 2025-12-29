@@ -3,10 +3,9 @@ import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { WCCourt } from "./WCCourt";
-import { recordCourtResult, nextRound, clearWinnersCourt } from "./logic";
 import { showConfirmModal } from "../../core/modals";
 import { showToast } from "@/shared/utils";
-import { state as legacyState } from "../../core/state";
+import { allCourtsComplete } from "@/tournament/winnersCourt/winnersCourtCore";
 
 export const WinnersCourtActiveView: React.FC = () => {
   const { state, dispatch } = useTournament();
@@ -19,21 +18,13 @@ export const WinnersCourtActiveView: React.FC = () => {
     (s) => sides[s]?.courts?.length > 0
   );
 
-  const syncState = () => {
-    dispatch({
-      type: "SET_STATE",
-      payload: { winnersCourt: { ...legacyState.winnersCourt } },
-    });
-  };
-
   const handleNextRound = (side: string) => {
-    const result = nextRound(side);
-    if (result?.error) {
-      showToast(result.error, "error");
-    } else {
-      showToast(`Side ${side} - Round ${wc.sides[side].round} started`);
-      syncState();
+    if (!allCourtsComplete(wc, side)) {
+      showToast("Not all courts have results", "error");
+      return;
     }
+    dispatch({ type: "ADVANCE_WC_ROUND", side });
+    showToast(`Side ${side} - Round ${sides[side].round + 1} started`);
   };
 
   const handleClearSide = (side: string) => {
@@ -42,21 +33,14 @@ export const WinnersCourtActiveView: React.FC = () => {
       "This will reset this side.",
       "Clear",
       () => {
-        if (legacyState.winnersCourt?.sides[side]) {
-          delete legacyState.winnersCourt.sides[side];
-          if (Object.keys(legacyState.winnersCourt?.sides || {}).length === 0) {
-            legacyState.winnersCourt = null;
-          }
-          syncState();
-          showToast(`Side ${side} cleared`);
-        }
+        dispatch({ type: "CLEAR_WC_SIDE", side });
+        showToast(`Side ${side} cleared`);
       }
     );
   };
 
-  const handleWin = (side: string, courtId: number, winner: 1 | 2) => {
-    recordCourtResult(side, courtId, winner);
-    syncState();
+  const handleWin = (side: string, courtIndex: number, winner: 1 | 2) => {
+    dispatch({ type: "UPDATE_WC_RESULT", side, courtIndex, winner });
   };
 
   return (
@@ -112,15 +96,13 @@ export const WinnersCourtActiveView: React.FC = () => {
               )}
 
               <div className="wc-courts-grid grid gap-4">
-                {sides[side].courts.map((court: any) => (
+                {sides[side].courts.map((court: any, idx: number) => (
                   <WCCourt
                     key={court.id}
                     court={court}
                     twist={twist}
                     round={sides[side].round}
-                    onSelectWinner={(winner) =>
-                      handleWin(side, court.id, winner)
-                    }
+                    onSelectWinner={(winner) => handleWin(side, idx, winner)}
                   />
                 ))}
               </div>
@@ -160,3 +142,5 @@ export const WinnersCourtActiveView: React.FC = () => {
     </div>
   );
 };
+
+export default WinnersCourtActiveView;

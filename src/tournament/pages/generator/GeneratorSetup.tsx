@@ -213,21 +213,33 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         </div>
 
         <div className="setup-sidebar">
-          <TournamentConfig
-            config={{
-              format: state.format,
-              courts: state.courts,
-              scoringMode: state.scoringMode,
-              pointsPerMatch: state.pointsPerMatch,
-              maxRepeats: state.maxRepeats,
-              pairingStrategy: state.pairingStrategy,
-              strictStrategy: state.strictStrategy,
-              courtFormat: state.courtFormat,
-              customCourtNames: state.customCourtNames,
-            }}
-            playerCount={players.length}
-            onChange={updateConfig}
-          />
+          <Card>
+            <TournamentConfig
+              config={{
+                format: state.format,
+                courts: state.courts,
+                scoringMode: state.scoringMode,
+                pointsPerMatch: state.pointsPerMatch,
+                maxRepeats: state.maxRepeats,
+                pairingStrategy: state.pairingStrategy,
+                strictStrategy: state.strictStrategy,
+                courtFormat: state.courtFormat,
+                customCourtNames: state.customCourtNames,
+              }}
+              playerCount={players.length}
+              onChange={updateConfig}
+            />
+
+            {/* Generate Button */}
+            <Button
+              size="lg"
+              disabled={players.length < 4}
+              onClick={handleGenerate}
+              className="w-full mt-4"
+            >
+              Generate Schedule
+            </Button>
+          </Card>
 
           {format.includes("mexicano") && (
             <Card className="mt-4">
@@ -255,16 +267,6 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
             </Card>
           )}
         </div>
-      </div>
-
-      <div className="tournament-actions" style={{ textAlign: "center" }}>
-        <Button
-          size="lg"
-          disabled={players.length < 4}
-          onClick={handleGenerate}
-        >
-          Generate Schedule
-        </Button>
       </div>
     </div>
   );
