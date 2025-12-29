@@ -8,7 +8,6 @@
 export interface WCPlayer {
   id: string;
   name: string;
-  skill: number;
   side: "A" | "B" | null;
 }
 

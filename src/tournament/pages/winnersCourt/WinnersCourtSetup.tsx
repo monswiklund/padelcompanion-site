@@ -21,7 +21,7 @@ interface SetupPlayer {
   side: "A" | "B" | null;
 }
 
-type AssignStrategy = "random" | "skill" | "manual";
+type AssignStrategy = "random" | "manual";
 
 // ============ COMPONENT ============
 
@@ -34,7 +34,8 @@ export const WinnersCourtSetup: React.FC = () => {
   const [splitSides, setSplitSides] = useState(false);
   const [isTwist, setIsTwist] = useState(false);
   const [courtCountInput, setCourtCountInput] = useState<number | null>(null);
-  const [assignStrategy, setAssignStrategy] = useState<AssignStrategy>("skill");
+  const [assignStrategy, setAssignStrategy] =
+    useState<AssignStrategy>("random");
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load from localStorage for WC-specific player list (with skills)
@@ -129,16 +130,7 @@ export const WinnersCourtSetup: React.FC = () => {
   const autoAssignSides = useCallback(() => {
     const newPlayers = [...players];
 
-    if (assignStrategy === "skill") {
-      // Skill-based: 5+ goes to A, below to B
-      newPlayers.forEach((p) => {
-        if (p.skill === 0) {
-          p.side = Math.random() > 0.5 ? "A" : "B";
-        } else {
-          p.side = p.skill >= 5 ? "A" : "B";
-        }
-      });
-    } else if (assignStrategy === "random") {
+    if (assignStrategy === "random") {
       // Shuffle and alternate
       const shuffled = [...newPlayers].sort(() => Math.random() - 0.5);
       shuffled.forEach((p, i) => {
@@ -161,10 +153,6 @@ export const WinnersCourtSetup: React.FC = () => {
       )
     );
     setAssignStrategy("manual");
-  }, []);
-
-  const updatePlayerSkill = useCallback((id: string, skill: number) => {
-    setPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, skill } : p)));
   }, []);
 
   // ============ GENERATION ============
@@ -241,10 +229,7 @@ export const WinnersCourtSetup: React.FC = () => {
     if (!splitSides) return null;
     return (
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          togglePlayerSide(p.id);
-        }}
+        onClick={() => togglePlayerSide(p.id)}
         style={{
           ...getPoolStyle(p.side),
           fontSize: "0.7rem",
@@ -259,21 +244,6 @@ export const WinnersCourtSetup: React.FC = () => {
       </button>
     );
   };
-
-  const renderPlayerActions = (p: SetupPlayer) => (
-    <select
-      className="compact-select bg-black/20 text-xs p-1 rounded border border-white/10 outline-none"
-      value={p.skill}
-      onChange={(e) => updatePlayerSkill(p.id, parseInt(e.target.value))}
-    >
-      <option value="0">Skill: -</option>
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-        <option key={n} value={n}>
-          {n}
-        </option>
-      ))}
-    </select>
-  );
 
   // Sort for display
   const sortedPlayers = splitSides
@@ -323,8 +293,7 @@ export const WinnersCourtSetup: React.FC = () => {
             onRemove={handleRemovePlayer}
             onClear={handleClearPlayers}
             onImport={handleImportPlayers}
-            renderPrefix={splitSides ? renderPlayerPrefix : undefined}
-            renderActions={renderPlayerActions}
+            renderPrefix={renderPlayerPrefix}
             defaultView="grid"
             showViewToggle={true}
             hintText={
@@ -406,7 +375,6 @@ export const WinnersCourtSetup: React.FC = () => {
                 </label>
                 <div className="flex bg-black/30 p-1 rounded-lg">
                   {[
-                    { value: "skill", label: "Skill" },
                     { value: "random", label: "Random" },
                     { value: "manual", label: "Manual" },
                   ].map((opt) => (

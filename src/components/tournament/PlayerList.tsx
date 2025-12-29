@@ -101,7 +101,7 @@ export function PlayerList<T extends { name: string }>({
 
   const defaultItemRenderer = (item: T, index: number) => (
     <li
-      key={index}
+      key={(item as any).id || index}
       className={`player-card ${
         viewMode === "grid" ? "player-card--grid" : ""
       } ${dragIndex === index ? "player-card--dragging" : ""}`}
