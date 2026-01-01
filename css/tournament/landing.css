@@ -187,6 +187,67 @@
     flex: 1;
   }
 
+  .tournament-landing__why {
+    padding: 60px 0;
+    margin: 40px 0;
+    position: relative;
+  }
+
+  .tournament-landing__why::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      rgba(37, 99, 235, 0.05),
+      transparent 80%
+    );
+    border-radius: var(--radius-xl);
+    z-index: 0;
+  }
+
+  .tournament-landing .why-grid {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .tournament-landing .why-content h2 {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .tournament-landing .why-content > p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-lg);
+  }
+
+  .tournament-landing .why-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-md);
+    text-align: left;
+  }
+
+  .tournament-landing .why-list li {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+  }
+
+  .tournament-landing .why-list strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 1.05rem;
+  }
+
   .tournament-landing__details {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

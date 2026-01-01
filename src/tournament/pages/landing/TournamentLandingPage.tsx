@@ -78,35 +78,32 @@ const TournamentLandingPage: React.FC = () => {
         <div className="container hero-grid">
           <div className="hero-copy centered">
             <p className="tournament-landing__eyebrow">
-              Padel Companion Tournaments
+              The Tournament Suite
             </p>
-            <h1>Padel Mexicano generator built for fast tournaments</h1>
+            <h1>Run your Padel tournaments on autopilot</h1>
             <p className="tournament-landing__lead">
-              Launch Mexicano, Americano, Winners Court, or bracket events in
-              minutes. Auto-generate rounds, handle byes, and track a live
-              leaderboard from any phone.
+              Say goodbye to spreadsheets. Whether it's a social Mexicano mixer or a competitive Bracket, organizing your next event just got effortless.
             </p>
             <div className="tournament-landing__cta">
               <Link
                 to="/tournament/generator"
                 className="btn btn-primary btn-lg"
               >
-                Open Mexicano & Americano Generator
+                Start a Mexicano or Americano
               </Link>
               <Link to="/tournament/bracket" className="btn btn-outline btn-lg">
-                Build Bracket Tournament
+                Create a Bracket
               </Link>
             </div>
             <div className="hero-links">
-              <a href="#formats">Compare formats</a>
+              <a href="#formats">See all formats</a>
               <a href="#workflow">How it works</a>
-              <a href="#faq">Padel Mexicano FAQ</a>
+              <a href="#faq">FAQ</a>
             </div>
             <div className="tournament-landing__trust">
-              <span>Auto schedule</span>
-              <span>Live scores</span>
-              <span>Works on mobile</span>
-              <span>Free to use</span>
+              <span>Instant scheduling</span>
+              <span>Real-time leaderboards</span>
+              <span>No signup required</span>
             </div>
           </div>
         </div>
@@ -114,59 +111,76 @@ const TournamentLandingPage: React.FC = () => {
 
       <section id="formats" className="tournament-landing__formats container">
         <div className="section-header centered">
-          <h2>Choose your tournament format</h2>
+          <h2>Pick your game mode</h2>
           <p>
-            Each format is optimized for different padel events, from social
-            mixers to competitive ladders.
+            From friendly club nights to serious competition, we have a format that fits.
           </p>
         </div>
         <div className="format-grid">
           <Link to="/tournament/generator" className="format-card-link">
             <article className="format-card">
-              <span className="format-tag">Best for ladders</span>
-              <h3>Mexicano tournament generator</h3>
+              <span className="format-tag">The Social Favorite</span>
+              <h3>Mexicano</h3>
               <p>
-                Rotate partners each round and match players by ranking. Perfect
-                for social events and competitive ladders.
+                The ultimate mixer. Partners rotate every match, and the system intelligently pairs players of similar skill levels as the tournament progresses.
               </p>
             </article>
           </Link>
           <Link to="/tournament/generator" className="format-card-link">
             <article className="format-card">
-              <span className="format-tag">Classic rotation</span>
-              <h3>Americano tournament generator</h3>
+              <span className="format-tag">Classic & Fair</span>
+              <h3>Americano</h3>
               <p>
-                Balanced partner rotations with fixed round structure. The
-                classic padel americano format made simple.
+                Perfectly balanced. Every player partners with everyone else exactly once. A fair and structured way to find the true champion of the group.
               </p>
             </article>
           </Link>
           <Link to="/tournament/winners-court" className="format-card-link">
             <article className="format-card">
-              <span className="format-tag">Club nights</span>
-              <h3>Winners Court format</h3>
+              <span className="format-tag">King of the Hill</span>
+              <h3>Winners Court</h3>
               <p>
-                King of the hill for padel. Winners move up courts, losers move
-                down. Great for club nights.
+                Win and move up, lose and move down. The goal is simple: reach the top court and stay there. High energy and fast-paced fun.
               </p>
             </article>
           </Link>
           <Link to="/tournament/bracket" className="format-card-link">
             <article className="format-card">
-              <span className="format-tag">Knockout</span>
-              <h3>Bracket tournament generator</h3>
+              <span className="format-tag">Tournament Mode</span>
+              <h3>Knockout Bracket</h3>
               <p>
-                Single elimination brackets for fast knockout events. Add teams,
-                seed players, and play to a final.
+                The road to the trophy. Set up a classic elimination tournament, seed your top teams, and let the drama unfold.
               </p>
             </article>
           </Link>
         </div>
       </section>
 
+      <section className="tournament-landing__why container">
+        <div className="why-grid">
+          <div className="why-content">
+            <h2>Why use Padel Companion?</h2>
+            <p>
+              We built this because we were tired of managing complex Excel sheets on our phones.
+            </p>
+            <ul className="why-list">
+              <li>
+                <strong>Dead simple setup.</strong> You don't need a manual. Just add players, courts, and go.
+              </li>
+              <li>
+                <strong>Works on any device.</strong> iOS, Android, or your laptop. Everyone can track the score from their own phone.
+              </li>
+              <li>
+                <strong>Smart logic.</strong> We handle the uneven numbers, the byes, and the tie-breakers so you don't have to.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="workflow" className="tournament-landing__details container">
         <div className="details-card">
-          <h2>How the padel tournament scheduler works</h2>
+          <h2>How it works</h2>
           <ol>
             <li>Add players and courts, then pick Mexicano or Americano.</li>
             <li>Auto-generate the full schedule in one tap.</li>
