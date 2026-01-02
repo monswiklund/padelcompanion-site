@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Padel Companion</title>
+    <script>
+      // GitHub Pages SPA redirect hack
+      // Converts the path into a query string parameter and redirects to index.html
+      // The SPA's router will then handle the route
+      const path = window.location.pathname;
+      const search = window.location.search;
+      const hash = window.location.hash;
+
+      // Redirect to root with the original path encoded as a query parameter
+      // This is decoded by a script in index.html to restore the proper route
+      const redirectUrl =
+        window.location.origin +
+        "/?p=" +
+        encodeURIComponent(path + search + hash);
+      window.location.replace(redirectUrl);
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=/" />
+    </noscript>
+  </body>
+</html>
