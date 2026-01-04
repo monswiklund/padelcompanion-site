@@ -1,0 +1,359 @@
+@layer pages {
+  /* ===== Leaderboard ===== */
+  .tournament-page .leaderboard-section {
+    width: 100%;
+    max-width: 800px; /* Increased for more dynamic/balanced feel */
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-base);
+  }
+
+  .tournament-page .leaderboard-section:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg), 0 0 30px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Header */
+  .leaderboard-header {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.03),
+      transparent
+    );
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  /* Controls */
+  .leaderboard-controls-group {
+    background: var(--bg-base);
+    border-radius: var(--radius-lg);
+    padding: 4px;
+    display: inline-flex;
+    gap: 2px;
+    border: 1px solid var(--border-color);
+  }
+
+  .leaderboard-tab {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+  }
+
+  .leaderboard-tab:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .leaderboard-tab.active {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (max-width: 800px) {
+    .leaderboard-grid-selector {
+      display: none !important;
+    }
+  }
+
+  .leaderboard-actions {
+    display: flex;
+    gap: var(--space-xs);
+  }
+
+  .leaderboard-action-btn {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+
+  .leaderboard-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+  }
+
+  .leaderboard-action-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Table */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .leaderboard-table th {
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .leaderboard-table td {
+    padding: var(--space-xs) var(--space-md); /* Reduced vertical padding */
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    transition: background 0.2s;
+    height: 48px; /* Fixed height for consistency */
+  }
+
+  .leaderboard-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .leaderboard-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Rank Styling */
+  .rank-cell {
+    position: relative;
+    width: 80px; /* Increased from 60px to prevent overlap */
+    text-align: center;
+  }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    /* margin: 0 auto;  Removed auto margin to allow manual positioning if needed, 
+       but with flex/absolute centering it might be fine. 
+       Let's keep it centered but ensure space for indicator. */
+    margin-right: 20px; /* offset to make room for indicator */
+  }
+
+  .rank-1 .rank-badge {
+    background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%);
+    color: #000;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .rank-2 .rank-badge {
+    background: linear-gradient(135deg, #e0e0e0 0%, #a9a9a9 100%);
+    color: #000;
+    box-shadow: 0 0 12px rgba(192, 192, 192, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .rank-3 .rank-badge {
+    background: linear-gradient(135deg, #cd7f32 0%, #8b4513 100%);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(205, 127, 50, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Trend Indicator */
+  .trend-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 8px; /* More space from edge */
+    font-size: 0.7rem; /* Slightly larger font */
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+  }
+  .trend-up {
+    color: var(--success);
+  }
+  .trend-down {
+    color: var(--error);
+  }
+  .trend-neutral {
+    color: var(--text-muted);
+    font-size: 1rem; /* Slightly larger for the dash */
+    line-height: 1;
+  }
+
+  /* Avatar */
+  .player-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .rank-1 .player-avatar {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+  }
+  .rank-2 .player-avatar {
+    border-color: #c0c0c0;
+    box-shadow: 0 0 8px rgba(192, 192, 192, 0.2);
+  }
+  .rank-3 .player-avatar {
+    border-color: #cd7f32;
+    box-shadow: 0 0 8px rgba(205, 127, 50, 0.2);
+  }
+
+  .player-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .rank-1 .player-name {
+    color: #ffd700;
+  }
+  .rank-2 .player-name {
+    color: #e0e0e0;
+  }
+  .rank-3 .player-name {
+    color: #cd7f32;
+  }
+
+  /* Stats */
+  .stat-value {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .stat-value.dim {
+    opacity: 0.6;
+    font-weight: 400;
+  }
+
+  .diff-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    font-weight: 600;
+  }
+  .diff-plus {
+    color: var(--success);
+    background: rgba(0, 255, 0, 0.1);
+  }
+  .diff-minus {
+    color: var(--error);
+    background: rgba(255, 0, 0, 0.1);
+  }
+  /* Search Bar */
+  .leaderboard-search-container {
+    position: relative;
+    width: 100%;
+    margin-top: var(--space-xs);
+  }
+
+  .leaderboard-search-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px 10px 38px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+
+  .leaderboard-search-input:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.4;
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+
+  .search-clear:hover {
+    opacity: 1;
+  }
+
+  /* Sticky Header */
+  .leaderboard-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Grid Layout Support */
+  .leaderboard-section.is-grid {
+    max-width: none;
+    width: 100%;
+  }
+
+  .leaderboard-grid-container {
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 1), 1fr);
+    gap: var(--space-md);
+    width: 100%;
+  }
+
+  /* Responsive stacking for grid */
+  @media (max-width: 1200px) {
+    .leaderboard-grid-container {
+      grid-template-columns: repeat(min(var(--cols), 2), 1fr);
+    }
+  }
+
+  @media (max-width: 800px) {
+    .leaderboard-grid-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .leaderboard-column {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+  }
+}

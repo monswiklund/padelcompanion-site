@@ -2,13 +2,16 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
+import react from "@vitejs/plugin-react";
+
 export default defineConfig({
   base: "/", // Change to '/repo-name/' if using project pages
   plugins: [
+    react(),
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
       manifest: {
         name: "Padel Tournament",
@@ -82,14 +85,7 @@ export default defineConfig({
     outDir: "dist",
     rollupOptions: {
       input: {
-        main: "index.html",
-        privacy: "privacy.html",
-        terms: "terms.html",
-        support: "support.html",
-        contact: "contact.html",
-        deleteAccount: "delete-account.html",
-        notFound: "404.html",
-        tournament: "tournament/index.html",
+        main: resolve(__dirname, "index.html"),
       },
     },
   },

@@ -1,0 +1,14 @@
+@layer tokens, base, components, pages, utilities;
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./components/index.css";
+
+/* pages */
+@import "./home/index.css";
+@import "./tournament/index.css";
+@import "./pages-support.css";
+@import "./pages-legal.css";
+
+/* utilities (global overrides, accessibility) */
+@import "./utilities.css";
