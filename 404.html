@@ -1,35 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <title>Padel Companion</title>
+    <meta charset="UTF-8" />
+    <!-- GitHub Pages SPA redirect handler -->
     <script type="text/javascript">
-      // GitHub Pages SPA redirect
-      // This script redirects 404 pages to the main index with the path preserved
-      // The main app then handles the routing client-side
-      var pathSegmentsToKeep = 0;
-
-      var l = window.location;
-      l.replace(
-        l.protocol +
-          "//" +
-          l.hostname +
-          (l.port ? ":" + l.port : "") +
-          l.pathname
-            .split("/")
-            .slice(0, 1 + pathSegmentsToKeep)
-            .join("/") +
-          "/?/" +
-          l.pathname
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
             .slice(1)
-            .split("/")
-            .slice(pathSegmentsToKeep)
-            .join("/")
-            .replace(/&/g, "~and~") +
-          (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
-          l.hash
-      );
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      })(window.location);
     </script>
-  </head>
-  <body></body>
+
+    <!-- Preconnect to external origins for faster loading -->
+    <link
+      rel="preconnect"
+      href="https://scripts.simpleanalyticscdn.com"
+      crossorigin
+    />
+    <link
+      rel="preconnect"
+      href="https://queue.simpleanalyticscdn.com"
+      crossorigin
+    />
+    <link rel="dns-prefetch" href="https://scripts.simpleanalyticscdn.com" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Padel Companion - The ultimate app for padel players. Track scores effortlessly, analyze advanced statistics, organize tournaments, and sync across all your devices."
+    />
+    <meta
+      name="keywords"
+      content="padel, score, tracking, statistics, tournaments, americano, mexicano"
+    />
+    <meta name="author" content="Padel Companion" />
+
+    <title>Padel Companion - Your Ultimate Padel Companion</title>
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://padelcompanion.se/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://padelcompanion.se/" />
+    <meta
+      property="og:title"
+      content="Padel Companion - Your Ultimate Padel Companion"
+    />
+    <meta
+      property="og:description"
+      content="Track scores effortlessly, analyze advanced statistics, organize tournaments, and sync across all your devices."
+    />
+    <meta
+      property="og:image"
+      content="https://padelcompanion.se/assets/app-icon.jpeg"
+    />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://padelcompanion.se/" />
+    <meta
+      property="twitter:title"
+      content="Padel Companion - Your Ultimate Padel Companion"
+    />
+    <meta
+      property="twitter:description"
+      content="Track scores effortlessly, analyze advanced statistics, organize tournaments, and sync across all your devices."
+    />
+    <meta
+      property="twitter:image"
+      content="https://padelcompanion.se/assets/app-icon.jpeg"
+    />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="/assets/app-icon.jpeg" />
+    <link rel="apple-touch-icon" href="/assets/app-icon.jpeg" />
+    <meta name="apple-mobile-web-app-title" content="Padel Tournament" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="theme-color" content="#0a0a0f" />
+
+    <!-- Security Headers -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://scripts.simpleanalyticscdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://padelcompanion.se data: https://queue.simpleanalyticscdn.com; font-src 'self' data:; connect-src 'self' https://queue.simpleanalyticscdn.com"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Padel Companion",
+        "description": "Track scores, view statistics, and organize tournaments with ease.",
+        "url": "https://padelcompanion.se/",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "iOS, Android, watchOS, Wear OS",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "SEK"
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/main-BsPkHb-Q.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-BUoH81-6.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+
+    <!-- 100% privacy-first analytics -->
+    <script
+      data-collect-dnt="true"
+      async
+      crossorigin="anonymous"
+      src="https://scripts.simpleanalyticscdn.com/latest.js"
+    ></script>
+    <noscript
+      ><img
+        src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true"
+        alt=""
+        referrerpolicy="no-referrer-when-downgrade"
+    /></noscript>
+  </body>
 </html>
