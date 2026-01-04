@@ -2,6 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- GitHub Pages SPA redirect handler -->
+    <script type="text/javascript">
+      (function (l) {
+        if (l.search[1] === "/") {
+          var decoded = l.search
+            .slice(1)
+            .split("&")
+            .map(function (s) {
+              return s.replace(/~and~/g, "&");
+            })
+            .join("?");
+          window.history.replaceState(
+            null,
+            null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      })(window.location);
+    </script>
+
+    <!-- Preconnect to external origins for faster loading -->
+    <link
+      rel="preconnect"
+      href="https://scripts.simpleanalyticscdn.com"
+      crossorigin
+    />
+    <link
+      rel="preconnect"
+      href="https://queue.simpleanalyticscdn.com"
+      crossorigin
+    />
+    <link rel="dns-prefetch" href="https://scripts.simpleanalyticscdn.com" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
@@ -54,15 +87,19 @@
     <link rel="icon" type="image/jpeg" href="/assets/app-icon.jpeg" />
     <link rel="apple-touch-icon" href="/assets/app-icon.jpeg" />
     <meta name="apple-mobile-web-app-title" content="Padel Tournament" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="theme-color" content="#0a0a0f" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
-      rel="stylesheet"
+    <!-- Security Headers -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://scripts.simpleanalyticscdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://padelcompanion.se data: https://queue.simpleanalyticscdn.com; font-src 'self' data:; connect-src 'self' https://queue.simpleanalyticscdn.com"
     />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -90,6 +127,7 @@
     <script
       data-collect-dnt="true"
       async
+      crossorigin="anonymous"
       src="https://scripts.simpleanalyticscdn.com/latest.js"
     ></script>
     <noscript
