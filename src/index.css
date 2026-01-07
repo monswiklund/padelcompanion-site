@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+/* ============================================
+   DESIGN SYSTEM - Padel Companion
+   ============================================ */
+
+/* Theme Configuration for Tailwind v4 */
+@theme {
+  /* Colors - Base Palette */
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
+  --color-accent-dark: #2563eb;
+  --color-accent-glow: rgba(59, 130, 246, 0.4);
+
+  /* Success/Error/Warning */
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Font Family */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-glow: 0 0 30px var(--color-accent-glow);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.25);
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-fade-in-up: fade-in-up 0.6s ease-out forwards;
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================================
+   DARK THEME (Default)
+   ============================================ */
+:root,
+[data-theme="dark"] {
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #111118;
+  --color-bg-card: #1a1a24;
+  --color-bg-elevated: #222230;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   LIGHT THEME
+   ============================================ */
+[data-theme="light"] {
+  --color-bg-primary: #fafafa;
+  --color-bg-secondary: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-elevated: #ffffff;
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-hover: rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Background utilities */
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+.bg-card {
+  background-color: var(--color-bg-card);
+}
+.bg-elevated {
+  background-color: var(--color-bg-elevated);
+}
+
+/* Text utilities */
+.text-primary {
+  color: var(--color-text-primary);
+}
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Border utilities */
+.border-theme {
+  border-color: var(--color-border);
+}
+.border-theme-hover {
+  border-color: var(--color-border-hover);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-accent),
+    var(--color-accent-light)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow effect on hover */
+.hover-glow {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.hover-glow:hover {
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+/* Animation delays */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-muted);
+  z-index: 9999;
+  font-size: 0.9rem;
+  font-weight: 500;
+  max-width: 380px;
+  min-width: 280px;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Toast Variants */
+.toast.success {
+  --toast-color: var(--color-success);
+  border: 1px solid var(--color-success);
+  border-left: 4px solid var(--color-success);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
+}
+.toast-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.toast.success .toast-icon {
+  color: var(--color-success);
+}
+
+.toast.error {
+  --toast-color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-left: 4px solid var(--color-error);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+}
+.toast.error .toast-icon {
+  color: var(--color-error);
+}
+
+.toast.warning {
+  --toast-color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+  border-left: 4px solid var(--color-warning);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+}
+.toast.warning .toast-icon {
+  color: var(--color-warning);
+}
+
+.toast.info {
+  --toast-color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-left: 4px solid var(--color-accent);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+}
+.toast.info .toast-icon {
+  color: var(--color-accent);
+}
+
+/* Toast Close Button */
+.toast-close {
+  margin-left: auto;
+  opacity: 0.5;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toast-close:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Toast Progress Bar */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background-color: var(--toast-color, currentColor);
+  transform-origin: left;
+  animation: toast-progress linear forwards;
+  opacity: 0.7;
+}
+
+.toast {
+  /* Ensure progress bar is clipped to rounded corners */
+  overflow: hidden;
+}

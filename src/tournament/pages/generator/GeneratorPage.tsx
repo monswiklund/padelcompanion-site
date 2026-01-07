@@ -10,14 +10,14 @@ const GeneratorPage: React.FC = () => {
   const isGameActive = state.schedule && state.schedule.length > 0;
 
   return (
-    <div className="generator-page-wrapper tournament-page">
+    <div className="min-h-screen pb-12">
       <TournamentNav />
       {isGameActive ? (
         <TournamentActiveView />
       ) : (
         <GeneratorSetup
           onGameActive={() => {
-            /* handeled by state change */
+            /* handled by state change */
           }}
         />
       )}

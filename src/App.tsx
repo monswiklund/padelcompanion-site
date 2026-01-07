@@ -24,9 +24,9 @@ const App: React.FC = () => {
   return (
     <TournamentProvider>
       <Router>
-        <div className="app-wrapper">
+        <div className="min-h-screen flex flex-col bg-primary text-primary">
           <Header />
-          <main>
+          <main className="flex-1 pt-20">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/tournament/generator" element={<GeneratorPage />} />

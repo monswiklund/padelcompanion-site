@@ -1,9 +1,0 @@
-/* Tournament CSS Modules */
-@import "./base.css";
-@import "./players.css";
-@import "./schedule.css";
-@import "./leaderboard.css";
-@import "./history.css";
-@import "./config.css";
-@import "./bracket.css";
-@import "./winners-court.css";

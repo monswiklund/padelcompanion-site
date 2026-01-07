@@ -10,12 +10,10 @@ export const MatchTimer: React.FC = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Sync with context if it changes from outside (e.g. load)
   useEffect(() => {
     setLocalSeconds(timer.remainingSeconds);
   }, [timer.remainingSeconds]);
 
-  // Handle the ticking
   useEffect(() => {
     if (timer.isRunning && timer.status !== "completed") {
       intervalRef.current = setInterval(() => {
@@ -25,7 +23,7 @@ export const MatchTimer: React.FC = () => {
             return 0;
           }
           if (prev <= 4) {
-            playBeep(440, 0.2); // Warning beeps
+            playBeep(440, 0.2);
           }
           return prev - 1;
         });
@@ -39,14 +37,13 @@ export const MatchTimer: React.FC = () => {
     };
   }, [timer.isRunning, timer.status]);
 
-  // Update context periodically or on stop to persist
   useEffect(() => {
     const timerId = setTimeout(() => {
       dispatch({
         type: "UPDATE_TIMER",
         payload: { remainingSeconds: localSeconds },
       });
-    }, 2000); // Debounce context updates
+    }, 2000);
 
     return () => clearTimeout(timerId);
   }, [localSeconds]);
@@ -56,11 +53,10 @@ export const MatchTimer: React.FC = () => {
       type: "UPDATE_TIMER",
       payload: { isRunning: false, status: "completed", remainingSeconds: 0 },
     });
-    playBeep(880, 1.0); // Finish beep
+    playBeep(880, 1.0);
     showToast("TIME UP!", "info");
     document.title = "TIME UP!";
 
-    // Flash effect
     document.body.classList.add("timer-finished-flash");
     setTimeout(
       () => document.body.classList.remove("timer-finished-flash"),
@@ -130,35 +126,68 @@ export const MatchTimer: React.FC = () => {
 
   if (scoringMode !== "time") return null;
 
+  const isLow = localSeconds <= 60;
+  const isCompleted = timer.status === "completed";
+
   return (
-    <div className={`match-timer-container ${timer.status}`}>
-      <div className="timer-display-card">
-        <div className="timer-header">
-          <span className="timer-label">Match Clock</span>
-          {timer.status === "running" && (
-            <span className="live-badge">LIVE</span>
+    <div className="flex justify-center mb-6">
+      <div
+        className={`bg-card border rounded-2xl p-4 inline-flex flex-col items-center gap-4 transition-all ${
+          isCompleted
+            ? "border-error bg-error/10"
+            : timer.isRunning
+            ? "border-accent shadow-glow"
+            : "border-theme"
+        }`}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+            Match Clock
+          </span>
+          {timer.isRunning && (
+            <span className="px-2 py-0.5 text-xs font-bold bg-error text-white rounded-full animate-pulse">
+              LIVE
+            </span>
           )}
         </div>
 
-        <div className="timer-main">
-          <button className="timer-adjust" onClick={() => addMinute(-1)}>
+        {/* Timer Display */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => addMinute(-1)}
+            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted hover:text-primary bg-elevated rounded-lg transition-colors"
+          >
             −1
           </button>
-          <div className="timer-digits" onClick={toggleStart}>
+          <button
+            onClick={toggleStart}
+            className={`font-mono text-5xl font-bold tracking-wider transition-colors cursor-pointer ${
+              isCompleted
+                ? "text-error"
+                : isLow
+                ? "text-warning"
+                : "text-primary"
+            }`}
+          >
             {formatTime(localSeconds)}
-          </div>
-          <button className="timer-adjust" onClick={() => addMinute(1)}>
+          </button>
+          <button
+            onClick={() => addMinute(1)}
+            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted hover:text-primary bg-elevated rounded-lg transition-colors"
+          >
             +1
           </button>
         </div>
 
-        <div className="timer-controls">
+        {/* Controls */}
+        <div className="flex gap-3">
           <Button
             variant={timer.isRunning ? "secondary" : "primary"}
             size="sm"
             onClick={toggleStart}
           >
-            {timer.isRunning ? "Pause" : "Start"}
+            {timer.isRunning ? "Pause" : isCompleted ? "Restart" : "Start"}
           </Button>
           <Button variant="ghost" size="sm" onClick={resetTimer}>
             Reset

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { showToast } from "@/shared/utils";
 
 interface Pair {
   id: string;
@@ -29,7 +30,6 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
   const [p1, setP1] = useState<string>("");
   const [p2, setP2] = useState<string>("");
 
-  // Filter available players
   const getAvailablePlayers = (currentSelection: string | null) => {
     const pairedIds = new Set<string>();
     pairs.forEach((p) => {
@@ -45,18 +45,18 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
   const handleAdd = () => {
     if (p1 && p2 && p1 !== p2) {
       onAddPair(p1, p2);
+      showToast("Partner pair added", "success");
       setP1("");
       setP2("");
       setIsAdding(false);
     }
   };
 
-  // Render occupied player name for pair list
   const getPlayerName = (id: string) =>
     players.find((p) => p.id === id)?.name || "Unknown";
 
   return (
-    <div className="preferred-partners mt-4 border-t border-white/10 pt-4">
+    <div className="mt-4 pt-4 border-t border-theme">
       {!isAdding && pairs.length === 0 && (
         <div className="text-center">
           <Button
@@ -70,9 +70,9 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
       )}
 
       {(isAdding || pairs.length > 0) && (
-        <div className="bg-bg-tertiary rounded p-4 border border-white/5">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-sm font-bold text-text-secondary uppercase tracking-wider">
+        <div className="bg-elevated rounded-xl p-4 border border-theme">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-bold text-muted uppercase tracking-wider">
               Fixed Pairs
             </h4>
             {!isAdding && (
@@ -92,15 +92,18 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
               {pairs.map((pair) => (
                 <li
                   key={pair.id}
-                  className="flex justify-between items-center bg-black/20 p-2 rounded px-3"
+                  className="flex items-center justify-between bg-black/20 p-2.5 px-3 rounded-lg"
                 >
-                  <span className="text-sm font-medium text-blue-300">
+                  <span className="text-sm font-medium text-accent-light">
                     {getPlayerName(pair.player1Id)} &{" "}
                     {getPlayerName(pair.player2Id)}
                   </span>
                   <button
-                    className="text-text-muted hover:text-red-400 font-bold"
-                    onClick={() => onRemovePair(pair.id)}
+                    className="text-muted hover:text-error font-bold transition-colors"
+                    onClick={() => {
+                      onRemovePair(pair.id);
+                      showToast("Partner pair removed", "info");
+                    }}
                   >
                     ✕
                   </button>
@@ -111,10 +114,10 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
 
           {/* Add Form */}
           {isAdding && (
-            <div className="bg-black/20 p-3 rounded border border-white/10 animate-fade-in shadow-lg">
-              <div className="flex gap-2 items-center mb-3">
+            <div className="bg-black/20 p-3 rounded-lg border border-theme animate-fade-in">
+              <div className="flex items-center gap-2 mb-3">
                 <select
-                  className="flex-1 bg-white/5 text-sm p-2 rounded border border-white/10 outline-none"
+                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-theme text-primary focus:outline-none focus:border-accent"
                   value={p1}
                   onChange={(e) => setP1(e.target.value)}
                 >
@@ -127,9 +130,9 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
                       </option>
                     ))}
                 </select>
-                <span className="text-text-muted font-bold">&</span>
+                <span className="text-muted font-bold">&</span>
                 <select
-                  className="flex-1 bg-white/5 text-sm p-2 rounded border border-white/10 outline-none"
+                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-theme text-primary focus:outline-none focus:border-accent"
                   value={p2}
                   onChange={(e) => setP2(e.target.value)}
                 >

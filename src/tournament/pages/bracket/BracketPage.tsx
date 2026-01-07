@@ -7,7 +7,6 @@ import { TournamentNav } from "@/components/tournament/TournamentNav";
 const BracketPage: React.FC = () => {
   const { state } = useTournament();
 
-  // Check for bracket existence - works with both single and dual brackets
   const hasBracket =
     state.bracket &&
     (state.bracket.isDualBracket
@@ -16,7 +15,7 @@ const BracketPage: React.FC = () => {
       : (state.bracket.matches?.length ?? 0) > 0);
 
   return (
-    <div className="bracket-page tournament-page">
+    <div className="min-h-screen pb-12">
       <TournamentNav />
       {!hasBracket ? <BracketSetup /> : <BracketView />}
     </div>

@@ -49,7 +49,7 @@ export function showToast(
     success: { duration: 2500, dismissible: false },
     info: { duration: 3000, dismissible: false },
     warning: { duration: 5000, dismissible: true },
-    error: { duration: 0, dismissible: true }, // 0 = sticky
+    error: { duration: 6000, dismissible: true },
     default: { duration: 3000, dismissible: false },
   };
 
@@ -111,6 +111,14 @@ export function showToast(
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", dismiss);
     toast.appendChild(closeBtn);
+  }
+
+  // Progress bar
+  if (duration > 0) {
+    const progressBar = document.createElement("div");
+    progressBar.className = "toast-progress";
+    progressBar.style.animationDuration = `${duration}ms`;
+    toast.appendChild(progressBar);
   }
 
   document.body.appendChild(toast);

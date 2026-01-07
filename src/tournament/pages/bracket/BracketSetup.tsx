@@ -2,8 +2,10 @@ import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { useTournament } from "@/context/TournamentContext";
 import { showToast } from "@/shared/utils";
+import { HELP_BRACKET } from "@/tournament/content/help";
 import {
   generateSingleBracket,
   generateDualBracket,
@@ -11,8 +13,6 @@ import {
   BracketTeam,
   BracketConfig,
 } from "@/tournament/bracket/bracketCore";
-
-// ============ TYPES ============
 
 interface SetupTeam {
   id: string;
@@ -22,13 +22,10 @@ interface SetupTeam {
 
 type AssignStrategy = "random" | "alternate" | "half" | "manual";
 
-// ============ COMPONENT ============
-
 export const BracketSetup: React.FC = () => {
   const { dispatch } = useTournament();
   const navigate = useNavigate();
 
-  // Local state for setup
   const [teams, setTeams] = useState<SetupTeam[]>([]);
   const [newTeamName, setNewTeamName] = useState("");
   const [mode, setMode] = useState<"teams" | "players">("teams");
@@ -40,11 +37,14 @@ export const BracketSetup: React.FC = () => {
   const [assignStrategy, setAssignStrategy] =
     useState<AssignStrategy>("alternate");
 
-  // ============ TEAM MANAGEMENT ============
-
   const addTeam = useCallback(() => {
     const name = newTeamName.trim();
     if (!name) return;
+
+    if (teams.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      showToast("Team/Player already exists", "error");
+      return;
+    }
 
     const newTeam: SetupTeam = {
       id: `team-${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -54,7 +54,7 @@ export const BracketSetup: React.FC = () => {
 
     setTeams((prev) => [...prev, newTeam]);
     setNewTeamName("");
-  }, [newTeamName]);
+  }, [newTeamName, teams]);
 
   const removeTeam = useCallback((id: string) => {
     setTeams((prev) => prev.filter((t) => t.id !== id));
@@ -73,8 +73,6 @@ export const BracketSetup: React.FC = () => {
     setAssignStrategy("manual");
   }, []);
 
-  // ============ BRACKET GENERATION ============
-
   const handleCreateBracket = useCallback(() => {
     if (teams.length < 2) {
       showToast("Add at least 2 teams", "error");
@@ -84,7 +82,6 @@ export const BracketSetup: React.FC = () => {
     try {
       const config: BracketConfig = { scoreType, mode };
 
-      // Apply assignment strategy if in dual mode
       let finalTeams: BracketTeam[] = teams.map((t) => ({
         id: t.id,
         name: t.name,
@@ -92,14 +89,10 @@ export const BracketSetup: React.FC = () => {
       }));
 
       if (isDualMode) {
-        // Apply the assignment strategy
         finalTeams = applyAssignment(finalTeams, assignStrategy);
-
-        // Generate dual bracket
         const bracket = generateDualBracket(finalTeams, sharedFinal);
         dispatch({ type: "SET_BRACKET", bracket, config });
       } else {
-        // Generate single bracket
         const bracket = generateSingleBracket(finalTeams);
         dispatch({ type: "SET_BRACKET", bracket, config });
       }
@@ -121,8 +114,6 @@ export const BracketSetup: React.FC = () => {
     navigate,
   ]);
 
-  // ============ HELPERS ============
-
   const getTeamHint = () => {
     const count = teams.length;
     if (count < 2) {
@@ -131,7 +122,7 @@ export const BracketSetup: React.FC = () => {
     const isPowerOf2 = (count & (count - 1)) === 0 && count >= 4;
     if (isPowerOf2) {
       return (
-        <span style={{ color: "var(--success)" }}>
+        <span className="text-success">
           ✓ {count} teams ready (perfect bracket)
         </span>
       );
@@ -139,60 +130,58 @@ export const BracketSetup: React.FC = () => {
     const nextPow2 = Math.pow(2, Math.ceil(Math.log2(count)));
     const byes = nextPow2 - count;
     return (
-      <span style={{ color: "var(--warning)" }}>
+      <span className="text-warning">
         ⚠ {count} teams will have {byes} bye{byes > 1 ? "s" : ""}
       </span>
     );
   };
 
-  const getPoolStyle = (side?: "A" | "B") => {
-    if (!side) {
-      return {
-        background: "rgba(255,255,255,0.1)",
-        color: "var(--text-muted)",
-        border: "1px solid var(--border-color)",
-      };
-    }
-    if (side === "A") {
-      return {
-        background: "rgba(59, 130, 246, 0.2)",
-        color: "var(--accent)",
-        border: "1px solid var(--accent)",
-      };
-    }
-    return {
-      background: "rgba(245, 158, 11, 0.2)",
-      color: "var(--warning)",
-      border: "1px solid var(--warning)",
-    };
-  };
-
-  // ============ RENDER ============
-
   return (
-    <div className="tournament-setup-view container animate-fade-in py-8">
-      <div className="page-intro-header">
-        <h2>Create a Bracket</h2>
-        <p>Set up a single elimination tournament bracket.</p>
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-3xl font-bold text-primary">Create a Bracket</h2>
+          <HelpButton
+            title={HELP_BRACKET.title}
+            content={HELP_BRACKET.content}
+          />
+        </div>
+        <p className="text-secondary">
+          Set up a single elimination tournament bracket.
+        </p>
       </div>
 
-      <div className="setup-layout">
+      {/* Notices */}
+      {teams.length > 0 && teams.length < 2 && (
+        <NoticeBar type="warning" className="mb-4">
+          Need at least 2 teams to create a bracket.
+        </NoticeBar>
+      )}
+      {teams.length >= 2 && Math.log2(teams.length) % 1 !== 0 && (
+        <NoticeBar type="info" className="mb-4">
+          Best bracket sizes are powers of 2 (4, 8, 16...). Byes will be added
+          for {teams.length} teams.
+        </NoticeBar>
+      )}
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Teams List */}
-        <Card className="setup-layout__main">
-          <h3 className="text-lg font-bold mb-4">
+        <Card>
+          <h3 className="text-lg font-bold text-primary mb-4">
             {mode === "teams" ? "Teams" : "Players"} ({teams.length})
           </h3>
 
           {/* Add Team Input */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+          <div className="flex gap-2 mb-4">
             <input
               type="text"
               value={newTeamName}
               onChange={(e) => setNewTeamName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addTeam()}
               placeholder={`Add ${mode === "teams" ? "team" : "player"} name`}
-              className="player-list__input"
-              style={{ flex: 1 }}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
             />
             <Button onClick={addTeam} size="sm">
               Add
@@ -200,40 +189,34 @@ export const BracketSetup: React.FC = () => {
           </div>
 
           {/* Team List */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-              maxHeight: "400px",
-              overflowY: "auto",
-            }}
-          >
+          <div className="space-y-2 max-h-96 overflow-y-auto">
             {teams.map((team, index) => (
               <div
                 key={team.id}
-                className="player-card"
-                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                className="flex items-center gap-3 p-3 bg-elevated rounded-xl border border-theme"
               >
                 {isDualMode && (
                   <button
                     onClick={() => toggleTeamSide(team.id)}
-                    style={{
-                      ...getPoolStyle(team.side),
-                      fontSize: "0.7rem",
-                      fontWeight: 600,
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
+                    className={`text-xs font-semibold px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                      team.side === "B"
+                        ? "bg-warning/20 text-warning border border-warning"
+                        : team.side === "A"
+                        ? "bg-accent/20 text-accent border border-accent"
+                        : "bg-white/10 text-muted border border-theme"
+                    }`}
                   >
                     {team.side ? `Pool ${team.side}` : "Assign"}
                   </button>
                 )}
-                <span className="player-card__number">{index + 1}.</span>
-                <span className="player-card__name">{team.name}</span>
+                <span className="text-sm font-medium text-muted w-6">
+                  {index + 1}.
+                </span>
+                <span className="flex-1 font-medium text-primary truncate">
+                  {team.name}
+                </span>
                 <button
-                  className="player-card__remove"
+                  className="w-6 h-6 flex items-center justify-center text-muted hover:text-error rounded transition-colors"
                   onClick={() => removeTeam(team.id)}
                 >
                   ×
@@ -244,9 +227,7 @@ export const BracketSetup: React.FC = () => {
 
           {/* Team Hint */}
           {teams.length > 0 && (
-            <div className="player-list__hint" style={{ marginTop: "16px" }}>
-              {getTeamHint()}
-            </div>
+            <div className="mt-4 text-sm">{getTeamHint()}</div>
           )}
 
           {/* Clear Button */}
@@ -263,50 +244,44 @@ export const BracketSetup: React.FC = () => {
         </Card>
 
         {/* Settings */}
-        <Card className="setup-layout__sidebar">
-          <h3 className="text-lg font-bold mb-4">Settings</h3>
+        <Card>
+          <h3 className="text-lg font-bold text-primary mb-4 pb-2 border-b border-theme">
+            Settings
+          </h3>
 
-          <div className="flex flex-col gap-4">
+          <div className="space-y-6">
             {/* Type */}
-            <div className="config-row">
-              <label className="config-label">Type:</label>
-              <div
-                className="format-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                }}
-              >
+            <div>
+              <label className="block text-sm font-medium text-muted mb-2">
+                Type:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
                 {["teams", "players"].map((m) => (
-                  <div
+                  <button
                     key={m}
-                    className={`segmented-option ${
-                      mode === m ? "selected" : ""
+                    type="button"
+                    className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                      mode === m
+                        ? "bg-accent text-white"
+                        : "bg-elevated border border-theme text-secondary hover:text-primary hover:border-accent/50"
                     }`}
                     onClick={() => setMode(m as "teams" | "players")}
                   >
                     {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </div>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* Score Type */}
-            <div className="config-row">
-              <label className="config-label">Score:</label>
+            <div>
+              <label className="block text-sm font-medium text-muted mb-2">
+                Score:
+              </label>
               <select
-                className="form-select"
+                className="w-full px-3 py-2 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors"
                 value={scoreType}
                 onChange={(e) => setScoreType(e.target.value as any)}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "6px",
-                  background: "var(--input-bg)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border-color)",
-                }}
               >
                 <option value="points">Points</option>
                 <option value="games">Games</option>
@@ -315,90 +290,97 @@ export const BracketSetup: React.FC = () => {
             </div>
 
             {/* Pool Play Toggle */}
-            <div
-              className="config-row"
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label className="config-label">Pool Play:</label>
-              <div
-                className={`ui-toggle ${isDualMode ? "active" : ""}`}
-                onClick={() => setIsDualMode(!isDualMode)}
-                role="switch"
-                aria-checked={isDualMode}
-              >
-                <div className="toggle-track">
-                  <div className="toggle-thumb" />
-                </div>
+            <div className="bg-elevated p-4 rounded-xl border border-theme">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-primary">
+                  Pool Play
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsDualMode(!isDualMode)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    isDualMode ? "bg-accent" : "bg-white/20"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                      isDualMode ? "translate-x-6" : ""
+                    }`}
+                  />
+                </button>
               </div>
+              <p className="text-xs text-muted">
+                Split teams into two pools with separate brackets.
+              </p>
             </div>
 
             {/* Pool Play Options */}
             {isDualMode && (
-              <>
+              <div className="space-y-4 animate-fade-in">
                 {/* Grand Final Toggle */}
-                <div
-                  className="config-row"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <label className="config-label">Grand Final:</label>
-                  <div
-                    className={`ui-toggle ${sharedFinal ? "active" : ""}`}
-                    onClick={() => setSharedFinal(!sharedFinal)}
-                    role="switch"
-                  >
-                    <div className="toggle-track">
-                      <div className="toggle-thumb" />
-                    </div>
+                <div className="bg-elevated p-4 rounded-xl border border-theme">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-primary">
+                      Grand Final
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setSharedFinal(!sharedFinal)}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${
+                        sharedFinal ? "bg-accent" : "bg-white/20"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                          sharedFinal ? "translate-x-6" : ""
+                        }`}
+                      />
+                    </button>
                   </div>
+                  <p className="text-xs text-muted">
+                    Winners from each pool meet in the final.
+                  </p>
                 </div>
 
                 {/* Assign Strategy */}
-                <div className="config-row">
-                  <label className="config-label">Assign to Pools:</label>
-                  <div
-                    className="format-grid"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "8px",
-                    }}
-                  >
+                <div>
+                  <label className="block text-sm font-medium text-muted mb-2">
+                    Assign to Pools:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { value: "random", label: "Random" },
                       { value: "alternate", label: "Alternate" },
                       { value: "half", label: "Split Half" },
                       { value: "manual", label: "Manual" },
                     ].map((opt) => (
-                      <div
+                      <button
                         key={opt.value}
-                        className={`segmented-option ${
-                          assignStrategy === opt.value ? "selected" : ""
+                        type="button"
+                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                          assignStrategy === opt.value
+                            ? "bg-accent text-white"
+                            : "bg-elevated border border-theme text-secondary hover:text-primary hover:border-accent/50"
                         }`}
                         onClick={() =>
                           setAssignStrategy(opt.value as AssignStrategy)
                         }
                       >
                         {opt.label}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
-              </>
+              </div>
             )}
+
             {/* Create Button */}
             <Button
               size="lg"
               disabled={teams.length < 2}
               onClick={handleCreateBracket}
-              className="w-full mt-2"
+              fullWidth
+              className="mt-4"
             >
               Create Bracket
             </Button>

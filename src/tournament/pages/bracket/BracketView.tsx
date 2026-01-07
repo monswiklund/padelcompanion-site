@@ -11,8 +11,6 @@ import {
 } from "@/tournament/bracket/bracketCore";
 import { BracketScoreModal } from "./BracketScoreModal";
 
-// ============ HELPERS ============
-
 function getRoundName(round: number, totalRounds: number): string {
   const remaining = totalRounds - round + 1;
   if (remaining === 1) return "FINAL";
@@ -20,8 +18,6 @@ function getRoundName(round: number, totalRounds: number): string {
   if (remaining === 3) return "QUARTER-FINALS";
   return `ROUND ${round}`;
 }
-
-// ============ MATCH COMPONENT ============
 
 interface MatchProps {
   match: BracketMatch;
@@ -34,59 +30,34 @@ const Match: React.FC<MatchProps> = ({ match, onClick, editable = true }) => {
 
   return (
     <div
-      className={`bracket-match ${isEditable ? "editable" : ""}`}
+      className={`bg-elevated border border-theme rounded-lg p-3 mb-2 min-w-36 transition-colors ${
+        isEditable ? "cursor-pointer hover:border-accent" : ""
+      }`}
       onClick={() => isEditable && onClick(match.id)}
-      style={{
-        background: "var(--bg-tertiary)",
-        border: "1px solid var(--border-color)",
-        borderRadius: "8px",
-        padding: "8px 12px",
-        marginBottom: "8px",
-        cursor: isEditable ? "pointer" : "default",
-        minWidth: "140px",
-      }}
     >
       <div
-        className={`match-team ${
-          match.winner?.id === match.team1?.id ? "winner" : ""
+        className={`flex justify-between py-1 ${
+          match.winner?.id === match.team1?.id
+            ? "font-semibold text-success"
+            : "text-primary"
         }`}
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "4px 0",
-          fontWeight: match.winner?.id === match.team1?.id ? 600 : 400,
-          color:
-            match.winner?.id === match.team1?.id
-              ? "var(--success)"
-              : "var(--text-primary)",
-        }}
       >
         <span>{match.team1?.name || "TBD"}</span>
-        <span style={{ color: "var(--accent)" }}>{match.score1 ?? "-"}</span>
+        <span className="text-accent">{match.score1 ?? "-"}</span>
       </div>
       <div
-        className={`match-team ${
-          match.winner?.id === match.team2?.id ? "winner" : ""
+        className={`flex justify-between py-1 ${
+          match.winner?.id === match.team2?.id
+            ? "font-semibold text-success"
+            : "text-primary"
         }`}
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "4px 0",
-          fontWeight: match.winner?.id === match.team2?.id ? 600 : 400,
-          color:
-            match.winner?.id === match.team2?.id
-              ? "var(--success)"
-              : "var(--text-primary)",
-        }}
       >
         <span>{match.team2?.name || "TBD"}</span>
-        <span style={{ color: "var(--accent)" }}>{match.score2 ?? "-"}</span>
+        <span className="text-accent">{match.score2 ?? "-"}</span>
       </div>
     </div>
   );
 };
-
-// ============ ROUND COMPONENT ============
 
 interface RoundProps {
   matches: BracketMatch[];
@@ -101,35 +72,17 @@ const Round: React.FC<RoundProps> = ({
   totalRounds,
   onMatchClick,
 }) => (
-  <div
-    className="bracket-round"
-    style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
-  >
-    <div
-      className="round-header"
-      style={{
-        fontSize: "0.75rem",
-        fontWeight: 600,
-        color: "var(--text-muted)",
-        textTransform: "uppercase",
-        marginBottom: "12px",
-        letterSpacing: "0.05em",
-      }}
-    >
+  <div className="flex flex-col items-center">
+    <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
       {getRoundName(roundNum, totalRounds)}
     </div>
-    <div
-      className="round-matches"
-      style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-    >
+    <div className="flex flex-col gap-4">
       {matches.map((m) => (
         <Match key={m.id} match={m} onClick={onMatchClick} />
       ))}
     </div>
   </div>
 );
-
-// ============ SINGLE BRACKET VIEW ============
 
 interface SingleBracketViewProps {
   bracket: SingleBracket;
@@ -153,16 +106,7 @@ const SingleBracketView: React.FC<SingleBracketViewProps> = ({
   }, [bracket.matches]);
 
   return (
-    <div
-      className="single-bracket-view"
-      style={{
-        display: "flex",
-        gap: "32px",
-        overflowX: "auto",
-        padding: "16px",
-        justifyContent: "center",
-      }}
-    >
+    <div className="flex gap-8 overflow-x-auto p-4 justify-center">
       {rounds.map(({ roundNum, matches }) => (
         <Round
           key={roundNum}
@@ -175,8 +119,6 @@ const SingleBracketView: React.FC<SingleBracketViewProps> = ({
     </div>
   );
 };
-
-// ============ DUAL BRACKET VIEW ============
 
 interface DualBracketViewProps {
   bracket: DualBracket;
@@ -212,51 +154,16 @@ const DualBracketView: React.FC<DualBracketViewProps> = ({
   }, [bracket.matchesB]);
 
   return (
-    <div
-      className="dual-bracket-view"
-      style={{
-        display: "flex",
-        gap: "24px",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
+    <div className="flex gap-6 flex-wrap justify-center p-4">
       {/* Side A */}
-      <div
-        className="bracket-side side-a"
-        style={{
-          flex: 1,
-          minWidth: "280px",
-          maxWidth: "400px",
-          border: "2px solid rgba(59, 130, 246, 0.3)",
-          borderRadius: "12px",
-          padding: "16px",
-          background: "rgba(59, 130, 246, 0.05)",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: "16px" }}>
-          <span style={{ fontWeight: "bold", color: "var(--accent)" }}>
-            Side A
-          </span>
-          <span
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--text-muted)",
-              marginLeft: "8px",
-            }}
-          >
+      <div className="flex-1 min-w-72 max-w-md border-2 border-accent/30 rounded-xl p-4 bg-accent/5">
+        <div className="text-center mb-4">
+          <span className="font-bold text-accent">Side A</span>
+          <span className="text-xs text-muted ml-2">
             ({bracket.teamsA.length} teams)
           </span>
         </div>
-        <div
-          style={{
-            display: "flex",
-            gap: "24px",
-            overflowX: "auto",
-            justifyContent: "center",
-          }}
-        >
+        <div className="flex gap-6 overflow-x-auto justify-center">
           {roundsA.map(({ roundNum, matches }) => (
             <Round
               key={roundNum}
@@ -271,24 +178,8 @@ const DualBracketView: React.FC<DualBracketViewProps> = ({
 
       {/* Grand Final */}
       {bracket.grandFinal && (
-        <div
-          className="bracket-final"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--success)",
-              fontWeight: "bold",
-              marginBottom: "16px",
-            }}
-          >
+        <div className="flex flex-col items-center justify-center p-6">
+          <div className="text-xs text-success font-bold mb-4">
             🏆 GRAND FINAL 🏆
           </div>
           <Match match={bracket.grandFinal} onClick={onMatchClick} />
@@ -296,41 +187,14 @@ const DualBracketView: React.FC<DualBracketViewProps> = ({
       )}
 
       {/* Side B */}
-      <div
-        className="bracket-side side-b"
-        style={{
-          flex: 1,
-          minWidth: "280px",
-          maxWidth: "400px",
-          border: "2px solid rgba(245, 158, 11, 0.3)",
-          borderRadius: "12px",
-          padding: "16px",
-          background: "rgba(245, 158, 11, 0.05)",
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: "16px" }}>
-          <span style={{ fontWeight: "bold", color: "var(--warning)" }}>
-            Side B
-          </span>
-          <span
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--text-muted)",
-              marginLeft: "8px",
-            }}
-          >
+      <div className="flex-1 min-w-72 max-w-md border-2 border-warning/30 rounded-xl p-4 bg-warning/5">
+        <div className="text-center mb-4">
+          <span className="font-bold text-warning">Side B</span>
+          <span className="text-xs text-muted ml-2">
             ({bracket.teamsB.length} teams)
           </span>
         </div>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row-reverse",
-            gap: "24px",
-            overflowX: "auto",
-            justifyContent: "center",
-          }}
-        >
+        <div className="flex flex-row-reverse gap-6 overflow-x-auto justify-center">
           {roundsB.map(({ roundNum, matches }) => (
             <Round
               key={roundNum}
@@ -345,8 +209,6 @@ const DualBracketView: React.FC<DualBracketViewProps> = ({
     </div>
   );
 };
-
-// ============ MAIN VIEW ============
 
 export const BracketView: React.FC = () => {
   const { state, dispatch } = useTournament();
@@ -364,7 +226,6 @@ export const BracketView: React.FC = () => {
   const handleScoreSave = (score1: number, score2: number) => {
     if (selectedMatchId === null || !bracket) return;
 
-    // Update bracket using pure function
     const updatedBracket = updateMatchResult(
       bracket,
       selectedMatchId,
@@ -395,20 +256,19 @@ export const BracketView: React.FC = () => {
     }
   }, [bracket, selectedMatchId]);
 
-  // No bracket - show setup prompt
   if (!bracket) {
     return (
-      <div className="bracket-page tournament-page">
-        <div className="bracket-view-container min-h-screen py-8">
-          <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
-            <h2 className="text-3xl mb-1 text-white">Tournament Bracket</h2>
-            <p className="text-text-muted">No bracket created yet.</p>
-          </div>
-          <div className="flex justify-center">
-            <Button onClick={() => navigate("/tournament/bracket/setup")}>
-              Create Bracket
-            </Button>
-          </div>
+      <div className="min-h-screen py-8">
+        <div className="text-center max-w-lg mx-auto mb-8 px-4">
+          <h2 className="text-3xl font-bold text-primary mb-2">
+            Tournament Bracket
+          </h2>
+          <p className="text-secondary">No bracket created yet.</p>
+        </div>
+        <div className="flex justify-center">
+          <Button onClick={() => navigate("/tournament/bracket/setup")}>
+            Create Bracket
+          </Button>
         </div>
       </div>
     );
@@ -423,46 +283,46 @@ export const BracketView: React.FC = () => {
     : `${bracket.teams.length} teams • Single Elimination`;
 
   return (
-    <div className="bracket-page tournament-page">
-      <div className="bracket-view-container min-h-screen py-8">
-        {/* Header */}
-        <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8 px-4">
-          <h2 className="text-3xl mb-1 text-white">Tournament Bracket</h2>
-          <p className="text-text-muted">{subtitle}</p>
-        </div>
-
-        {/* Actions */}
-        <div className="bracket-actions flex justify-center items-center gap-4 mb-8 flex-wrap">
-          <Button variant="secondary" size="sm" onClick={() => window.print()}>
-            Print
-          </Button>
-          <Button variant="danger" size="sm" onClick={handleClear}>
-            Clear
-          </Button>
-        </div>
-
-        {/* Bracket */}
-        {bracket.isDualBracket ? (
-          <DualBracketView
-            bracket={bracket as DualBracket}
-            onMatchClick={handleMatchClick}
-          />
-        ) : (
-          <SingleBracketView
-            bracket={bracket as SingleBracket}
-            onMatchClick={handleMatchClick}
-          />
-        )}
-
-        {/* Score Modal */}
-        {selectedMatch && (
-          <BracketScoreModal
-            match={selectedMatch}
-            onClose={() => setSelectedMatchId(null)}
-            onSave={handleScoreSave}
-          />
-        )}
+    <div className="min-h-screen py-8">
+      {/* Header */}
+      <div className="text-center max-w-lg mx-auto mb-8 px-4">
+        <h2 className="text-3xl font-bold text-primary mb-2">
+          Tournament Bracket
+        </h2>
+        <p className="text-secondary">{subtitle}</p>
       </div>
+
+      {/* Actions */}
+      <div className="flex justify-center items-center gap-4 mb-8 flex-wrap">
+        <Button variant="secondary" size="sm" onClick={() => window.print()}>
+          Print
+        </Button>
+        <Button variant="danger" size="sm" onClick={handleClear}>
+          Clear
+        </Button>
+      </div>
+
+      {/* Bracket */}
+      {bracket.isDualBracket ? (
+        <DualBracketView
+          bracket={bracket as DualBracket}
+          onMatchClick={handleMatchClick}
+        />
+      ) : (
+        <SingleBracketView
+          bracket={bracket as SingleBracket}
+          onMatchClick={handleMatchClick}
+        />
+      )}
+
+      {/* Score Modal */}
+      {selectedMatch && (
+        <BracketScoreModal
+          match={selectedMatch}
+          onClose={() => setSelectedMatchId(null)}
+          onSave={handleScoreSave}
+        />
+      )}
     </div>
   );
 };

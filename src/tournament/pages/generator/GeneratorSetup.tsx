@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { PlayerList } from "@/components/tournament/PlayerList";
 import { showToast, createId } from "@/shared/utils";
 import {
@@ -9,9 +10,9 @@ import {
 } from "@/components/tournament/TournamentConfig";
 import { PreferredPartners } from "@/components/tournament/PreferredPartners";
 import { useTournament } from "@/context/TournamentContext";
-// Import legacy functions
 import { generateSchedule } from "../../ui/setup/scheduleGeneration";
 import { state as legacyState } from "../../core/state";
+import { HELP_AMERICANO, HELP_MEXICANO } from "../../content/help";
 
 interface GeneratorPlayer {
   id: string;
@@ -27,19 +28,8 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   onGameActive,
 }) => {
   const { state, dispatch } = useTournament();
-  const {
-    players,
-    preferredPartners: pairs,
-    format,
-    courts,
-    scoringMode,
-    pointsPerMatch,
-    maxRepeats,
-    pairingStrategy,
-    strictStrategy,
-  } = state;
+  const { players, preferredPartners: pairs, format, courts } = state;
 
-  // Sync with legacy state for functions that still depend on it
   useEffect(() => {
     Object.assign(legacyState, state);
   }, [state]);
@@ -61,7 +51,6 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     }
 
     try {
-      // Ensure legacy state is up to date before calling legacy generator
       Object.assign(legacyState, state);
 
       console.log("[Generator] Pre-generation State:", {
@@ -85,7 +74,6 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
         return;
       }
 
-      // Sync BACK after generation
       dispatch({
         type: "SET_STATE",
         payload: {
@@ -121,7 +109,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     if (courts <= 1) return null;
     return (
       <select
-        className="court-lock-select bg-black/20 text-xs p-1 rounded border border-white/10 outline-none"
+        className="bg-black/20 text-xs px-2 py-1 rounded-lg border border-theme text-secondary focus:outline-none focus:border-accent"
         value={p.lockedCourt || ""}
         onChange={(e) => {
           const val = e.target.value ? parseInt(e.target.value) : null;
@@ -145,74 +133,122 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   };
 
   return (
-    <div className="tournament-setup-view container animate-fade-in">
-      <div className="page-intro-header">
-        <h2>Americano Setup</h2>
-        <p>Add players and configure your tournament settings.</p>
+    <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-3xl font-bold text-primary">
+            {format === "americano"
+              ? "Americano"
+              : format === "mexicano"
+              ? "Mexicano"
+              : format === "team"
+              ? "Team"
+              : "Team Mexicano"}{" "}
+            Setup
+          </h2>
+          <HelpButton
+            title={
+              format === "mexicano" || format === "teamMexicano"
+                ? HELP_MEXICANO.title
+                : HELP_AMERICANO.title
+            }
+            content={
+              format === "mexicano" || format === "teamMexicano"
+                ? HELP_MEXICANO.content
+                : HELP_AMERICANO.content
+            }
+          />
+        </div>
+        <p className="text-secondary">
+          Add players and configure your tournament settings.
+        </p>
       </div>
 
-      <div className="setup-grid">
-        <div className="setup-main">
-          <Card>
-            <PlayerList
-              items={players}
-              onAdd={handleAddPlayer}
-              onRemove={(idx) => {
-                dispatch({ type: "REMOVE_PLAYER", playerId: players[idx].id });
-              }}
-              onClear={() => dispatch({ type: "CLEAR_PLAYERS" })}
-              onImport={(text) => {
-                const lines = text.split("\n");
-                const addedPlayers: GeneratorPlayer[] = [];
-                lines.forEach((l) => {
-                  const name = l.trim();
-                  if (
-                    name &&
-                    !players.some(
+      {/* Notices */}
+      {players.length > 0 && players.length < 4 && (
+        <NoticeBar type="warning" className="mb-4">
+          Need at least 4 players to start a tournament.
+        </NoticeBar>
+      )}
+      {players.length >= 4 && players.length % 4 !== 0 && (
+        <NoticeBar type="info" className="mb-4">
+          {4 - (players.length % 4)} more players needed for even teams, or
+          queue rotation will be used.
+        </NoticeBar>
+      )}
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Players Section */}
+        <Card>
+          <PlayerList
+            items={players}
+            onAdd={handleAddPlayer}
+            onRemove={(idx) => {
+              dispatch({ type: "REMOVE_PLAYER", playerId: players[idx].id });
+            }}
+            onClear={() => dispatch({ type: "CLEAR_PLAYERS" })}
+            onImport={(text) => {
+              const lines = text.split("\n");
+              const addedPlayers: GeneratorPlayer[] = [];
+              let duplicateCount = 0;
+
+              lines.forEach((l) => {
+                const name = l.trim();
+                if (name) {
+                  // Check against current players AND players being added this batch
+                  const isDuplicate =
+                    players.some(
                       (p) => p.name.toLowerCase() === name.toLowerCase()
-                    )
-                  ) {
+                    ) ||
+                    addedPlayers.some(
+                      (p) => p.name.toLowerCase() === name.toLowerCase()
+                    );
+
+                  if (!isDuplicate) {
                     addedPlayers.push({
                       id: createId(),
                       name,
                       lockedCourt: null,
                     });
+                  } else {
+                    duplicateCount++;
                   }
-                });
+                }
+              });
+
+              if (addedPlayers.length > 0) {
                 dispatch({
                   type: "SET_STATE",
                   payload: { players: [...players, ...addedPlayers] },
                 });
                 showToast(`Imported ${addedPlayers.length} players`, "success");
-              }}
-              renderActions={renderPlayerActions}
-              onReorder={(from: number, to: number) => {
-                const newPlayers = [...players];
-                const [moved] = newPlayers.splice(from, 1);
-                newPlayers.splice(to, 0, moved);
-                dispatch({
-                  type: "SET_STATE",
-                  payload: { players: newPlayers },
-                });
-              }}
-              hintText={
-                <div className="text-xs text-text-muted mt-2 flex items-center gap-2">
-                  <span className="text-brand-primary">✓</span>
-                  <span>{players.length} ready</span>
-                  <span className="opacity-50">|</span>
-                  <span>
-                    {courts} courts ({courts * 4} players ideal)
-                  </span>
-                  {players.length % 4 !== 0 && (
-                    <span className="text-warning ml-1">(Queue enabled)</span>
-                  )}
-                </div>
               }
-            />
-          </Card>
-        </div>
 
-        <div className="setup-sidebar">
+              if (duplicateCount > 0) {
+                showToast(`Skipped ${duplicateCount} duplicates`, "warning");
+              }
+            }}
+            renderActions={renderPlayerActions}
+            hintText={
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-success">✓</span>
+                <span>{players.length} ready</span>
+                <span className="opacity-50">|</span>
+                <span>
+                  {courts} courts ({courts * 4} players ideal)
+                </span>
+                {players.length % 4 !== 0 && (
+                  <span className="text-warning">(Queue enabled)</span>
+                )}
+              </div>
+            }
+          />
+        </Card>
+
+        {/* Config Section */}
+        <div className="space-y-6">
           <Card>
             <TournamentConfig
               config={{
@@ -230,19 +266,19 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
               onChange={updateConfig}
             />
 
-            {/* Generate Button */}
             <Button
               size="lg"
               disabled={players.length < 4}
               onClick={handleGenerate}
-              className="w-full mt-4"
+              fullWidth
+              className="mt-6"
             >
               Generate Schedule
             </Button>
           </Card>
 
           {format.includes("mexicano") && (
-            <Card className="mt-4">
+            <Card>
               <PreferredPartners
                 pairs={pairs}
                 players={players}

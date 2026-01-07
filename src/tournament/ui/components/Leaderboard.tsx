@@ -1,5 +1,7 @@
 import React from "react";
 import { useLeaderboard } from "@/tournament/ui/hooks/useLeaderboard";
+import { copyLeaderboardToClipboard } from "@/tournament/ui/setup/exportShare";
+import { showToast } from "@/shared/utils";
 
 const Leaderboard: React.FC = () => {
   const {
@@ -19,12 +21,9 @@ const Leaderboard: React.FC = () => {
     setLeaderboardColumns,
   } = useLeaderboard();
 
-  // Helper to split leaderboard into columns
   const getColumnData = () => {
     const cols = Math.max(1, leaderboardColumns || 1);
     if (cols === 1) return [sortedLeaderboard];
-
-    // For search, we always use 1 column to keep it simple
     if (searchQuery) return [sortedLeaderboard];
 
     const perCol = Math.ceil(sortedLeaderboard.length / cols);
@@ -40,28 +39,33 @@ const Leaderboard: React.FC = () => {
 
   const getRankClass = (rank: number) => {
     if (hideLeaderboard) return "";
-    if (rank === 1) return "rank-1";
-    if (rank === 2) return "rank-2";
-    if (rank === 3) return "rank-3";
+    if (rank === 1) return "bg-gradient-to-r from-yellow-500/20 to-transparent";
+    if (rank === 2) return "bg-gradient-to-r from-gray-400/10 to-transparent";
+    if (rank === 3) return "bg-gradient-to-r from-orange-600/10 to-transparent";
     return "";
   };
 
+  const handleShare = async () => {
+    const success = await copyLeaderboardToClipboard();
+    if (success) {
+      showToast("Leaderboard copied to clipboard!", "success");
+    } else {
+      showToast("Failed to copy leaderboard", "error");
+    }
+  };
+
   return (
-    <div
-      className={`leaderboard-section ${effectiveCols > 1 ? "is-grid" : ""}`}
-    >
+    <div className="leaderboard-section bg-card border border-theme rounded-2xl overflow-hidden">
       {/* Header & Controls */}
-      <div className="leaderboard-header flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
-          <div className="flex items-center gap-3 self-start sm:self-center">
-            <h3 className="text-2xl font-bold text-white tracking-wide whitespace-nowrap">
-              Leaderboard
-            </h3>
-          </div>
+      <div className="p-4 border-b border-theme">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full mb-4">
+          <h3 className="text-2xl font-bold text-primary tracking-wide">
+            Leaderboard
+          </h3>
 
           <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             {/* Criteria Tabs */}
-            <div className="leaderboard-controls-group w-full sm:w-auto justify-center">
+            <div className="flex bg-elevated rounded-lg p-1 w-full sm:w-auto">
               {[
                 { id: "points", label: "Points" },
                 { id: "wins", label: "Wins" },
@@ -70,8 +74,10 @@ const Leaderboard: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  className={`leaderboard-tab flex-1 sm:flex-initial ${
-                    rankingCriteria === tab.id ? "active" : ""
+                  className={`flex-1 sm:flex-initial px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                    rankingCriteria === tab.id
+                      ? "bg-accent text-white"
+                      : "text-muted hover:text-primary"
                   }`}
                   onClick={() => setCriteria(tab.id as any)}
                 >
@@ -82,15 +88,15 @@ const Leaderboard: React.FC = () => {
 
             <div className="flex gap-3 items-center w-full sm:w-auto justify-center">
               {/* Grid Selector */}
-              <div className="leaderboard-controls-group leaderboard-grid-selector flex">
+              <div className="flex bg-elevated rounded-lg p-1">
                 {[1, 2, 3].map((num) => (
                   <button
                     key={num}
-                    className={`leaderboard-tab ${
+                    className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                       leaderboardColumns === num ||
                       (num === 1 && !leaderboardColumns)
-                        ? "active"
-                        : ""
+                        ? "bg-accent text-white"
+                        : "text-muted hover:text-primary"
                     }`}
                     onClick={() => setLeaderboardColumns(num)}
                     title={`${num} Column${num > 1 ? "s" : ""}`}
@@ -101,10 +107,12 @@ const Leaderboard: React.FC = () => {
               </div>
 
               {/* Toggles */}
-              <div className="leaderboard-actions">
+              <div className="flex gap-1">
                 <button
-                  className={`leaderboard-action-btn ${
-                    !hideLeaderboard ? "active" : ""
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    !hideLeaderboard
+                      ? "bg-accent text-white"
+                      : "bg-elevated text-muted hover:text-primary"
                   }`}
                   onClick={toggleVisibility}
                   title="Toggle Scores"
@@ -112,8 +120,10 @@ const Leaderboard: React.FC = () => {
                   Scores
                 </button>
                 <button
-                  className={`leaderboard-action-btn ${
-                    showPositionChanges ? "active" : ""
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    showPositionChanges
+                      ? "bg-accent text-white"
+                      : "bg-elevated text-muted hover:text-primary"
                   }`}
                   onClick={toggleRanks}
                   title="Toggle Rank Changes"
@@ -126,17 +136,22 @@ const Leaderboard: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="leaderboard-search-container w-full">
-          <span className="search-icon">🔍</span>
+        <div className="relative w-full">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+            🔍
+          </span>
           <input
             type="text"
-            className="leaderboard-search-input"
+            className="w-full pl-10 pr-10 py-2 rounded-lg bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
             placeholder="Search players..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button className="search-clear" onClick={() => setSearchQuery("")}>
+            <button
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
+              onClick={() => setSearchQuery("")}
+            >
               ✕
             </button>
           )}
@@ -145,131 +160,150 @@ const Leaderboard: React.FC = () => {
 
       {/* Table Content - Grid Layout */}
       <div
-        className="leaderboard-grid-container"
-        style={{ "--cols": effectiveCols } as React.CSSProperties}
+        className={`grid gap-4 p-4 ${
+          effectiveCols === 1
+            ? ""
+            : effectiveCols === 2
+            ? "grid-cols-2"
+            : "grid-cols-3"
+        }`}
       >
         {columnData.map((dataSlice, colIdx) => (
-          <div key={colIdx} className="leaderboard-column">
-            <div className="overflow-x-auto w-full">
-              <table className="leaderboard-table">
-                <thead>
-                  <tr>
-                    <th className="w-[60px] text-center sticky-col">Rank</th>
-                    <th className="sticky-col">Player</th>
-                    <th className="w-[12%] text-center">Pts</th>
-                    <th className="w-[10%] text-center">W</th>
-                    <th className="w-[12%] text-center">Win%</th>
-                    <th className="w-[12%] text-center">Pts%</th>
-                    <th className="w-[10%] text-center">M</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dataSlice.map((player) => {
-                    const rank = player.currentRank;
-                    const prevRank = player.previousRank || rank;
-                    const rankChange = prevRank - rank;
-                    const diff = player.points - (player.pointsLost || 0);
-                    const rankClass = getRankClass(rank);
+          <div key={colIdx} className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-theme">
+                  <th className="w-16 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    Rank
+                  </th>
+                  <th className="py-2 text-left text-xs font-semibold text-muted uppercase">
+                    Player
+                  </th>
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    Pts
+                  </th>
+                  <th className="w-12 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    W
+                  </th>
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    Win%
+                  </th>
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    Pts%
+                  </th>
+                  <th className="w-10 py-2 text-center text-xs font-semibold text-muted uppercase">
+                    M
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {dataSlice.map((player) => {
+                  const rank = player.currentRank;
+                  const prevRank = player.previousRank || rank;
+                  const rankChange = prevRank - rank;
+                  const rankClass = getRankClass(rank);
 
-                    return (
-                      <tr key={player.id} className={rankClass}>
-                        {/* Rank Column */}
-                        <td className="rank-cell">
-                          <div className="rank-badge">
+                  return (
+                    <tr
+                      key={player.id}
+                      className={`border-b border-theme/50 hover:bg-elevated/50 transition-colors ${rankClass}`}
+                    >
+                      {/* Rank Column */}
+                      <td className="py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <span
+                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                              rank === 1
+                                ? "bg-yellow-500 text-black"
+                                : rank === 2
+                                ? "bg-gray-400 text-black"
+                                : rank === 3
+                                ? "bg-orange-600 text-white"
+                                : "bg-elevated text-secondary"
+                            }`}
+                          >
                             {!hideLeaderboard ? rank : "-"}
-                          </div>
+                          </span>
                           {showPositionChanges && (
-                            <div
-                              className={`trend-indicator ${
+                            <span
+                              className={`text-xs font-medium ${
                                 rankChange > 0
-                                  ? "trend-up"
+                                  ? "text-success"
                                   : rankChange < 0
-                                  ? "trend-down"
-                                  : "trend-neutral"
+                                  ? "text-error"
+                                  : "text-muted"
                               }`}
                             >
                               {rankChange > 0
-                                ? "▲"
+                                ? `▲${rankChange}`
                                 : rankChange < 0
-                                ? "▼"
+                                ? `▼${Math.abs(rankChange)}`
                                 : "-"}
-                              {rankChange !== 0 && Math.abs(rankChange)}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Player Column */}
-                        <td>
-                          <div className="player-info">
-                            <span className="player-name truncate max-w-[120px] lg:max-w-xs">
-                              {player.name}
                             </span>
-                          </div>
-                        </td>
+                          )}
+                        </div>
+                      </td>
 
-                        {/* Points */}
-                        <td className="text-center">
-                          <span className="stat-value text-lg">
-                            {!hideLeaderboard ? player.points : "-"}
-                          </span>
-                        </td>
+                      {/* Player Column */}
+                      <td className="py-3">
+                        <span className="font-medium text-primary truncate block max-w-[120px] lg:max-w-xs">
+                          {player.name}
+                        </span>
+                      </td>
 
-                        {/* Wins */}
-                        <td className="text-center">
-                          <span className="stat-value dim">
-                            {!hideLeaderboard ? player.wins : "-"}
-                          </span>
-                        </td>
+                      {/* Points */}
+                      <td className="py-3 text-center">
+                        <span className="font-semibold text-lg text-primary">
+                          {!hideLeaderboard ? player.points : "-"}
+                        </span>
+                      </td>
 
-                        {/* Win % */}
-                        <td className="text-center">
-                          <span className="stat-value dim">
-                            {!hideLeaderboard && player.played > 0
-                              ? `${Math.round(
-                                  (player.wins / player.played) * 100
-                                )}%`
-                              : "-"}
-                          </span>
-                        </td>
+                      {/* Wins */}
+                      <td className="py-3 text-center text-secondary">
+                        {!hideLeaderboard ? player.wins : "-"}
+                      </td>
 
-                        {/* Pts % */}
-                        <td className="text-center">
-                          <span className="stat-value dim">
-                            {!hideLeaderboard &&
-                            player.points + (player.pointsLost || 0) > 0
-                              ? `${Math.round(
-                                  (player.points /
-                                    (player.points +
-                                      (player.pointsLost || 0))) *
-                                    100
-                                )}%`
-                              : "-"}
-                          </span>
-                        </td>
+                      {/* Win % */}
+                      <td className="py-3 text-center text-secondary">
+                        {!hideLeaderboard && player.played > 0
+                          ? `${Math.round(
+                              (player.wins / player.played) * 100
+                            )}%`
+                          : "-"}
+                      </td>
 
-                        {/* Matches Played */}
-                        <td className="text-center">
-                          <span className="stat-value dim text-xs">
-                            {!hideLeaderboard || showPositionChanges
-                              ? player.played
-                              : "-"}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                      {/* Pts % */}
+                      <td className="py-3 text-center text-secondary">
+                        {!hideLeaderboard &&
+                        player.points + (player.pointsLost || 0) > 0
+                          ? `${Math.round(
+                              (player.points /
+                                (player.points + (player.pointsLost || 0))) *
+                                100
+                            )}%`
+                          : "-"}
+                      </td>
+
+                      {/* Matches Played */}
+                      <td className="py-3 text-center text-muted text-xs">
+                        {!hideLeaderboard || showPositionChanges
+                          ? player.played
+                          : "-"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ))}
       </div>
 
       {/* Pagination / Expand */}
       {!searchQuery && totalCount > 10 && effectiveCols === 1 && (
-        <div className="p-2 border-t border-white/5 bg-black/5 text-center">
+        <div className="p-3 border-t border-theme text-center">
           <button
-            className="btn btn-ghost btn-xs opacity-70 hover:opacity-100 normal-case gap-2"
+            className="text-sm text-muted hover:text-primary transition-colors flex items-center gap-2 mx-auto"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
@@ -286,15 +320,20 @@ const Leaderboard: React.FC = () => {
       )}
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-white/5 flex justify-between items-center bg-black/10">
-        <span className="text-[10px] uppercase tracking-widest opacity-30 font-bold ml-2">
+      <div className="px-4 py-3 border-t border-theme flex justify-between items-center bg-elevated/30">
+        <span className="text-xs uppercase tracking-widest text-muted font-medium">
           {totalCount} Players
         </span>
         <div className="flex gap-2">
-          <button className="btn btn-xs btn-outline btn-ghost opacity-60 hover:opacity-100">
+          <button
+            className="px-3 py-1.5 text-xs font-medium text-muted hover:text-primary border border-theme rounded-lg transition-colors"
+            onClick={handleShare}
+          >
             Share Results
           </button>
-          <button className="btn btn-xs btn-primary">Print</button>
+          <button className="px-3 py-1.5 text-xs font-medium bg-accent hover:bg-accent-dark text-white rounded-lg transition-colors">
+            Print
+          </button>
         </div>
       </div>
     </div>

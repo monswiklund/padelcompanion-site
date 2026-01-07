@@ -13,7 +13,6 @@ const TournamentActiveView: React.FC = () => {
   const { tournamentName, format, courts, scoringMode, pointsPerMatch } = state;
 
   useEffect(() => {
-    // Scroll to top when entering active view
     window.scrollTo(0, 0);
   }, []);
 
@@ -46,12 +45,9 @@ const TournamentActiveView: React.FC = () => {
           value: false,
         });
 
-        // Save to history
         saveToHistory(state);
-
         launchConfetti();
 
-        // Scroll to leaderboard
         const el = document.querySelector(".leaderboard-section");
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
 
@@ -61,7 +57,6 @@ const TournamentActiveView: React.FC = () => {
   };
 
   const handleUndo = () => {
-    // TODO: Implement undo in state
     console.log("Undo not implemented yet in React");
   };
 
@@ -122,131 +117,133 @@ const TournamentActiveView: React.FC = () => {
     }[scoringMode] || "Scoring";
 
   return (
-    <div className="tournament-active-view container animate-fade-in">
-      <header className="tournament-active-header">
-        <div className="header-top">
-          <div className="tournament-title-area">
-            <h2>{tournamentName || "Live Tournament"}</h2>
-            <div className="game-details" id="gameDetails">
-              <div className="game-detail-item">
-                <span className="detail-label">{formatLabel}</span>
-              </div>
-              <div className="game-detail-item">
-                <span className="detail-label">{courts} Courts</span>
-              </div>
-              <div className="game-detail-item">
-                <span className="detail-label">{scoringLabel}</span>
-              </div>
-              <div className="game-detail-item">
-                <span className="detail-label">
-                  {scoringMode === "time"
-                    ? `${pointsPerMatch} Mins`
-                    : `${pointsPerMatch} Pts`}
-                </span>
-              </div>
-            </div>
+    <div className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
+      {/* Header */}
+      <header className="mb-8">
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-primary mb-3">
+            {tournamentName || "Live Tournament"}
+          </h2>
+          <div className="flex flex-wrap justify-center gap-3">
+            <span className="px-3 py-1 bg-accent/10 text-accent text-sm font-medium rounded-full">
+              {formatLabel}
+            </span>
+            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+              {courts} Courts
+            </span>
+            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+              {scoringLabel}
+            </span>
+            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+              {scoringMode === "time"
+                ? `${pointsPerMatch} Mins`
+                : `${pointsPerMatch} Pts`}
+            </span>
+          </div>
+        </div>
+
+        <MatchTimer />
+
+        {/* Tool Panel */}
+        <div className="bg-card/50 backdrop-blur-md border border-theme rounded-2xl p-4 max-w-4xl mx-auto">
+          {/* Actions Row */}
+          <div className="flex flex-wrap gap-3 justify-center items-center mb-4">
+            <button
+              className="px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              onClick={handleUndo}
+              title="Undo last action"
+            >
+              <span>↩</span> Undo
+            </button>
+
+            <div className="w-px h-6 bg-theme hidden sm:block" />
+
+            <button
+              className="px-4 py-2 text-sm font-medium bg-accent hover:bg-accent-dark text-white rounded-lg transition-colors flex items-center gap-2 shadow-md"
+              onClick={handleAddLatePlayer}
+            >
+              <span className="text-lg">+</span> Add Player
+            </button>
+
+            <div className="flex-1" />
+
+            <button
+              className="px-3 py-1.5 text-sm font-medium text-success hover:bg-success/10 rounded-lg transition-colors flex items-center gap-2"
+              onClick={handleEnd}
+            >
+              <span>🏆</span> Finish Tournament
+            </button>
+
+            <button
+              className="px-3 py-1.5 text-sm font-medium text-muted hover:text-primary hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              onClick={handleReset}
+            >
+              <span>🔄</span> Reset
+            </button>
           </div>
 
-          <MatchTimer />
+          <div className="h-px bg-theme w-full mb-4" />
 
-          {/* Unified Tool Panel */}
-          <div className="bg-base-300/50 backdrop-blur-md border border-white/10 rounded-2xl p-4 mb-6 shadow-xl max-w-4xl mx-auto w-full">
-            {/* Top Row: Actions */}
-            <div className="flex flex-wrap gap-3 justify-center items-center mb-4">
-              <button
-                className="btn btn-sm btn-ghost gap-2 normal-case"
-                onClick={handleUndo}
-                title="Undo last action"
-              >
-                <span className="icon">↩</span> Undo
-              </button>
-              <div className="w-px h-6 bg-white/10 mx-2 hidden sm:block"></div>
-              <button
-                className="btn btn-sm btn-primary gap-2 normal-case shadow-lg shadow-primary/20"
-                onClick={handleAddLatePlayer}
-              >
-                <span className="icon text-lg">+</span> Add Player
-              </button>
-              <div className="flex-1"></div>{" "}
-              {/* Spacer to push dangerous actions right on desktop */}
-              <button
-                className="btn btn-sm btn-ghost text-success hover:bg-success/10 gap-2 normal-case font-bold"
-                onClick={handleEnd}
-              >
-                <span className="icon">🏆</span> Finish Tournament
-              </button>
-              <button
-                className="btn btn-sm btn-ghost hover:bg-white/5 gap-2 normal-case opacity-70 hover:opacity-100"
-                onClick={handleReset}
-              >
-                <span className="icon">🔄</span> Reset
-              </button>
+          {/* Settings Row */}
+          <div className="flex flex-wrap gap-6 justify-center items-center text-sm">
+            <div className="flex items-center gap-3 bg-elevated/50 px-3 py-2 rounded-lg border border-theme">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                Grid
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="4"
+                step="1"
+                className="w-24 accent-accent"
+                value={state.gridColumns}
+                onChange={(e) =>
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    key: "gridColumns",
+                    value: parseInt(e.target.value),
+                  })
+                }
+              />
+              <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1 text-secondary">
+                {state.gridColumns || "Auto"}
+              </span>
             </div>
 
-            {/* Divider */}
-            <div className="h-px bg-white/5 w-full mb-4"></div>
-
-            {/* Bottom Row: View Settings */}
-            <div className="flex flex-wrap gap-8 justify-center items-center text-sm">
-              <div className="flex items-center gap-3 bg-base-100/30 px-3 py-2 rounded-lg border border-white/5">
-                <span className="text-xs font-bold uppercase tracking-wider opacity-60">
-                  Grid
-                </span>
-                <input
-                  type="range"
-                  min="0"
-                  max="4"
-                  step="1"
-                  className="range range-xs range-secondary w-24"
-                  value={state.gridColumns}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "UPDATE_FIELD",
-                      key: "gridColumns",
-                      value: parseInt(e.target.value),
-                    })
-                  }
-                />
-                <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1">
-                  {state.gridColumns || "Auto"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3 bg-base-100/30 px-3 py-2 rounded-lg border border-white/5">
-                <span className="text-xs font-bold uppercase tracking-wider opacity-60">
-                  Text Size
-                </span>
-                <input
-                  type="range"
-                  min="50"
-                  max="350"
-                  step="10"
-                  className="range range-xs range-secondary w-32"
-                  value={state.textSize}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "UPDATE_FIELD",
-                      key: "textSize",
-                      value: parseInt(e.target.value),
-                    })
-                  }
-                />
-                <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1">
-                  {state.textSize}%
-                </span>
-              </div>
+            <div className="flex items-center gap-3 bg-elevated/50 px-3 py-2 rounded-lg border border-theme">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted">
+                Text Size
+              </span>
+              <input
+                type="range"
+                min="50"
+                max="350"
+                step="10"
+                className="w-32 accent-accent"
+                value={state.textSize}
+                onChange={(e) =>
+                  dispatch({
+                    type: "UPDATE_FIELD",
+                    key: "textSize",
+                    value: parseInt(e.target.value),
+                  })
+                }
+              />
+              <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1 text-secondary">
+                {state.textSize}%
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="tournament-grid">
-        <div className="tournament-main">
-          <Schedule />
-        </div>
+      {/* Schedule */}
+      <div className="mb-16">
+        <Schedule />
       </div>
 
-      <div className="mt-16 mb-24 w-full mx-auto px-4 max-w-7xl">
+      {/* Leaderboard */}
+      <div className="mb-24">
         <Leaderboard />
       </div>
     </div>

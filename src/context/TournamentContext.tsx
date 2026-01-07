@@ -440,6 +440,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
               manualByes: prev.manualByes,
               courts: prev.courts,
               scheduleLength: newSchedule.length,
+              pairingStrategy: prev.pairingStrategy,
+              maxRepeats: prev.maxRepeats,
             }) as any;
           }
 

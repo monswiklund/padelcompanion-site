@@ -3,11 +3,13 @@ import { resolve } from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   base: "/", // Change to '/repo-name/' if using project pages
   plugins: [
     react(),
+    tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
       devOptions: {

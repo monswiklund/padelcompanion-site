@@ -12,7 +12,7 @@ const WinnersCourtPage: React.FC = () => {
     Object.keys(state.winnersCourt.sides).length > 0;
 
   return (
-    <div className="winners-court-page tournament-page">
+    <div className="min-h-screen pb-12">
       <TournamentNav />
       {!hasGame ? <WinnersCourtSetup /> : <WinnersCourtActiveView />}
     </div>

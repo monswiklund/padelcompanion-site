@@ -32,40 +32,42 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
     }
 
     onSave(s1, s2);
+    showToast("Match saved!", "success");
   };
 
   return (
     <div
-      className="modal-overlay"
-      style={{ display: "flex" }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal score-modal">
-        <div className="modal-header">
-          <h3>Enter Score</h3>
-          <button className="close-modal" onClick={onClose}>
-            Close
+      <div className="bg-card border border-theme rounded-2xl w-full max-w-md mx-4 overflow-hidden animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-theme">
+          <h3 className="text-xl font-bold text-primary">Enter Score</h3>
+          <button
+            className="text-muted hover:text-primary transition-colors"
+            onClick={onClose}
+          >
+            ✕
           </button>
         </div>
-        <div className="modal-body">
-          <div
-            className="score-type-label"
-            style={{
-              textAlign: "center",
-              marginBottom: "12px",
-              fontSize: "0.85rem",
-              color: "var(--text-muted)",
-            }}
-          >
+
+        {/* Body */}
+        <div className="p-6">
+          <div className="text-center text-sm text-muted mb-6">
             Scoring:{" "}
-            <strong style={{ color: "var(--accent)" }}>{scoreTypeLabel}</strong>
+            <span className="text-accent font-medium">{scoreTypeLabel}</span>
           </div>
-          <div className="score-entry-cards">
-            <div className="score-card">
-              <div className="score-card-team">{match.team1Name}</div>
+
+          <div className="flex items-center gap-4 justify-center">
+            {/* Team 1 */}
+            <div className="flex-1 max-w-32 text-center">
+              <div className="text-sm font-medium text-primary mb-2 truncate">
+                {match.team1?.name || "Team 1"}
+              </div>
               <input
                 type="number"
-                className="form-input score-input"
+                className="w-full h-16 text-center text-3xl font-bold bg-elevated border border-theme rounded-xl text-primary focus:outline-none focus:border-accent"
                 value={score1}
                 onChange={(e) => setScore1(e.target.value)}
                 min="0"
@@ -74,12 +76,17 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
                 autoFocus
               />
             </div>
-            <div className="score-divider">VS</div>
-            <div className="score-card">
-              <div className="score-card-team">{match.team2Name}</div>
+
+            <div className="text-lg font-bold text-muted">VS</div>
+
+            {/* Team 2 */}
+            <div className="flex-1 max-w-32 text-center">
+              <div className="text-sm font-medium text-primary mb-2 truncate">
+                {match.team2?.name || "Team 2"}
+              </div>
               <input
                 type="number"
-                className="form-input score-input"
+                className="w-full h-16 text-center text-3xl font-bold bg-elevated border border-theme rounded-xl text-primary focus:outline-none focus:border-accent"
                 value={score2}
                 onChange={(e) => setScore2(e.target.value)}
                 min="0"
@@ -89,7 +96,9 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
             </div>
           </div>
         </div>
-        <div className="modal-actions">
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-theme bg-elevated/30">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>

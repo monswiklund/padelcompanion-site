@@ -44,22 +44,20 @@ export const WinnersCourtActiveView: React.FC = () => {
   };
 
   return (
-    <div className="winners-court-active animate-fade-in p-4 sm:p-8">
-      <div className="page-intro-header text-center max-w-[600px] mx-auto mb-8">
-        <h2 className="text-3xl mb-1 text-white">Winners Court</h2>
-        <p className="text-text-muted">
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Header */}
+      <div className="text-center max-w-lg mx-auto mb-8">
+        <h2 className="text-3xl font-bold text-primary mb-2">Winners Court</h2>
+        <p className="text-secondary">
           Promotion and relegation based on wins.
         </p>
       </div>
 
       <div className="flex gap-8 flex-wrap justify-center">
         {activeSides.map((side) => (
-          <div
-            key={side}
-            className="wc-side-view flex-1 min-w-[320px] max-w-[600px]"
-          >
+          <div key={side} className="flex-1 min-w-80 max-w-xl">
             <Card
-              className={`p-4 border-2 ${
+              className={`border-2 ${
                 side === "A" ? "border-accent/40" : "border-warning/40"
               }`}
             >
@@ -90,12 +88,12 @@ export const WinnersCourtActiveView: React.FC = () => {
               </div>
 
               {twist && (
-                <div className="text-xs text-text-muted italic mb-4">
+                <div className="text-xs text-muted italic mb-4">
                   Twist Mode Active
                 </div>
               )}
 
-              <div className="wc-courts-grid grid gap-4">
+              <div className="grid gap-4">
                 {sides[side].courts.map((court: any, idx: number) => (
                   <WCCourt
                     key={court.id}
@@ -111,13 +109,13 @@ export const WinnersCourtActiveView: React.FC = () => {
             {/* History for this side */}
             {sides[side].history && sides[side].history.length > 0 && (
               <div className="mt-8">
-                <h4 className="text-sm font-bold text-text-muted mb-4 uppercase tracking-wider">
+                <h4 className="text-sm font-bold text-muted mb-4 uppercase tracking-wider">
                   Previous Rounds
                 </h4>
                 <div className="flex flex-col gap-8 opacity-60">
                   {[...sides[side].history].reverse().map((roundData: any) => (
-                    <div key={roundData.round} className="wc-history-round">
-                      <div className="text-xs text-text-muted mb-2">
+                    <div key={roundData.round}>
+                      <div className="text-xs text-muted mb-2">
                         Round {roundData.round}
                       </div>
                       <div className="grid gap-2 scale-90 origin-top-left">

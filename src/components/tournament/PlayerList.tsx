@@ -73,7 +73,6 @@ export function PlayerList<T extends { name: string }>({
     if (text) onImport(text);
   };
 
-  // Drag and Drop handlers
   const handleDragStart = (index: number) => {
     setDragIndex(index);
   };
@@ -95,16 +94,15 @@ export function PlayerList<T extends { name: string }>({
     setDragIndex(null);
   };
 
-  // Show first 10 items by default, or all if expanded
   const displayItems = showAll ? items : items.slice(0, 10);
   const hasMore = items.length > 10;
 
   const defaultItemRenderer = (item: T, index: number) => (
     <li
       key={(item as any).id || index}
-      className={`player-card ${
-        viewMode === "grid" ? "player-card--grid" : ""
-      } ${dragIndex === index ? "player-card--dragging" : ""}`}
+      className={`flex items-center gap-2 py-1.5 px-2 transition-all hover:bg-white/5 rounded border-b border-white/[0.06] last:border-b-0 ${
+        dragIndex === index ? "opacity-50 scale-95" : ""
+      }`}
       draggable={!!onReorder}
       onDragStart={() => handleDragStart(index)}
       onDragOver={(e) => handleDragOver(e, index)}
@@ -112,26 +110,31 @@ export function PlayerList<T extends { name: string }>({
       onDragEnd={handleDragEnd}
     >
       {onReorder && (
-        <span className="player-card__drag-handle" title="Drag to reorder">
+        <span
+          className="cursor-grab text-muted hover:text-secondary text-xs"
+          title="Drag to reorder"
+        >
           ⋮⋮
         </span>
       )}
 
-      {renderPrefix && renderPrefix(item, index)}
+      <span className="text-xs font-medium text-muted min-w-[1.5rem]">
+        {index + 1}.
+      </span>
 
-      {!renderPrefix && (
-        <span className="player-card__number">{index + 1}.</span>
-      )}
-      <span className="player-card__name">{item.name}</span>
+      {renderPrefix && renderPrefix(item, index)}
+      <span className="flex-1 font-medium text-primary truncate text-sm">
+        {item.name}
+      </span>
 
       {renderActions && (
-        <div className="player-card__custom-actions">
+        <div className="flex items-center gap-1">
           {renderActions(item, index)}
         </div>
       )}
 
       <button
-        className="player-card__remove"
+        className="w-5 h-5 flex items-center justify-center text-muted hover:text-error rounded transition-colors text-sm"
         onClick={() => onRemove(index)}
         title={`Remove ${item.name}`}
       >
@@ -141,16 +144,17 @@ export function PlayerList<T extends { name: string }>({
   );
 
   return (
-    <div className="player-list">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="player-list__header">
-        <h3 className="player-list__title">
-          {title} <span className="player-list__count">({items.length})</span>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-primary">
+          {title}{" "}
+          <span className="text-muted font-normal">({items.length})</span>
         </h3>
-        <div className="player-list__actions">
+        <div className="flex items-center gap-2">
           {onImport && (
             <button
-              className="btn btn--sm btn--secondary"
+              className="px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary bg-elevated border border-theme rounded-lg transition-colors"
               onClick={handleImport}
             >
               Import...
@@ -158,7 +162,7 @@ export function PlayerList<T extends { name: string }>({
           )}
           {onClear && items.length > 0 && (
             <button
-              className="btn btn--sm btn--danger"
+              className="px-3 py-1.5 text-sm font-medium text-error hover:bg-error/10 border border-error/30 rounded-lg transition-colors"
               onClick={() => {
                 if (confirm("Clear all?")) onClear();
               }}
@@ -170,12 +174,14 @@ export function PlayerList<T extends { name: string }>({
       </div>
 
       {/* Input Row */}
-      <div className="player-list__input-row">
-        <label className="player-list__input-label">{singularTitle} Name</label>
-        <div className="player-list__input-group">
+      <div>
+        <label className="block text-sm font-medium text-secondary mb-2">
+          {singularTitle} Name
+        </label>
+        <div className="flex gap-2">
           <input
             type="text"
-            className="player-list__input"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
             placeholder={`Enter ${singularTitle.toLowerCase()} name...`}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -183,7 +189,7 @@ export function PlayerList<T extends { name: string }>({
             disabled={items.length >= maxItems}
           />
           <button
-            className="btn btn--primary player-list__add-btn"
+            className="px-5 py-2.5 bg-accent hover:bg-accent-dark text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleAdd}
             disabled={!inputValue.trim() || items.length >= maxItems}
           >
@@ -194,10 +200,12 @@ export function PlayerList<T extends { name: string }>({
 
       {/* View Toggle */}
       {showViewToggle && items.length > 0 && (
-        <div className="player-list__view-toggle">
+        <div className="flex justify-end gap-1">
           <button
-            className={`view-toggle-btn ${
-              viewMode === "list" ? "view-toggle-btn--active" : ""
+            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+              viewMode === "list"
+                ? "bg-accent text-white"
+                : "bg-elevated text-muted hover:text-primary"
             }`}
             onClick={() => toggleView("list")}
             title="List view"
@@ -205,8 +213,10 @@ export function PlayerList<T extends { name: string }>({
             ☰
           </button>
           <button
-            className={`view-toggle-btn ${
-              viewMode === "grid" ? "view-toggle-btn--active" : ""
+            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+              viewMode === "grid"
+                ? "bg-accent text-white"
+                : "bg-elevated text-muted hover:text-primary"
             }`}
             onClick={() => toggleView("grid")}
             title="Grid view (2 columns)"
@@ -218,8 +228,8 @@ export function PlayerList<T extends { name: string }>({
 
       {/* Items List */}
       <ul
-        className={`player-list__items ${
-          viewMode === "grid" ? "player-list__items--grid" : ""
+        className={`space-y-2 ${
+          viewMode === "grid" ? "grid grid-cols-2 gap-2 space-y-0" : ""
         }`}
       >
         {displayItems.map((item, idx) =>
@@ -230,7 +240,7 @@ export function PlayerList<T extends { name: string }>({
       {/* Show More/Less */}
       {hasMore && (
         <button
-          className="player-list__show-more"
+          className="w-full py-2 text-center text-sm font-medium text-accent hover:text-accent-light transition-colors"
           onClick={() => setShowAll(!showAll)}
         >
           {showAll ? `Show Less ▲` : `Show All (${items.length}) ▼`}
@@ -238,7 +248,9 @@ export function PlayerList<T extends { name: string }>({
       )}
 
       {/* Hint */}
-      {hintText && <div className="player-list__hint">{hintText}</div>}
+      {hintText && (
+        <div className="text-sm text-muted text-center">{hintText}</div>
+      )}
     </div>
   );
 }
