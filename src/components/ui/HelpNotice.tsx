@@ -35,7 +35,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ title, content }) => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="w-5 h-5 rounded-full bg-white/10 hover:bg-accent/20 text-muted hover:text-accent text-xs font-bold transition-colors flex items-center justify-center"
+        className="w-5 h-5 rounded-full bg-white/10 hover:bg-accent/20 text-muted-foreground hover:text-accent text-xs font-bold transition-colors flex items-center justify-center"
         title={title}
       >
         ?
@@ -47,19 +47,19 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ title, content }) => {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="bg-card border border-theme rounded-2xl p-5 max-w-md w-full shadow-xl animate-fade-in-up text-left"
+            className="bg-card border border-border rounded-2xl p-5 max-w-md w-full shadow-xl animate-fade-in-up text-left"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-primary">{title}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-muted hover:text-primary flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
               >
                 ×
               </button>
             </div>
-            <div className="text-sm text-secondary leading-relaxed">
+            <div className="text-sm text-muted-foreground leading-relaxed">
               {renderContent(content)}
             </div>
           </div>

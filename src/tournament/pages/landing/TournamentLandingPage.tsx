@@ -82,10 +82,10 @@ const TournamentLandingPage: React.FC = () => {
           <p className="text-accent font-semibold uppercase tracking-wider mb-4 animate-fade-in">
             The Tournament Suite
           </p>
-          <h1 className="text-4xl md:text-6xl font-bold text-primary mb-6 animate-fade-in-up">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 animate-fade-in-up">
             Run your Padel tournaments on autopilot
           </h1>
-          <p className="text-xl text-secondary max-w-2xl mx-auto mb-10 animate-fade-in-up animation-delay-100">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-fade-in-up animation-delay-100">
             Say goodbye to spreadsheets. Whether it's a social Mexicano mixer or
             a competitive Bracket, organizing your next event just got
             effortless.
@@ -100,13 +100,13 @@ const TournamentLandingPage: React.FC = () => {
             </Link>
             <Link
               to="/tournament/bracket"
-              className="px-8 py-4 bg-card hover:bg-elevated border border-theme text-primary font-semibold rounded-xl transition-colors"
+              className="px-8 py-4 bg-card hover:bg-popover border border-border text-foreground font-semibold rounded-xl transition-colors"
             >
               Create a Bracket
             </Link>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-muted mb-8">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground mb-8">
             <a href="#formats" className="hover:text-accent transition-colors">
               See all formats
             </a>
@@ -119,13 +119,13 @@ const TournamentLandingPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 text-sm animate-fade-in-up animation-delay-300">
-            <span className="flex items-center gap-2 text-secondary">
+            <span className="flex items-center gap-2 text-muted-foreground">
               <span className="text-success">✓</span> Instant scheduling
             </span>
-            <span className="flex items-center gap-2 text-secondary">
+            <span className="flex items-center gap-2 text-muted-foreground">
               <span className="text-success">✓</span> Real-time leaderboards
             </span>
-            <span className="flex items-center gap-2 text-secondary">
+            <span className="flex items-center gap-2 text-muted-foreground">
               <span className="text-success">✓</span> No signup required
             </span>
           </div>
@@ -136,10 +136,10 @@ const TournamentLandingPage: React.FC = () => {
       <section id="formats" className="py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Pick your game mode
             </h2>
-            <p className="text-secondary text-lg">
+            <p className="text-muted-foreground text-lg">
               From friendly club nights to serious competition, we have a format
               that fits.
             </p>
@@ -148,13 +148,13 @@ const TournamentLandingPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               to="/tournament/generator"
-              className="group bg-card border border-theme rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
+              className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
               <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
                 The Social Favorite
               </span>
-              <h3 className="text-2xl font-bold text-primary mb-3">Mexicano</h3>
-              <p className="text-secondary">
+              <h3 className="text-2xl font-bold text-foreground mb-3">Mexicano</h3>
+              <p className="text-muted-foreground">
                 The ultimate mixer. Partners rotate every match, and the system
                 intelligently pairs players of similar skill levels as the
                 tournament progresses.
@@ -163,15 +163,15 @@ const TournamentLandingPage: React.FC = () => {
 
             <Link
               to="/tournament/generator"
-              className="group bg-card border border-theme rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
+              className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
               <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
                 Classic & Fair
               </span>
-              <h3 className="text-2xl font-bold text-primary mb-3">
+              <h3 className="text-2xl font-bold text-foreground mb-3">
                 Americano
               </h3>
-              <p className="text-secondary">
+              <p className="text-muted-foreground">
                 Perfectly balanced. Every player partners with everyone else
                 exactly once. A fair and structured way to find the true
                 champion of the group.
@@ -180,15 +180,15 @@ const TournamentLandingPage: React.FC = () => {
 
             <Link
               to="/tournament/winners-court"
-              className="group bg-card border border-theme rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
+              className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
               <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
                 King of the Hill
               </span>
-              <h3 className="text-2xl font-bold text-primary mb-3">
+              <h3 className="text-2xl font-bold text-foreground mb-3">
                 Winners Court
               </h3>
-              <p className="text-secondary">
+              <p className="text-muted-foreground">
                 Win and move up, lose and move down. The goal is simple: reach
                 the top court and stay there. High energy and fast-paced fun.
               </p>
@@ -196,15 +196,15 @@ const TournamentLandingPage: React.FC = () => {
 
             <Link
               to="/tournament/bracket"
-              className="group bg-card border border-theme rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
+              className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
               <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
                 Tournament Mode
               </span>
-              <h3 className="text-2xl font-bold text-primary mb-3">
+              <h3 className="text-2xl font-bold text-foreground mb-3">
                 Knockout Bracket
               </h3>
-              <p className="text-secondary">
+              <p className="text-muted-foreground">
                 The road to the trophy. Set up a classic elimination tournament,
                 seed your top teams, and let the drama unfold.
               </p>
@@ -214,12 +214,12 @@ const TournamentLandingPage: React.FC = () => {
       </section>
 
       {/* Why Section */}
-      <section className="py-20 bg-secondary/5">
+      <section className="py-20 bg-muted/5">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
             Why use Padel Companion?
           </h2>
-          <p className="text-secondary text-lg mb-8">
+          <p className="text-muted-foreground text-lg mb-8">
             We built this because we were tired of managing complex Excel sheets
             on our phones.
           </p>
@@ -227,8 +227,8 @@ const TournamentLandingPage: React.FC = () => {
             <li className="flex items-start gap-4">
               <span className="text-accent text-xl">✓</span>
               <div>
-                <strong className="text-primary">Dead simple setup.</strong>{" "}
-                <span className="text-secondary">
+                <strong className="text-foreground">Dead simple setup.</strong>{" "}
+                <span className="text-muted-foreground">
                   You don't need a manual. Just add players, courts, and go.
                 </span>
               </div>
@@ -236,8 +236,8 @@ const TournamentLandingPage: React.FC = () => {
             <li className="flex items-start gap-4">
               <span className="text-accent text-xl">✓</span>
               <div>
-                <strong className="text-primary">Works on any device.</strong>{" "}
-                <span className="text-secondary">
+                <strong className="text-foreground">Works on any device.</strong>{" "}
+                <span className="text-muted-foreground">
                   iOS, Android, or your laptop. Everyone can track the score
                   from their own phone.
                 </span>
@@ -246,8 +246,8 @@ const TournamentLandingPage: React.FC = () => {
             <li className="flex items-start gap-4">
               <span className="text-accent text-xl">✓</span>
               <div>
-                <strong className="text-primary">Smart logic.</strong>{" "}
-                <span className="text-secondary">
+                <strong className="text-foreground">Smart logic.</strong>{" "}
+                <span className="text-muted-foreground">
                   We handle the uneven numbers, the byes, and the tie-breakers
                   so you don't have to.
                 </span>
@@ -260,11 +260,11 @@ const TournamentLandingPage: React.FC = () => {
       {/* How It Works & FAQ Section */}
       <section id="workflow" className="py-20">
         <div className="max-w-4xl mx-auto px-6 grid md:grid-cols-2 gap-8">
-          <div className="bg-card border border-theme rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6">
+          <div className="bg-card border border-border rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-foreground mb-6">
               How it works
             </h2>
-            <ol className="space-y-4 text-secondary">
+            <ol className="space-y-4 text-muted-foreground">
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-accent text-white rounded-full flex items-center justify-center font-bold text-sm">
                   1
@@ -290,35 +290,35 @@ const TournamentLandingPage: React.FC = () => {
             </ol>
           </div>
 
-          <div id="faq" className="bg-card border border-theme rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-primary mb-6">
+          <div id="faq" className="bg-card border border-border rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-foreground mb-6">
               Padel Mexicano FAQ
             </h2>
             <div className="space-y-6">
               <div>
-                <h3 className="font-semibold text-primary mb-2">
+                <h3 className="font-semibold text-foreground mb-2">
                   What is Mexicano in padel?
                 </h3>
-                <p className="text-secondary text-sm">
+                <p className="text-muted-foreground text-sm">
                   Mexicano is a format where partners rotate and rankings update
                   after every round, so top players face each other as the event
                   progresses.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-primary mb-2">
+                <h3 className="font-semibold text-foreground mb-2">
                   Does the generator handle uneven player counts?
                 </h3>
-                <p className="text-secondary text-sm">
+                <p className="text-muted-foreground text-sm">
                   Yes. The scheduler includes automatic bye handling and
                   highlights who sits out each round.
                 </p>
               </div>
               <div>
-                <h3 className="font-semibold text-primary mb-2">
+                <h3 className="font-semibold text-foreground mb-2">
                   Can I share results?
                 </h3>
-                <p className="text-secondary text-sm">
+                <p className="text-muted-foreground text-sm">
                   You can export results, save them to history, and continue
                   later from the same device.
                 </p>
@@ -331,10 +331,10 @@ const TournamentLandingPage: React.FC = () => {
       {/* Final CTA Section */}
       <section className="py-20 bg-accent/10">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Ready to run your next padel tournament?
           </h2>
-          <p className="text-secondary text-lg mb-8">
+          <p className="text-muted-foreground text-lg mb-8">
             Open the generator to create a Mexicano or Americano schedule, or
             jump into a bracket in seconds.
           </p>
@@ -347,7 +347,7 @@ const TournamentLandingPage: React.FC = () => {
             </Link>
             <Link
               to="/tournament/winners-court"
-              className="px-8 py-4 bg-card hover:bg-elevated border border-theme text-primary font-semibold rounded-xl transition-colors"
+              className="px-8 py-4 bg-card hover:bg-popover border border-border text-foreground font-semibold rounded-xl transition-colors"
             >
               Try Winners Court
             </Link>

@@ -1,0 +1,54 @@
+import React from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
+import { cn } from "@/shared/utils"; // Assuming utils exists, or I need to create it
+
+interface GlassCardProps extends HTMLMotionProps<"div"> {
+  children: React.ReactNode;
+  variant?: "default" | "hover" | "active";
+  padding?: "none" | "sm" | "md" | "lg";
+}
+
+const variants = {
+  default: "bg-background/40 backdrop-blur-md border border-white/10 shadow-lg",
+  hover:
+    "bg-background/40 backdrop-blur-md border border-white/10 shadow-lg hover:bg-background/50 hover:border-white/20 hover:shadow-xl transition-all duration-300",
+  active:
+    "bg-accent/10 backdrop-blur-md border border-accent/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]",
+};
+
+const paddingClasses = {
+  none: "p-0",
+  sm: "p-3",
+  md: "p-6",
+  lg: "p-8",
+};
+
+export const GlassCard: React.FC<GlassCardProps> = ({
+  children,
+  className,
+  variant = "default",
+  padding = "md",
+  ...props
+}) => {
+  return (
+    <motion.div
+      className={cn(
+        "rounded-2xl relative overflow-hidden",
+        variants[variant],
+        paddingClasses[padding],
+        className,
+      )}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      transition={{ duration: 0.3 }}
+      {...props}
+    >
+      {/* Noise Texture Overlay (Optional, adds premium feel) */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+      {/* Content */}
+      <div className="relative z-10">{children}</div>
+    </motion.div>
+  );
+};

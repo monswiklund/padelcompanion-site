@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/Card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { PlayerList } from "@/components/tournament/PlayerList";
@@ -73,7 +73,7 @@ export const WinnersCourtSetup: React.FC = () => {
       setPlayers((prev) => [...prev, newPlayer]);
       showToast(`${name} added`, "success");
     },
-    [players, splitSides]
+    [players, splitSides],
   );
 
   const handleRemovePlayer = useCallback((index: number) => {
@@ -100,7 +100,7 @@ export const WinnersCourtSetup: React.FC = () => {
           const isDuplicate =
             players.some((p) => p.name.toLowerCase() === name.toLowerCase()) ||
             addedPlayers.some(
-              (p) => p.name.toLowerCase() === name.toLowerCase()
+              (p) => p.name.toLowerCase() === name.toLowerCase(),
             );
 
           if (!isDuplicate) {
@@ -125,7 +125,7 @@ export const WinnersCourtSetup: React.FC = () => {
         showToast(`Skipped ${duplicateCount} duplicates`, "warning");
       }
     },
-    [players, splitSides]
+    [players, splitSides],
   );
 
   const autoAssignSides = useCallback(() => {
@@ -148,8 +148,8 @@ export const WinnersCourtSetup: React.FC = () => {
   const togglePlayerSide = useCallback((id: string) => {
     setPlayers((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, side: p.side === "B" ? "A" : "B" } : p
-      )
+        p.id === id ? { ...p, side: p.side === "B" ? "A" : "B" } : p,
+      ),
     );
     setAssignStrategy("manual");
   }, []);
@@ -189,7 +189,7 @@ export const WinnersCourtSetup: React.FC = () => {
       const totalCourts = courtCountA + courtCountB;
       showToast(
         `Winners Court started with ${totalCourts} court(s)`,
-        "success"
+        "success",
       );
       navigate("/tournament/winners-court");
     } catch (e: any) {
@@ -247,7 +247,7 @@ export const WinnersCourtSetup: React.FC = () => {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold text-primary">
+          <h2 className="text-3xl font-bold text-foreground">
             Winners Court Setup
           </h2>
           <HelpButton
@@ -255,7 +255,7 @@ export const WinnersCourtSetup: React.FC = () => {
             content={HELP_WINNERS_INTRO.content}
           />
         </div>
-        <p className="text-secondary">
+        <p className="text-muted-foreground">
           Skill-based court promotion. Win to move up, lose to move down.
         </p>
       </div>
@@ -277,7 +277,7 @@ export const WinnersCourtSetup: React.FC = () => {
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Players List */}
-        <Card>
+        <GlassCard>
           <PlayerList
             items={sortedPlayers}
             onAdd={handleAddPlayer}
@@ -294,22 +294,22 @@ export const WinnersCourtSetup: React.FC = () => {
               </div>
             }
           />
-        </Card>
+        </GlassCard>
 
         {/* Settings */}
-        <Card>
-          <h3 className="text-lg font-bold text-primary mb-4 pb-2 border-b border-theme">
+        <GlassCard>
+          <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b border-border">
             Settings
           </h3>
 
           <div className="space-y-6">
             {/* Courts */}
             <div>
-              <label className="block text-sm font-medium text-muted mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Courts
               </label>
               <select
-                className="w-full px-3 py-2 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors"
                 value={selectedCourts}
                 onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
               >
@@ -323,9 +323,9 @@ export const WinnersCourtSetup: React.FC = () => {
             </div>
 
             {/* Twist Mode Toggle */}
-            <div className="bg-elevated p-4 rounded-xl border border-theme">
+            <div className="bg-popover p-4 rounded-xl border border-border">
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-primary">
+                <label className="text-sm font-medium text-foreground">
                   Twist Mode
                 </label>
                 <button
@@ -342,15 +342,15 @@ export const WinnersCourtSetup: React.FC = () => {
                   />
                 </button>
               </div>
-              <p className="text-xs text-muted">
+              <p className="text-xs text-muted-foreground">
                 Partners swap after every round (Winners split, Losers split).
               </p>
             </div>
 
             {/* Split Sides Toggle */}
-            <div className="bg-elevated p-4 rounded-xl border border-theme">
+            <div className="bg-popover p-4 rounded-xl border border-border">
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-primary">
+                <label className="text-sm font-medium text-foreground">
                   Split Pools
                 </label>
                 <button
@@ -367,16 +367,18 @@ export const WinnersCourtSetup: React.FC = () => {
                   />
                 </button>
               </div>
-              <p className="text-xs text-muted">Create separate A & B pools.</p>
+              <p className="text-xs text-muted-foreground">
+                Create separate A & B pools.
+              </p>
             </div>
 
             {/* Pool Assignment Options */}
             {splitSides && (
-              <div className="animate-fade-in space-y-3 pt-4 border-t border-theme">
-                <label className="block text-xs font-bold text-muted uppercase">
+              <div className="animate-fade-in space-y-3 pt-4 border-t border-border">
+                <label className="block text-xs font-bold text-muted-foreground uppercase">
                   Pool Assignment
                 </label>
-                <div className="flex bg-elevated p-1 rounded-lg">
+                <div className="flex bg-popover p-1 rounded-lg">
                   {[
                     { value: "random", label: "Random" },
                     { value: "manual", label: "Manual" },
@@ -387,7 +389,7 @@ export const WinnersCourtSetup: React.FC = () => {
                       className={`flex-1 text-center text-xs py-2 rounded transition-colors ${
                         assignStrategy === opt.value
                           ? "bg-accent text-white"
-                          : "text-muted hover:text-primary"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                       onClick={() =>
                         setAssignStrategy(opt.value as AssignStrategy)
@@ -419,11 +421,11 @@ export const WinnersCourtSetup: React.FC = () => {
               Start Session
             </Button>
           </div>
-        </Card>
+        </GlassCard>
       </div>
 
       {/* Footer info */}
-      <div className="mt-12 text-center text-xs text-muted opacity-50">
+      <div className="mt-12 text-center text-xs text-muted-foreground opacity-50">
         Winners move towards Court 1. Losers move towards last court.
       </div>
     </div>

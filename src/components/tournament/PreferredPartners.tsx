@@ -56,7 +56,7 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
     players.find((p) => p.id === id)?.name || "Unknown";
 
   return (
-    <div className="mt-4 pt-4 border-t border-theme">
+    <div className="mt-4 pt-4 border-t border-border">
       {!isAdding && pairs.length === 0 && (
         <div className="text-center">
           <Button
@@ -70,9 +70,9 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
       )}
 
       {(isAdding || pairs.length > 0) && (
-        <div className="bg-elevated rounded-xl p-4 border border-theme">
+        <div className="bg-popover rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-bold text-muted uppercase tracking-wider">
+            <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
               Fixed Pairs
             </h4>
             {!isAdding && (
@@ -99,7 +99,7 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
                     {getPlayerName(pair.player2Id)}
                   </span>
                   <button
-                    className="text-muted hover:text-error font-bold transition-colors"
+                    className="text-muted-foreground hover:text-error font-bold transition-colors"
                     onClick={() => {
                       onRemovePair(pair.id);
                       showToast("Partner pair removed", "info");
@@ -114,10 +114,10 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
 
           {/* Add Form */}
           {isAdding && (
-            <div className="bg-black/20 p-3 rounded-lg border border-theme animate-fade-in">
+            <div className="bg-black/20 p-3 rounded-lg border border-border animate-fade-in">
               <div className="flex items-center gap-2 mb-3">
                 <select
-                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-theme text-primary focus:outline-none focus:border-accent"
+                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
                   value={p1}
                   onChange={(e) => setP1(e.target.value)}
                 >
@@ -130,9 +130,9 @@ export const PreferredPartners: React.FC<PreferredPartnersProps> = ({
                       </option>
                     ))}
                 </select>
-                <span className="text-muted font-bold">&</span>
+                <span className="text-muted-foreground font-bold">&</span>
                 <select
-                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-theme text-primary focus:outline-none focus:border-accent"
+                  className="flex-1 bg-white/5 text-sm p-2 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
                   value={p2}
                   onChange={(e) => setP2(e.target.value)}
                 >

@@ -63,7 +63,7 @@ const Header: React.FC = () => {
         className={`text-sm font-medium transition-colors ${
           active
             ? "text-accent font-semibold"
-            : "text-secondary hover:text-primary"
+            : "text-muted-foreground hover:text-foreground"
         }`}
       >
         {children}
@@ -75,7 +75,7 @@ const Header: React.FC = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-300 ${
         scrolled
-          ? "bg-primary/95 backdrop-blur-md border-b border-theme py-3"
+          ? "bg-background/95 backdrop-blur-md border-b border-border py-3"
           : "bg-transparent py-5"
       }`}
     >
@@ -83,7 +83,7 @@ const Header: React.FC = () => {
         {/* LOGO */}
         <Link
           to="/"
-          className="flex items-center gap-2 text-xl font-bold text-primary z-50 relative"
+          className="flex items-center gap-2 text-xl font-bold text-foreground z-50 relative"
           onClick={closeNav}
         >
           <img
@@ -105,7 +105,7 @@ const Header: React.FC = () => {
         {/* ACTIONS & MOBILE TOGGLE */}
         <div className="flex items-center gap-3 z-50 relative">
           <button
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-card hover:bg-elevated transition-colors text-primary"
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-card hover:bg-popover transition-colors text-foreground"
             onClick={handleToggleTheme}
             title="Toggle theme"
           >
@@ -119,17 +119,17 @@ const Header: React.FC = () => {
             aria-label="Toggle menu"
           >
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-primary)] rounded-full transition-all duration-300 ${
+              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
                 isNavOpen ? "rotate-45 translate-y-2" : ""
               }`}
             ></span>
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-primary)] rounded-full transition-all duration-300 ${
+              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
                 isNavOpen ? "opacity-0" : ""
               }`}
             ></span>
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-primary)] rounded-full transition-all duration-300 ${
+              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
                 isNavOpen ? "-rotate-45 -translate-y-2" : ""
               }`}
             ></span>
@@ -139,34 +139,34 @@ const Header: React.FC = () => {
 
       {/* MOBILE NAVIGATION OVERLAY */}
       <div
-        className={`fixed inset-0 bg-primary z-[400] flex flex-col items-center justify-center gap-8 transition-transform duration-300 md:hidden ${
+        className={`fixed inset-0 bg-background z-[400] flex flex-col items-center justify-center gap-8 transition-transform duration-300 md:hidden ${
           isNavOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <Link
           to="/"
-          className="text-2xl font-medium text-primary"
+          className="text-2xl font-medium text-foreground"
           onClick={closeNav}
         >
           Home
         </Link>
         <Link
           to="/tournament/history"
-          className="text-2xl font-medium text-primary"
+          className="text-2xl font-medium text-foreground"
           onClick={closeNav}
         >
           History
         </Link>
         <Link
           to="/tournament/generator"
-          className="text-2xl font-medium text-primary"
+          className="text-2xl font-medium text-foreground"
           onClick={closeNav}
         >
           Tournament
         </Link>
         <Link
           to="/support"
-          className="text-2xl font-medium text-primary"
+          className="text-2xl font-medium text-foreground"
           onClick={closeNav}
         >
           Support

@@ -137,12 +137,12 @@ export const MatchTimer: React.FC = () => {
             ? "border-error bg-error/10"
             : timer.isRunning
             ? "border-accent shadow-glow"
-            : "border-theme"
+            : "border-border"
         }`}
       >
         {/* Header */}
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Match Clock
           </span>
           {timer.isRunning && (
@@ -156,7 +156,7 @@ export const MatchTimer: React.FC = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => addMinute(-1)}
-            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted hover:text-primary bg-elevated rounded-lg transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted-foreground hover:text-foreground bg-popover rounded-lg transition-colors"
           >
             −1
           </button>
@@ -167,14 +167,14 @@ export const MatchTimer: React.FC = () => {
                 ? "text-error"
                 : isLow
                 ? "text-warning"
-                : "text-primary"
+                : "text-foreground"
             }`}
           >
             {formatTime(localSeconds)}
           </button>
           <button
             onClick={() => addMinute(1)}
-            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted hover:text-primary bg-elevated rounded-lg transition-colors"
+            className="w-10 h-10 flex items-center justify-center text-lg font-bold text-muted-foreground hover:text-foreground bg-popover rounded-lg transition-colors"
           >
             +1
           </button>

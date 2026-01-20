@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { GlassCard } from "@/components/ui/GlassCard";
 import {
   useTournament,
   Player,
@@ -82,27 +83,28 @@ const RoundCard: React.FC<{
         "No Scores Entered",
         "You haven't entered any scores for this round. Are you sure you want to complete it as all 0-0?",
         "Complete w/ Zeros",
-        onComplete
+        onComplete,
       );
     }
   };
 
   return (
-    <div
-      className={`bg-card border border-theme rounded-2xl overflow-hidden mb-6 transition-all ${
+    <GlassCard
+      padding="none"
+      className={`overflow-hidden mb-6 transition-all ${
         round.completed ? "opacity-80" : ""
       }`}
       id={`round-${roundIndex}`}
     >
       {/* Round Header */}
       <div
-        className={`flex items-center justify-between px-4 py-3 border-b border-theme cursor-pointer ${
-          round.completed ? "bg-elevated/50" : "bg-accent/5"
+        className={`flex items-center justify-between px-4 py-3 border-b border-border cursor-pointer ${
+          round.completed ? "bg-popover/50" : "bg-accent/5"
         }`}
         onClick={() => round.completed && setIsCollapsed(!isCollapsed)}
       >
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-primary">
+          <span className="text-lg font-bold text-foreground">
             Round {round.number}
           </span>
           {round.completed ? (
@@ -116,12 +118,14 @@ const RoundCard: React.FC<{
           )}
         </div>
         {round.completed && isCollapsed && (
-          <span className="text-sm text-muted">
+          <span className="text-sm text-muted-foreground">
             {round.matches.map((m) => `${m.score1}-${m.score2}`).join(" · ")}
           </span>
         )}
         {round.completed && (
-          <span className="text-muted text-sm">{isCollapsed ? "▶" : "▼"}</span>
+          <span className="text-muted-foreground text-sm">
+            {isCollapsed ? "▶" : "▼"}
+          </span>
         )}
       </div>
 
@@ -142,19 +146,19 @@ const RoundCard: React.FC<{
             {round.matches.map((match, mIdx) => (
               <div
                 key={mIdx}
-                className="bg-elevated rounded-xl border border-theme overflow-hidden"
+                className="bg-popover rounded-xl border border-border overflow-hidden"
               >
                 {/* Match Header */}
-                <div className="flex items-center justify-between px-3 py-2 bg-black/20 border-b border-theme">
+                <div className="flex items-center justify-between px-3 py-2 bg-black/20 border-b border-border">
                   <span className="text-sm font-semibold text-accent">
                     {getCourtName(match.court)}
                   </span>
-                  <span className="text-xs text-muted">
+                  <span className="text-xs text-muted-foreground">
                     {state.scoringMode === "total"
                       ? `Total ${state.pointsPerMatch}`
                       : state.scoringMode === "race"
-                      ? `Race to ${state.pointsPerMatch}`
-                      : `${state.pointsPerMatch} mins`}
+                        ? `Race to ${state.pointsPerMatch}`
+                        : `${state.pointsPerMatch} mins`}
                   </span>
                   {match.relaxedConstraint && (
                     <span
@@ -173,18 +177,20 @@ const RoundCard: React.FC<{
                       {match.team1.map((p) => (
                         <div
                           key={p.id}
-                          className="font-medium text-primary truncate"
+                          className="font-medium text-foreground truncate"
                         >
                           {p.name}
                         </div>
                       ))}
                     </div>
-                    <div className="text-muted font-bold px-3">vs</div>
+                    <div className="text-muted-foreground font-bold px-3">
+                      vs
+                    </div>
                     <div className="flex-1 text-center">
                       {match.team2.map((p) => (
                         <div
                           key={p.id}
-                          className="font-medium text-primary truncate"
+                          className="font-medium text-foreground truncate"
                         >
                           {p.name}
                         </div>
@@ -198,39 +204,41 @@ const RoundCard: React.FC<{
                       <>
                         <input
                           type="number"
-                          className="w-16 h-12 text-center text-2xl font-bold bg-black/20 border border-theme rounded-lg text-primary focus:outline-none focus:border-accent"
+                          className="w-16 h-12 text-center text-2xl font-bold bg-black/20 border border-border rounded-lg text-foreground focus:outline-none focus:border-accent"
                           placeholder="0"
                           value={match.score1 ?? ""}
                           onChange={(e) =>
                             onScoreChange(
                               mIdx,
                               1,
-                              parseInt(e.target.value) || 0
+                              parseInt(e.target.value) || 0,
                             )
                           }
                         />
-                        <span className="text-2xl text-muted font-bold">-</span>
+                        <span className="text-2xl text-muted-foreground font-bold">
+                          -
+                        </span>
                         <input
                           type="number"
-                          className="w-16 h-12 text-center text-2xl font-bold bg-black/20 border border-theme rounded-lg text-primary focus:outline-none focus:border-accent"
+                          className="w-16 h-12 text-center text-2xl font-bold bg-black/20 border border-border rounded-lg text-foreground focus:outline-none focus:border-accent"
                           placeholder="0"
                           value={match.score2 ?? ""}
                           onChange={(e) =>
                             onScoreChange(
                               mIdx,
                               2,
-                              parseInt(e.target.value) || 0
+                              parseInt(e.target.value) || 0,
                             )
                           }
                         />
                       </>
                     ) : (
                       <div className="flex items-center gap-3">
-                        <span className="text-3xl font-bold text-primary">
+                        <span className="text-3xl font-bold text-foreground">
                           {match.score1} - {match.score2}
                         </span>
                         <button
-                          className="px-2 py-1 text-xs text-muted hover:text-primary transition-colors"
+                          className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                           onClick={onEdit}
                         >
                           Edit
@@ -249,7 +257,7 @@ const RoundCard: React.FC<{
               <span className="text-xs font-semibold text-warning uppercase mr-2">
                 Resting:
               </span>
-              <span className="text-sm text-secondary">
+              <span className="text-sm text-muted-foreground">
                 {round.byes.map((p) => p.name).join(", ")}
               </span>
             </div>
@@ -259,12 +267,12 @@ const RoundCard: React.FC<{
           {!round.completed && isLast && (
             <div className="mt-6 space-y-4">
               {/* Bye Selector */}
-              <div className="bg-elevated rounded-xl p-4 border border-theme">
+              <div className="bg-popover rounded-xl p-4 border border-border">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-muted">
+                  <span className="text-sm font-medium text-muted-foreground">
                     Toggle who rests next round:
                   </span>
-                  <span className="text-xs text-muted">
+                  <span className="text-xs text-muted-foreground">
                     ({state.manualByes.length} selected)
                   </span>
                 </div>
@@ -275,7 +283,7 @@ const RoundCard: React.FC<{
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         state.manualByes.includes(p.id)
                           ? "bg-warning/20 border-warning text-warning"
-                          : "bg-card border-theme text-secondary hover:text-primary"
+                          : "bg-card border-border text-muted-foreground hover:text-foreground"
                       }`}
                       onClick={() => onToggleBye(p.id)}
                     >
@@ -293,7 +301,7 @@ const RoundCard: React.FC<{
                 className={`w-full py-3 font-semibold rounded-xl transition-colors ${
                   status === "complete"
                     ? "bg-success hover:bg-success/80 text-white"
-                    : "bg-elevated hover:bg-card border border-theme text-secondary"
+                    : "bg-popover hover:bg-card border border-border text-muted-foreground"
                 }`}
                 onClick={handleCompleteClick}
               >
@@ -303,7 +311,7 @@ const RoundCard: React.FC<{
           )}
         </div>
       )}
-    </div>
+    </GlassCard>
   );
 };
 
@@ -315,7 +323,7 @@ const Schedule: React.FC = () => {
     rIdx: number,
     mIdx: number,
     team: 1 | 2,
-    val: number
+    val: number,
   ) => {
     const newSchedule = [...schedule];
     const match = { ...newSchedule[rIdx].matches[mIdx] };

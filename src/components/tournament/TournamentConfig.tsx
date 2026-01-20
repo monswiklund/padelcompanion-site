@@ -116,14 +116,14 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
               className={`py-3 px-3 rounded-xl text-left transition-all ${
                 config.format === o.value
                   ? "bg-accent text-white ring-2 ring-accent/30"
-                  : "bg-elevated border border-theme text-secondary hover:text-primary hover:border-accent/50"
+                  : "bg-popover border border-border text-muted-foreground hover:text-foreground hover:border-accent/50"
               }`}
               onClick={() => onChange("format", o.value)}
             >
               <div className="font-semibold text-sm">{o.label}</div>
               <div
                 className={`text-xs ${
-                  config.format === o.value ? "text-white/70" : "text-muted"
+                  config.format === o.value ? "text-white/70" : "text-muted-foreground"
                 }`}
               >
                 {o.desc}
@@ -150,7 +150,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
           <ConfigRow label="Scoring" hint="Win condition">
             <select
-              className="w-full px-3 py-2.5 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors text-sm"
+              className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
               value={config.scoringMode}
               onChange={(e) => {
                 const mode = e.target.value;
@@ -197,7 +197,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
           <div className="divide-y divide-white/[0.06]">
             <ConfigRow label="Partner Repeats" hint="Max same pair plays">
               <select
-                className="w-full px-3 py-2.5 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors text-sm"
+                className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
                 value={config.maxRepeats}
                 onChange={(e) =>
                   onChange("maxRepeats", parseInt(e.target.value))
@@ -213,7 +213,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
             <ConfigRow label="Pairing Style" hint="Matchup logic">
               <select
-                className="w-full px-3 py-2.5 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors text-sm"
+                className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
                 value={config.pairingStrategy}
                 onChange={(e) => onChange("pairingStrategy", e.target.value)}
               >
@@ -245,7 +245,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
         <div className="divide-y divide-white/[0.06]">
           <ConfigRow label="Court Names" hint="Label format">
             <select
-              className="px-3 py-2 rounded-lg bg-elevated border border-theme text-primary focus:outline-none focus:border-accent transition-colors text-sm"
+              className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
               value={config.courtFormat}
               onChange={(e) => onChange("courtFormat", e.target.value)}
             >
@@ -264,7 +264,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
               <input
                 key={i}
                 type="text"
-                className="px-3 py-2 rounded-lg bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors text-sm"
+                className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors text-sm"
                 placeholder={`Court ${i + 1}...`}
                 value={config.customCourtNames[i] || ""}
                 onChange={(e) => {
@@ -289,7 +289,7 @@ const Section: React.FC<{
 }> = ({ title, help, children }) => (
   <div>
     <div className="flex items-center gap-2 mb-3">
-      <h4 className="text-xs font-semibold text-muted uppercase tracking-wide">
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         {title}
       </h4>
       {help && <HelpButton title={help.title} content={help.content} />}
@@ -306,8 +306,8 @@ const ConfigRow: React.FC<{
 }> = ({ label, hint, children }) => (
   <div className="flex items-center justify-between gap-3 py-2">
     <div className="flex-1 min-w-0">
-      <span className="text-sm font-medium text-primary">{label}</span>
-      {hint && <span className="text-xs text-muted ml-1.5">({hint})</span>}
+      <span className="text-sm font-medium text-foreground">{label}</span>
+      {hint && <span className="text-xs text-muted-foreground ml-1.5">({hint})</span>}
     </div>
     <div className="flex-shrink-0">{children}</div>
   </div>
@@ -322,7 +322,7 @@ const Stepper: React.FC<{
   onChange: (v: number) => void;
   disabledMax?: boolean;
 }> = ({ value, min, max, step = 1, onChange, disabledMax }) => (
-  <div className="flex items-center bg-elevated rounded-xl border border-theme overflow-hidden">
+  <div className="flex items-center bg-popover rounded-xl border border-border overflow-hidden">
     <button
       type="button"
       className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
@@ -331,7 +331,7 @@ const Stepper: React.FC<{
     >
       −
     </button>
-    <div className="w-10 text-center font-bold text-primary">{value}</div>
+    <div className="w-10 text-center font-bold text-foreground">{value}</div>
     <button
       type="button"
       className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"

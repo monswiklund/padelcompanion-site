@@ -1,4 +1,5 @@
 import React from "react";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { useLeaderboard } from "@/tournament/ui/hooks/useLeaderboard";
 import { copyLeaderboardToClipboard } from "@/tournament/ui/setup/exportShare";
 import { showToast } from "@/shared/utils";
@@ -55,17 +56,17 @@ const Leaderboard: React.FC = () => {
   };
 
   return (
-    <div className="leaderboard-section bg-card border border-theme rounded-2xl overflow-hidden">
+    <GlassCard padding="none" className="leaderboard-section overflow-hidden">
       {/* Header & Controls */}
-      <div className="p-4 border-b border-theme">
+      <div className="p-4 border-b border-border">
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full mb-4">
-          <h3 className="text-2xl font-bold text-primary tracking-wide">
+          <h3 className="text-2xl font-bold text-foreground tracking-wide">
             Leaderboard
           </h3>
 
           <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             {/* Criteria Tabs */}
-            <div className="flex bg-elevated rounded-lg p-1 w-full sm:w-auto">
+            <div className="flex bg-popover rounded-lg p-1 w-full sm:w-auto">
               {[
                 { id: "points", label: "Points" },
                 { id: "wins", label: "Wins" },
@@ -77,7 +78,7 @@ const Leaderboard: React.FC = () => {
                   className={`flex-1 sm:flex-initial px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     rankingCriteria === tab.id
                       ? "bg-accent text-white"
-                      : "text-muted hover:text-primary"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setCriteria(tab.id as any)}
                 >
@@ -88,7 +89,7 @@ const Leaderboard: React.FC = () => {
 
             <div className="flex gap-3 items-center w-full sm:w-auto justify-center">
               {/* Grid Selector */}
-              <div className="flex bg-elevated rounded-lg p-1">
+              <div className="flex bg-popover rounded-lg p-1">
                 {[1, 2, 3].map((num) => (
                   <button
                     key={num}
@@ -96,7 +97,7 @@ const Leaderboard: React.FC = () => {
                       leaderboardColumns === num ||
                       (num === 1 && !leaderboardColumns)
                         ? "bg-accent text-white"
-                        : "text-muted hover:text-primary"
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                     onClick={() => setLeaderboardColumns(num)}
                     title={`${num} Column${num > 1 ? "s" : ""}`}
@@ -112,7 +113,7 @@ const Leaderboard: React.FC = () => {
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     !hideLeaderboard
                       ? "bg-accent text-white"
-                      : "bg-elevated text-muted hover:text-primary"
+                      : "bg-popover text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={toggleVisibility}
                   title="Toggle Scores"
@@ -123,7 +124,7 @@ const Leaderboard: React.FC = () => {
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     showPositionChanges
                       ? "bg-accent text-white"
-                      : "bg-elevated text-muted hover:text-primary"
+                      : "bg-popover text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={toggleRanks}
                   title="Toggle Rank Changes"
@@ -137,19 +138,19 @@ const Leaderboard: React.FC = () => {
 
         {/* Search Bar */}
         <div className="relative w-full">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
             🔍
           </span>
           <input
             type="text"
-            className="w-full pl-10 pr-10 py-2 rounded-lg bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+            className="w-full pl-10 pr-10 py-2 rounded-lg bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
             placeholder="Search players..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               onClick={() => setSearchQuery("")}
             >
               ✕
@@ -164,34 +165,34 @@ const Leaderboard: React.FC = () => {
           effectiveCols === 1
             ? ""
             : effectiveCols === 2
-            ? "grid-cols-2"
-            : "grid-cols-3"
+              ? "grid-cols-2"
+              : "grid-cols-3"
         }`}
       >
         {columnData.map((dataSlice, colIdx) => (
           <div key={colIdx} className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-theme">
-                  <th className="w-16 py-2 text-center text-xs font-semibold text-muted uppercase">
+                <tr className="border-b border-border">
+                  <th className="w-16 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     Rank
                   </th>
-                  <th className="py-2 text-left text-xs font-semibold text-muted uppercase">
+                  <th className="py-2 text-left text-xs font-semibold text-muted-foreground uppercase">
                     Player
                   </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     Pts
                   </th>
-                  <th className="w-12 py-2 text-center text-xs font-semibold text-muted uppercase">
+                  <th className="w-12 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     W
                   </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     Win%
                   </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted uppercase">
+                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     Pts%
                   </th>
-                  <th className="w-10 py-2 text-center text-xs font-semibold text-muted uppercase">
+                  <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
                     M
                   </th>
                 </tr>
@@ -206,7 +207,7 @@ const Leaderboard: React.FC = () => {
                   return (
                     <tr
                       key={player.id}
-                      className={`border-b border-theme/50 hover:bg-elevated/50 transition-colors ${rankClass}`}
+                      className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}
                     >
                       {/* Rank Column */}
                       <td className="py-3 text-center">
@@ -216,10 +217,10 @@ const Leaderboard: React.FC = () => {
                               rank === 1
                                 ? "bg-yellow-500 text-black"
                                 : rank === 2
-                                ? "bg-gray-400 text-black"
-                                : rank === 3
-                                ? "bg-orange-600 text-white"
-                                : "bg-elevated text-secondary"
+                                  ? "bg-gray-400 text-black"
+                                  : rank === 3
+                                    ? "bg-orange-600 text-white"
+                                    : "bg-popover text-muted-foreground"
                             }`}
                           >
                             {!hideLeaderboard ? rank : "-"}
@@ -230,15 +231,15 @@ const Leaderboard: React.FC = () => {
                                 rankChange > 0
                                   ? "text-success"
                                   : rankChange < 0
-                                  ? "text-error"
-                                  : "text-muted"
+                                    ? "text-error"
+                                    : "text-muted-foreground"
                               }`}
                             >
                               {rankChange > 0
                                 ? `▲${rankChange}`
                                 : rankChange < 0
-                                ? `▼${Math.abs(rankChange)}`
-                                : "-"}
+                                  ? `▼${Math.abs(rankChange)}`
+                                  : "-"}
                             </span>
                           )}
                         </div>
@@ -246,46 +247,46 @@ const Leaderboard: React.FC = () => {
 
                       {/* Player Column */}
                       <td className="py-3">
-                        <span className="font-medium text-primary truncate block max-w-[120px] lg:max-w-xs">
+                        <span className="font-medium text-foreground truncate block max-w-[120px] lg:max-w-xs">
                           {player.name}
                         </span>
                       </td>
 
                       {/* Points */}
                       <td className="py-3 text-center">
-                        <span className="font-semibold text-lg text-primary">
+                        <span className="font-semibold text-lg text-foreground">
                           {!hideLeaderboard ? player.points : "-"}
                         </span>
                       </td>
 
                       {/* Wins */}
-                      <td className="py-3 text-center text-secondary">
+                      <td className="py-3 text-center text-muted-foreground">
                         {!hideLeaderboard ? player.wins : "-"}
                       </td>
 
                       {/* Win % */}
-                      <td className="py-3 text-center text-secondary">
+                      <td className="py-3 text-center text-muted-foreground">
                         {!hideLeaderboard && player.played > 0
                           ? `${Math.round(
-                              (player.wins / player.played) * 100
+                              (player.wins / player.played) * 100,
                             )}%`
                           : "-"}
                       </td>
 
                       {/* Pts % */}
-                      <td className="py-3 text-center text-secondary">
+                      <td className="py-3 text-center text-muted-foreground">
                         {!hideLeaderboard &&
                         player.points + (player.pointsLost || 0) > 0
                           ? `${Math.round(
                               (player.points /
                                 (player.points + (player.pointsLost || 0))) *
-                                100
+                                100,
                             )}%`
                           : "-"}
                       </td>
 
                       {/* Matches Played */}
-                      <td className="py-3 text-center text-muted text-xs">
+                      <td className="py-3 text-center text-muted-foreground text-xs">
                         {!hideLeaderboard || showPositionChanges
                           ? player.played
                           : "-"}
@@ -301,9 +302,9 @@ const Leaderboard: React.FC = () => {
 
       {/* Pagination / Expand */}
       {!searchQuery && totalCount > 10 && effectiveCols === 1 && (
-        <div className="p-3 border-t border-theme text-center">
+        <div className="p-3 border-t border-border text-center">
           <button
-            className="text-sm text-muted hover:text-primary transition-colors flex items-center gap-2 mx-auto"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 mx-auto"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? (
@@ -320,13 +321,13 @@ const Leaderboard: React.FC = () => {
       )}
 
       {/* Footer Actions */}
-      <div className="px-4 py-3 border-t border-theme flex justify-between items-center bg-elevated/30">
-        <span className="text-xs uppercase tracking-widest text-muted font-medium">
+      <div className="px-4 py-3 border-t border-border flex justify-between items-center bg-popover/30">
+        <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
           {totalCount} Players
         </span>
         <div className="flex gap-2">
           <button
-            className="px-3 py-1.5 text-xs font-medium text-muted hover:text-primary border border-theme rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg transition-colors"
             onClick={handleShare}
           >
             Share Results
@@ -336,7 +337,7 @@ const Leaderboard: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
+    </GlassCard>
   );
 };
 

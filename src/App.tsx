@@ -13,7 +13,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import SupportPage from "./pages/SupportPage";
 
-// Placeholder components for Phase 3 migration
+// Tournament Pages
 import GeneratorPage from "./tournament/pages/generator/GeneratorPage";
 import BracketPage from "./tournament/pages/bracket/BracketPage";
 import WinnersCourtPage from "./tournament/pages/winnersCourt/WinnersCourtPage";
@@ -24,7 +24,7 @@ const App: React.FC = () => {
   return (
     <TournamentProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-primary text-primary">
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
           <Header />
           <main className="flex-1 pt-20">
             <Routes>

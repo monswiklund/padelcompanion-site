@@ -8,7 +8,7 @@
 export interface BracketTeam {
   id: string;
   name: string;
-  side?: "A" | "B";
+  side?: string;
 }
 
 export interface BracketMatch {
@@ -22,34 +22,44 @@ export interface BracketMatch {
   nextMatchId: number | null;
   prevMatch1Id: number | null;
   prevMatch2Id: number | null;
+  loserMatchId?: number | null; // For double elimination
 }
 
-export interface SingleBracket {
+export interface Pool {
+  id: string;
+  name: string;
   teams: BracketTeam[];
   matches: BracketMatch[];
   numRounds: number;
-  isDualBracket: false;
 }
 
-export interface DualBracket {
-  teams: BracketTeam[];
-  teamsA: BracketTeam[];
-  teamsB: BracketTeam[];
-  matchesA: BracketMatch[];
-  matchesB: BracketMatch[];
+export interface MultiBracket {
+  pools: Pool[];
   grandFinal: BracketMatch | null;
-  numRoundsA: number;
-  numRoundsB: number;
-  isDualBracket: true;
+  isMultiPool: true;
   hasSharedFinal: boolean;
+}
+
+export interface DoubleEliminationBracket {
+  winnersMatches: BracketMatch[];
+  losersMatches: BracketMatch[];
+  grandFinal: BracketMatch;
+  teams: BracketTeam[];
+  isDoubleElimination: true;
 }
 
 export interface BracketConfig {
   scoreType: "points" | "games" | "sets";
   mode: "teams" | "players";
+  eliminationType: "single" | "double";
+  poolCount?: number;
 }
 
-export type Bracket = SingleBracket | DualBracket;
+export type Bracket =
+  | SingleBracket
+  | DualBracket
+  | MultiBracket
+  | DoubleEliminationBracket;
 
 // ============ HELPER FUNCTIONS ============
 
@@ -72,7 +82,7 @@ function getNumRounds(bracketSize: number): number {
  */
 function seedTeamsInOrder(
   teams: BracketTeam[],
-  bracketSize: number
+  bracketSize: number,
 ): (BracketTeam | null)[] {
   const seeded: (BracketTeam | null)[] = new Array(bracketSize).fill(null);
   teams.forEach((team, i) => {
@@ -82,12 +92,24 @@ function seedTeamsInOrder(
 }
 
 /**
+ * Auto-advance a match if it has a bye
+ */
+function autoAdvanceMatch(match: BracketMatch): BracketMatch {
+  if (match.team1 && !match.team2) {
+    return { ...match, winner: match.team1 };
+  } else if (!match.team1 && match.team2) {
+    return { ...match, winner: match.team2 };
+  }
+  return match;
+}
+
+/**
  * Generate matches for a single bracket
  */
 function generateMatchesForBracket(
   seededTeams: (BracketTeam | null)[],
   numRounds: number,
-  idOffset: number = 0
+  idOffset: number = 0,
 ): BracketMatch[] {
   const matches: BracketMatch[] = [];
   let matchId = 1 + idOffset;
@@ -97,7 +119,7 @@ function generateMatchesForBracket(
   const firstRoundMatches: BracketMatch[] = [];
 
   for (let i = 0; i < firstRoundMatchCount; i++) {
-    const match: BracketMatch = {
+    let match: BracketMatch = {
       id: matchId++,
       round: 1,
       team1: seededTeams[i * 2],
@@ -110,13 +132,7 @@ function generateMatchesForBracket(
       prevMatch2Id: null,
     };
 
-    // Auto-advance byes
-    if (match.team1 && !match.team2) {
-      match.winner = match.team1;
-    } else if (!match.team1 && match.team2) {
-      match.winner = match.team2;
-    }
-
+    match = autoAdvanceMatch(match);
     firstRoundMatches.push(match);
     matches.push(match);
   }
@@ -131,7 +147,7 @@ function generateMatchesForBracket(
       const prevMatch1 = prevRoundMatches[i * 2];
       const prevMatch2 = prevRoundMatches[i * 2 + 1];
 
-      const match: BracketMatch = {
+      let match: BracketMatch = {
         id: matchId++,
         round,
         team1: prevMatch1.winner,
@@ -148,6 +164,7 @@ function generateMatchesForBracket(
       prevMatch1.nextMatchId = match.id;
       prevMatch2.nextMatchId = match.id;
 
+      match = autoAdvanceMatch(match);
       roundMatches.push(match);
       matches.push(match);
     }
@@ -182,41 +199,117 @@ export function generateSingleBracket(teams: BracketTeam[]): SingleBracket {
 }
 
 /**
- * Apply team assignment strategy
+ * Generate a multi-pool bracket
+ */
+export function generateMultiPoolBracket(
+  teams: BracketTeam[],
+  poolCount: number,
+  sharedFinal: boolean = true,
+): MultiBracket {
+  const pools: Pool[] = [];
+  let currentIdOffset = 0;
+
+  for (let i = 0; i < poolCount; i++) {
+    const poolLabel = String.fromCharCode(65 + i);
+    const poolTeams = teams.filter((t) => t.side === poolLabel);
+
+    if (poolTeams.length > 0) {
+      const bracketSize = getBracketSize(poolTeams.length);
+      const numRounds = getNumRounds(bracketSize);
+      const seeded = seedTeamsInOrder(poolTeams, bracketSize);
+      const matches = generateMatchesForBracket(
+        seeded,
+        numRounds,
+        currentIdOffset,
+      );
+
+      pools.push({
+        id: `pool-${poolLabel}`,
+        name: `Pool ${poolLabel}`,
+        teams: poolTeams,
+        matches,
+        numRounds,
+      });
+
+      if (matches.length > 0) {
+        currentIdOffset = Math.max(...matches.map((m) => m.id));
+      }
+    }
+  }
+
+  let grandFinal: BracketMatch | null = null;
+  if (sharedFinal && pools.length >= 2) {
+    const lastMatchA = pools[0].matches[pools[0].matches.length - 1];
+    const lastMatchB = pools[1].matches[pools[1].matches.length - 1];
+
+    if (lastMatchA && lastMatchB) {
+      grandFinal = {
+        id: currentIdOffset + 1,
+        round: Math.max(pools[0].numRounds, pools[1].numRounds) + 1,
+        team1: null,
+        team2: null,
+        score1: null,
+        score2: null,
+        winner: null,
+        nextMatchId: null,
+        prevMatch1Id: lastMatchA.id,
+        prevMatch2Id: lastMatchB.id,
+      };
+
+      lastMatchA.nextMatchId = grandFinal.id;
+      lastMatchB.nextMatchId = grandFinal.id;
+    }
+  }
+
+  return {
+    pools,
+    grandFinal,
+    isMultiPool: true,
+    hasSharedFinal: sharedFinal,
+  };
+}
+
+/**
+ * Apply team assignment strategy to N pools
  */
 export function applyAssignment(
   teams: BracketTeam[],
-  strategy: "random" | "alternate" | "half" | "manual"
+  strategy: "random" | "alternate" | "half" | "manual",
+  poolCount: number = 2,
 ): BracketTeam[] {
-  if (strategy === "manual") {
+  if (strategy === "manual" || poolCount < 1) {
     return teams;
   }
 
+  const getSideLabel = (index: number) => String.fromCharCode(65 + index); // 0 -> A, 1 -> B, etc
+
   if (strategy === "random") {
     const shuffled = [...teams].sort(() => Math.random() - 0.5);
-    const halfPoint = Math.ceil(shuffled.length / 2);
+    const teamsPerPool = Math.ceil(shuffled.length / poolCount);
+
     return teams.map((t) => {
       const shuffledIndex = shuffled.findIndex((s) => s.id === t.id);
-      return {
-        ...t,
-        side: shuffledIndex < halfPoint ? "A" : "B",
-      } as BracketTeam;
+      const poolIndex = Math.min(
+        Math.floor(shuffledIndex / teamsPerPool),
+        poolCount - 1,
+      );
+      return { ...t, side: getSideLabel(poolIndex) };
     });
   }
 
   if (strategy === "alternate") {
     return teams.map((t, i) => ({
       ...t,
-      side: i % 2 === 0 ? "A" : "B",
-    })) as BracketTeam[];
+      side: getSideLabel(i % poolCount),
+    }));
   }
 
   if (strategy === "half") {
-    const halfPoint = Math.ceil(teams.length / 2);
+    const teamsPerPool = Math.ceil(teams.length / poolCount);
     return teams.map((t, i) => ({
       ...t,
-      side: i < halfPoint ? "A" : "B",
-    })) as BracketTeam[];
+      side: getSideLabel(Math.min(Math.floor(i / teamsPerPool), poolCount - 1)),
+    }));
   }
 
   return teams;
@@ -227,7 +320,7 @@ export function applyAssignment(
  */
 export function generateDualBracket(
   teams: BracketTeam[],
-  sharedFinal: boolean = true
+  sharedFinal: boolean = true,
 ): DualBracket {
   if (teams.length < 2) {
     throw new Error("Need at least 2 teams for a bracket");
@@ -313,7 +406,7 @@ export function updateMatchResult(
   bracket: Bracket,
   matchId: number,
   score1: number,
-  score2: number
+  score2: number,
 ): Bracket {
   const findAndUpdateMatch = (matches: BracketMatch[]): BracketMatch[] => {
     return matches.map((m) => {
@@ -328,7 +421,7 @@ export function updateMatchResult(
 
   const propagateWinner = (
     matches: BracketMatch[],
-    updatedMatchId: number
+    updatedMatchId: number,
   ): BracketMatch[] => {
     const updatedMatch = matches.find((m) => m.id === updatedMatchId);
     if (!updatedMatch || !updatedMatch.winner || !updatedMatch.nextMatchId)
@@ -345,6 +438,103 @@ export function updateMatchResult(
       return m;
     });
   };
+
+  if ((bracket as any).isMultiPool) {
+    const multi = bracket as MultiBracket;
+    let grandFinal = multi.grandFinal;
+    const pools = multi.pools.map((pool) => {
+      let matches = findAndUpdateMatch(pool.matches);
+      matches = propagateWinner(matches, matchId);
+      return { ...pool, matches };
+    });
+
+    // Propagate to grand final
+    if (grandFinal) {
+      // Find which pool final updated
+      pools.forEach((pool, idx) => {
+        const lastMatch = pool.matches[pool.matches.length - 1];
+        if (lastMatch && lastMatch.winner) {
+          if (grandFinal!.prevMatch1Id === lastMatch.id) {
+            grandFinal = { ...grandFinal!, team1: lastMatch.winner };
+          } else if (grandFinal!.prevMatch2Id === lastMatch.id) {
+            grandFinal = { ...grandFinal!, team2: lastMatch.winner };
+          }
+        }
+      });
+
+      if (matchId === grandFinal.id) {
+        const winner =
+          score1 > score2
+            ? grandFinal.team1
+            : score2 > score1
+              ? grandFinal.team2
+              : null;
+        grandFinal = { ...grandFinal, score1, score2, winner };
+      }
+    }
+
+    return { ...multi, pools, grandFinal };
+  }
+
+  if ((bracket as any).isDoubleElimination) {
+    const de = bracket as DoubleEliminationBracket;
+    let winnersMatches = findAndUpdateMatch(de.winnersMatches);
+    let losersMatches = findAndUpdateMatch(de.losersMatches);
+
+    // Propagate Winners in Winners Bracket
+    winnersMatches = propagateWinner(winnersMatches, matchId);
+    // Propagate Winners in Losers Bracket
+    losersMatches = propagateWinner(losersMatches, matchId);
+
+    // -- Handle Loser Propagation from Winners to Losers --
+    const updatedWinnerMatch = winnersMatches.find((m) => m.id === matchId);
+    if (updatedWinnerMatch && updatedWinnerMatch.loserMatchId) {
+      const loser =
+        score1 < score2
+          ? updatedWinnerMatch.team1
+          : score2 < score1
+            ? updatedWinnerMatch.team2
+            : null;
+      if (loser) {
+        losersMatches = losersMatches.map((lm) => {
+          if (lm.id === updatedWinnerMatch.loserMatchId) {
+            // Check if team1 is empty and doesn't have a winner-source
+            // Standard generateMatchesForBracket doesn't set prevMatchId for losers-bracket start
+            if (lm.prevMatch1Id === null && lm.team1 === null) {
+              return { ...lm, team1: loser };
+            } else {
+              return { ...lm, team2: loser };
+            }
+          }
+          return lm;
+        });
+      }
+    }
+
+    let grandFinal = de.grandFinal;
+    const lastWinnerMatch = winnersMatches[winnersMatches.length - 1];
+    const lastLoserMatch =
+      losersMatches.length > 0 ? losersMatches[losersMatches.length - 1] : null;
+
+    if (lastWinnerMatch && lastWinnerMatch.winner) {
+      grandFinal = { ...grandFinal, team1: lastWinnerMatch.winner };
+    }
+    if (lastLoserMatch && lastLoserMatch.winner) {
+      grandFinal = { ...grandFinal, team2: lastLoserMatch.winner };
+    }
+
+    if (matchId === grandFinal.id) {
+      const winner =
+        score1 > score2
+          ? grandFinal.team1
+          : score2 > score1
+            ? grandFinal.team2
+            : null;
+      grandFinal = { ...grandFinal, score1, score2, winner };
+    }
+
+    return { ...de, winnersMatches, losersMatches, grandFinal };
+  }
 
   if (bracket.isDualBracket) {
     const dual = bracket as DualBracket;
@@ -372,8 +562,8 @@ export function updateMatchResult(
           score1 > score2
             ? grandFinal.team1
             : score2 > score1
-            ? grandFinal.team2
-            : null;
+              ? grandFinal.team2
+              : null;
         grandFinal = { ...grandFinal, score1, score2, winner };
       }
     }
@@ -385,6 +575,161 @@ export function updateMatchResult(
     matches = propagateWinner(matches, matchId);
     return { ...single, matches };
   }
+}
+
+/**
+ * Generate a double elimination bracket
+ */
+export function generateDoubleEliminationBracket(
+  teams: BracketTeam[],
+): DoubleEliminationBracket {
+  if (teams.length < 2) {
+    throw new Error("Need at least 2 teams for a bracket");
+  }
+
+  const bracketSize = getBracketSize(teams.length);
+  const numWinnersRounds = getNumRounds(bracketSize);
+  const seeded = seedTeamsInOrder(teams, bracketSize);
+
+  // 1. Generate Winners Bracket
+  const winnersMatches = generateMatchesForBracket(seeded, numWinnersRounds, 0);
+  let currentIdOffset = Math.max(...winnersMatches.map((m) => m.id));
+
+  // 2. Generate Losers Bracket
+  // Pattern:
+  // LR1: WR1 losers (Match count: winnersMatchesPerRound[0] / 2)
+  // LR2: (Winners of LR1) vs (Losers of WR2)
+  // LR3: (Winners of LR2) against each other
+  // LR4: (Winners of LR3) vs (Losers of WR3)
+  // ...
+
+  const losersMatches: BracketMatch[] = [];
+  const winnersMatchesPerRound: BracketMatch[][] = [];
+  for (let r = 1; r <= numWinnersRounds; r++) {
+    winnersMatchesPerRound.push(winnersMatches.filter((m) => m.round === r));
+  }
+
+  let prevLoserRoundMatches: BracketMatch[] = [];
+  let loserRound = 1;
+
+  // -- LR1: Losers from Winners R1 --
+  const wr1Matches = winnersMatchesPerRound[0];
+  const lr1MatchCount = wr1Matches.length / 2;
+
+  if (lr1MatchCount > 0) {
+    for (let i = 0; i < lr1MatchCount; i++) {
+      const match: BracketMatch = {
+        id: ++currentIdOffset,
+        round: loserRound,
+        team1: null, // From WR1 match i*2 loser
+        team2: null, // From WR1 match i*2+1 loser
+        score1: null,
+        score2: null,
+        winner: null,
+        nextMatchId: null,
+        prevMatch1Id: null,
+        prevMatch2Id: null,
+      };
+      // Link losers
+      wr1Matches[i * 2].loserMatchId = match.id;
+      wr1Matches[i * 2 + 1].loserMatchId = match.id;
+      losersMatches.push(match);
+      prevLoserRoundMatches.push(match);
+    }
+    loserRound++;
+  } else if (wr1Matches.length === 1) {
+    // Special case for 2 teams: WR1 has 1 match.
+    // Loser of WR1 goes straight to some "Final losers" match?
+    // Actually 2 teams double-elim is just WR1 -> Final.
+  }
+
+  // -- Subsequent Loser Rounds (LR2 to L_2n-2) --
+  for (let wrr = 2; wrr <= numWinnersRounds; wrr++) {
+    // Major Round: Winners of prev LR vs Losers of current WR
+    const currentWRMatches = winnersMatchesPerRound[wrr - 1]; // wrr is 2, 3... index is 1, 2...
+    if (currentWRMatches.length === 0) break;
+
+    const majorMatches: BracketMatch[] = [];
+    for (let i = 0; i < currentWRMatches.length; i++) {
+      const prevMatch = prevLoserRoundMatches[i];
+      const match: BracketMatch = {
+        id: ++currentIdOffset,
+        round: loserRound,
+        team1: null, // From prevMatch winner
+        team2: null, // From currentWRMatches[i] loser
+        score1: null,
+        score2: null,
+        winner: null,
+        nextMatchId: null,
+        prevMatch1Id: prevMatch ? prevMatch.id : null,
+        prevMatch2Id: null, // Will be linked via loserMatchId on the WR match
+      };
+
+      if (prevMatch) prevMatch.nextMatchId = match.id;
+      currentWRMatches[i].loserMatchId = match.id;
+
+      losersMatches.push(match);
+      majorMatches.push(match);
+    }
+    prevLoserRoundMatches = majorMatches;
+    loserRound++;
+
+    // Minor Round (if not final): Winners of prev major round vs each other
+    if (prevLoserRoundMatches.length > 1) {
+      const minorMatches: BracketMatch[] = [];
+      for (let i = 0; i < prevLoserRoundMatches.length / 2; i++) {
+        const m1 = prevLoserRoundMatches[i * 2];
+        const m2 = prevLoserRoundMatches[i * 2 + 1];
+        const match: BracketMatch = {
+          id: ++currentIdOffset,
+          round: loserRound,
+          team1: null,
+          team2: null,
+          score1: null,
+          score2: null,
+          winner: null,
+          nextMatchId: null,
+          prevMatch1Id: m1.id,
+          prevMatch2Id: m2.id,
+        };
+        m1.nextMatchId = match.id;
+        m2.nextMatchId = match.id;
+        losersMatches.push(match);
+        minorMatches.push(match);
+      }
+      prevLoserRoundMatches = minorMatches;
+      loserRound++;
+    }
+  }
+
+  // 3. Grand Final
+  const winnersFinal = winnersMatches[winnersMatches.length - 1];
+  const losersFinal =
+    losersMatches.length > 0 ? losersMatches[losersMatches.length - 1] : null;
+
+  const grandFinal: BracketMatch = {
+    id: ++currentIdOffset,
+    round: Math.max(numWinnersRounds, losersFinal ? losersFinal.round : 0) + 1,
+    team1: null, // Winners Final winner
+    team2: null, // Losers Final winner
+    score1: null,
+    score2: null,
+    winner: null,
+    nextMatchId: null,
+    prevMatch1Id: winnersFinal.id,
+    prevMatch2Id: losersFinal ? losersFinal.id : null,
+  };
+
+  winnersFinal.nextMatchId = grandFinal.id;
+  if (losersFinal) losersFinal.nextMatchId = grandFinal.id;
+
+  return {
+    winnersMatches,
+    losersMatches,
+    grandFinal,
+    teams,
+    isDoubleElimination: true,
+  };
 }
 
 /**

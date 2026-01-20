@@ -84,10 +84,10 @@ const SupportPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             How Can We Help?
           </h1>
-          <p className="text-secondary text-lg mb-8">
+          <p className="text-muted-foreground text-lg mb-8">
             Find answers to common questions or get in touch with our support
             team.
           </p>
@@ -97,9 +97,9 @@ const SupportPage: React.FC = () => {
               placeholder="Search for answers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-card border border-theme rounded-xl px-5 py-3 pr-12 text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+              className="w-full bg-card border border-border rounded-xl px-5 py-3 pr-12 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
             />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
               🔍
             </span>
           </div>
@@ -110,22 +110,22 @@ const SupportPage: React.FC = () => {
           {filteredFaqs.length > 0 ? (
             filteredFaqs.map((cat, idx) => (
               <div key={idx} className="mb-10">
-                <h3 className="text-xl font-semibold text-primary mb-4">
+                <h3 className="text-xl font-semibold text-foreground mb-4">
                   {cat.category}
                 </h3>
                 <div className="space-y-3">
                   {cat.items.map((item, iIdx) => (
                     <details
                       key={iIdx}
-                      className="group bg-card border border-theme rounded-xl overflow-hidden"
+                      className="group bg-card border border-border rounded-xl overflow-hidden"
                     >
-                      <summary className="flex items-center justify-between p-4 cursor-pointer text-primary font-medium hover:bg-elevated transition-colors">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer text-foreground font-medium hover:bg-popover transition-colors">
                         <span>{item.q}</span>
                         <span className="text-accent text-xl group-open:rotate-45 transition-transform">
                           +
                         </span>
                       </summary>
-                      <div className="px-4 pb-4 text-secondary leading-relaxed">
+                      <div className="px-4 pb-4 text-muted-foreground leading-relaxed">
                         <p>{item.a}</p>
                       </div>
                     </details>
@@ -135,7 +135,7 @@ const SupportPage: React.FC = () => {
             ))
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted text-lg">
+              <p className="text-muted-foreground text-lg">
                 No results found for "{search}"
               </p>
             </div>
@@ -144,14 +144,14 @@ const SupportPage: React.FC = () => {
 
         {/* Contact Section */}
         <section>
-          <div className="bg-card border border-theme rounded-2xl overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
             <div className="grid md:grid-cols-2">
               {/* Contact Info */}
-              <div className="p-8 bg-elevated">
-                <h3 className="text-2xl font-bold text-primary mb-4">
+              <div className="p-8 bg-popover">
+                <h3 className="text-2xl font-bold text-foreground mb-4">
                   Still Need Help?
                 </h3>
-                <p className="text-secondary mb-8">
+                <p className="text-muted-foreground mb-8">
                   Our support team is available Monday through Friday to assist
                   you.
                 </p>
@@ -159,7 +159,7 @@ const SupportPage: React.FC = () => {
                   <div className="flex items-start gap-4">
                     <span className="text-2xl">✉️</span>
                     <div>
-                      <strong className="text-primary block mb-1">
+                      <strong className="text-foreground block mb-1">
                         Email Us
                       </strong>
                       <a
@@ -173,7 +173,7 @@ const SupportPage: React.FC = () => {
                   <div className="flex items-start gap-4">
                     <span className="text-2xl">📸</span>
                     <div>
-                      <strong className="text-primary block mb-1">
+                      <strong className="text-foreground block mb-1">
                         Instagram
                       </strong>
                       <a
@@ -191,12 +191,12 @@ const SupportPage: React.FC = () => {
 
               {/* Contact Form */}
               <form className="p-8" onSubmit={handleContactSubmit}>
-                <h3 className="text-2xl font-bold text-primary mb-6">
+                <h3 className="text-2xl font-bold text-foreground mb-6">
                   Send us a Message
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Name
                     </label>
                     <input
@@ -205,11 +205,11 @@ const SupportPage: React.FC = () => {
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
                       placeholder="Your name"
-                      className="w-full bg-elevated border border-theme rounded-lg px-4 py-3 text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full bg-popover border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Email
                     </label>
                     <input
@@ -218,18 +218,18 @@ const SupportPage: React.FC = () => {
                       value={contactEmail}
                       onChange={(e) => setContactEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className="w-full bg-elevated border border-theme rounded-lg px-4 py-3 text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                      className="w-full bg-popover border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Subject
                     </label>
                     <select
                       required
                       value={contactSubject}
                       onChange={(e) => setContactSubject(e.target.value)}
-                      className="w-full bg-elevated border border-theme rounded-lg px-4 py-3 text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
+                      className="w-full bg-popover border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-accent transition-colors cursor-pointer"
                     >
                       <option value="" disabled>
                         Select a topic
@@ -240,7 +240,7 @@ const SupportPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-secondary mb-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
                       Message
                     </label>
                     <textarea
@@ -249,7 +249,7 @@ const SupportPage: React.FC = () => {
                       value={contactMessage}
                       onChange={(e) => setContactMessage(e.target.value)}
                       placeholder="How can we help?"
-                      className="w-full bg-elevated border border-theme rounded-lg px-4 py-3 text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors resize-none"
+                      className="w-full bg-popover border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors resize-none"
                     ></textarea>
                   </div>
                   <button

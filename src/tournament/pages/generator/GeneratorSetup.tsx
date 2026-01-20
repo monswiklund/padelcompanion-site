@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Card } from "@/components/ui/Card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { PlayerList } from "@/components/tournament/PlayerList";
@@ -66,7 +66,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
 
       const generatedSchedule = result.schedule || [];
       const validSchedule = generatedSchedule.filter(
-        (r: any) => r && r.matches && r.matches.length > 0
+        (r: any) => r && r.matches && r.matches.length > 0,
       );
 
       if (generatedSchedule.length > 0 && validSchedule.length === 0) {
@@ -109,7 +109,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     if (courts <= 1) return null;
     return (
       <select
-        className="bg-black/20 text-xs px-2 py-1 rounded-lg border border-theme text-secondary focus:outline-none focus:border-accent"
+        className="bg-black/20 text-xs px-2 py-1 rounded-lg border border-border text-muted-foreground focus:outline-none focus:border-accent"
         value={p.lockedCourt || ""}
         onChange={(e) => {
           const val = e.target.value ? parseInt(e.target.value) : null;
@@ -137,14 +137,14 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold text-primary">
+          <h2 className="text-3xl font-bold text-foreground">
             {format === "americano"
               ? "Americano"
               : format === "mexicano"
-              ? "Mexicano"
-              : format === "team"
-              ? "Team"
-              : "Team Mexicano"}{" "}
+                ? "Mexicano"
+                : format === "team"
+                  ? "Team"
+                  : "Team Mexicano"}{" "}
             Setup
           </h2>
           <HelpButton
@@ -160,7 +160,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
             }
           />
         </div>
-        <p className="text-secondary">
+        <p className="text-muted-foreground">
           Add players and configure your tournament settings.
         </p>
       </div>
@@ -181,7 +181,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
       {/* Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Players Section */}
-        <Card>
+        <GlassCard>
           <PlayerList
             items={players}
             onAdd={handleAddPlayer}
@@ -200,10 +200,10 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
                   // Check against current players AND players being added this batch
                   const isDuplicate =
                     players.some(
-                      (p) => p.name.toLowerCase() === name.toLowerCase()
+                      (p) => p.name.toLowerCase() === name.toLowerCase(),
                     ) ||
                     addedPlayers.some(
-                      (p) => p.name.toLowerCase() === name.toLowerCase()
+                      (p) => p.name.toLowerCase() === name.toLowerCase(),
                     );
 
                   if (!isDuplicate) {
@@ -249,7 +249,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
 
         {/* Config Section */}
         <div className="space-y-6">
-          <Card>
+          <GlassCard>
             <TournamentConfig
               config={{
                 format: state.format,
@@ -275,10 +275,10 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
             >
               Generate Schedule
             </Button>
-          </Card>
+          </GlassCard>
 
           {format.includes("mexicano") && (
-            <Card>
+            <GlassCard>
               <PreferredPartners
                 pairs={pairs}
                 players={players}
@@ -300,7 +300,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
                   });
                 }}
               />
-            </Card>
+            </GlassCard>
           )}
         </div>
       </div>

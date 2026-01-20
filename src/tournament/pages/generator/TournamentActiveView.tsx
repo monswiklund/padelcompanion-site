@@ -121,20 +121,20 @@ const TournamentActiveView: React.FC = () => {
       {/* Header */}
       <header className="mb-8">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-primary mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             {tournamentName || "Live Tournament"}
           </h2>
           <div className="flex flex-wrap justify-center gap-3">
             <span className="px-3 py-1 bg-accent/10 text-accent text-sm font-medium rounded-full">
               {formatLabel}
             </span>
-            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+            <span className="px-3 py-1 bg-card text-muted-foreground text-sm font-medium rounded-full border border-border">
               {courts} Courts
             </span>
-            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+            <span className="px-3 py-1 bg-card text-muted-foreground text-sm font-medium rounded-full border border-border">
               {scoringLabel}
             </span>
-            <span className="px-3 py-1 bg-card text-secondary text-sm font-medium rounded-full border border-theme">
+            <span className="px-3 py-1 bg-card text-muted-foreground text-sm font-medium rounded-full border border-border">
               {scoringMode === "time"
                 ? `${pointsPerMatch} Mins`
                 : `${pointsPerMatch} Pts`}
@@ -145,11 +145,11 @@ const TournamentActiveView: React.FC = () => {
         <MatchTimer />
 
         {/* Tool Panel */}
-        <div className="bg-card/50 backdrop-blur-md border border-theme rounded-2xl p-4 max-w-4xl mx-auto">
+        <div className="bg-card/50 backdrop-blur-md border border-border rounded-2xl p-4 max-w-4xl mx-auto">
           {/* Actions Row */}
           <div className="flex flex-wrap gap-3 justify-center items-center mb-4">
             <button
-              className="px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
               onClick={handleUndo}
               title="Undo last action"
             >
@@ -175,7 +175,7 @@ const TournamentActiveView: React.FC = () => {
             </button>
 
             <button
-              className="px-3 py-1.5 text-sm font-medium text-muted hover:text-primary hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
               onClick={handleReset}
             >
               <span>🔄</span> Reset
@@ -186,8 +186,8 @@ const TournamentActiveView: React.FC = () => {
 
           {/* Settings Row */}
           <div className="flex flex-wrap gap-6 justify-center items-center text-sm">
-            <div className="flex items-center gap-3 bg-elevated/50 px-3 py-2 rounded-lg border border-theme">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted">
+            <div className="flex items-center gap-3 bg-popover/50 px-3 py-2 rounded-lg border border-border">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Grid
               </span>
               <input
@@ -205,13 +205,13 @@ const TournamentActiveView: React.FC = () => {
                   })
                 }
               />
-              <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1 text-secondary">
+              <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1 text-muted-foreground">
                 {state.gridColumns || "Auto"}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 bg-elevated/50 px-3 py-2 rounded-lg border border-theme">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted">
+            <div className="flex items-center gap-3 bg-popover/50 px-3 py-2 rounded-lg border border-border">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Text Size
               </span>
               <input
@@ -229,7 +229,7 @@ const TournamentActiveView: React.FC = () => {
                   })
                 }
               />
-              <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1 text-secondary">
+              <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1 text-muted-foreground">
                 {state.textSize}%
               </span>
             </div>

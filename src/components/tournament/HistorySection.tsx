@@ -92,10 +92,10 @@ export const HistorySection: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-primary mb-1">
+          <h3 className="text-xl font-bold text-foreground mb-1">
             Tournament History
           </h3>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-muted-foreground">
             Your past {history.length} tournaments
           </p>
         </div>
@@ -104,7 +104,7 @@ export const HistorySection: React.FC = () => {
           <input
             type="text"
             placeholder="Search history..."
-            className="w-full px-4 py-2 rounded-lg bg-elevated border border-theme text-primary placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+            className="w-full px-4 py-2 rounded-lg bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -112,27 +112,27 @@ export const HistorySection: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-card border border-theme rounded-2xl overflow-hidden">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-theme">
-                <th className="text-left text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3">
+              <tr className="border-b border-border">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                   Date
                 </th>
-                <th className="text-left text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                   Tournament
                 </th>
-                <th className="text-left text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
                   Format
                 </th>
-                <th className="text-left text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3 hidden md:table-cell">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden md:table-cell">
                   Winner
                 </th>
-                <th className="text-left text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3 hidden lg:table-cell">
+                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden lg:table-cell">
                   Players
                 </th>
-                <th className="text-right text-xs font-semibold text-muted uppercase tracking-wider px-4 py-3">
+                <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
                   Actions
                 </th>
               </tr>
@@ -141,17 +141,17 @@ export const HistorySection: React.FC = () => {
               {filteredHistory.map((item) => (
                 <tr
                   key={item.id}
-                  className="border-b border-theme last:border-b-0 hover:bg-elevated/50 transition-colors"
+                  className="border-b border-border last:border-b-0 hover:bg-popover/50 transition-colors"
                 >
-                  <td className="px-4 py-3 text-sm text-secondary">
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {new Date(item.savedAt).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3">
-                    <span className="font-semibold text-primary">
+                    <span className="font-semibold text-foreground">
                       {item.summary.name || "Untitled Tournament"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted capitalize hidden sm:table-cell">
+                  <td className="px-4 py-3 text-sm text-muted-foreground capitalize hidden sm:table-cell">
                     {item.summary.format}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
@@ -159,7 +159,7 @@ export const HistorySection: React.FC = () => {
                       🏆 {item.summary.winner}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted hidden lg:table-cell">
+                  <td className="px-4 py-3 text-sm text-muted-foreground hidden lg:table-cell">
                     {item.summary.playerCount} players ·{" "}
                     {item.summary.roundCount} rounds
                   </td>
@@ -210,7 +210,7 @@ export const HistorySection: React.FC = () => {
         </div>
 
         {filteredHistory.length === 0 && (
-          <div className="py-12 text-center text-muted">
+          <div className="py-12 text-center text-muted-foreground">
             No history found matching "{search}"
           </div>
         )}

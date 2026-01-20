@@ -1,4 +1,12 @@
-// Shared Utility Functions
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+/**
+ * Merge Tailwind classes with clsx
+ */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 /**
  * Shuffle an array in place using Fisher-Yates algorithm
@@ -24,7 +32,7 @@ interface ToastOptions {
  */
 export function showToast(
   message: string,
-  options: ToastOptions | number | string = {}
+  options: ToastOptions | number | string = {},
 ): void {
   let type: ToastType = "default";
   let duration: number | undefined;

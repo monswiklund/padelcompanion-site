@@ -10,9 +10,9 @@ const variantClasses = {
   primary:
     "bg-accent hover:bg-accent-dark text-white shadow-sm hover:shadow-md",
   secondary:
-    "bg-card hover:bg-elevated border border-theme text-primary hover:border-accent/50",
+    "bg-card hover:bg-popover border border-border text-foreground hover:border-accent/50",
   danger: "bg-error/10 hover:bg-error/20 text-error border border-error/30",
-  ghost: "bg-transparent hover:bg-white/5 text-secondary hover:text-primary",
+  ghost: "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground",
 };
 
 const sizeClasses = {

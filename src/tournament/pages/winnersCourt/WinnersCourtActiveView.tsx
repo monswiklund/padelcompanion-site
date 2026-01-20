@@ -1,7 +1,7 @@
 import React from "react";
 import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { GlassCard } from "@/components/ui/GlassCard";
 import { WCCourt } from "./WCCourt";
 import { showConfirmModal } from "../../core/modals";
 import { showToast } from "@/shared/utils";
@@ -15,7 +15,7 @@ export const WinnersCourtActiveView: React.FC = () => {
 
   const { sides, twist } = wc;
   const activeSides = Object.keys(sides).filter(
-    (s) => sides[s]?.courts?.length > 0
+    (s) => sides[s]?.courts?.length > 0,
   );
 
   const handleNextRound = (side: string) => {
@@ -35,7 +35,7 @@ export const WinnersCourtActiveView: React.FC = () => {
       () => {
         dispatch({ type: "CLEAR_WC_SIDE", side });
         showToast(`Side ${side} cleared`);
-      }
+      },
     );
   };
 
@@ -47,8 +47,10 @@ export const WinnersCourtActiveView: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
       {/* Header */}
       <div className="text-center max-w-lg mx-auto mb-8">
-        <h2 className="text-3xl font-bold text-primary mb-2">Winners Court</h2>
-        <p className="text-secondary">
+        <h2 className="text-3xl font-bold text-foreground mb-2">
+          Winners Court
+        </h2>
+        <p className="text-muted-foreground">
           Promotion and relegation based on wins.
         </p>
       </div>
@@ -56,7 +58,7 @@ export const WinnersCourtActiveView: React.FC = () => {
       <div className="flex gap-8 flex-wrap justify-center">
         {activeSides.map((side) => (
           <div key={side} className="flex-1 min-w-80 max-w-xl">
-            <Card
+            <GlassCard
               className={`border-2 ${
                 side === "A" ? "border-accent/40" : "border-warning/40"
               }`}
@@ -88,7 +90,7 @@ export const WinnersCourtActiveView: React.FC = () => {
               </div>
 
               {twist && (
-                <div className="text-xs text-muted italic mb-4">
+                <div className="text-xs text-muted-foreground italic mb-4">
                   Twist Mode Active
                 </div>
               )}
@@ -104,18 +106,18 @@ export const WinnersCourtActiveView: React.FC = () => {
                   />
                 ))}
               </div>
-            </Card>
+            </GlassCard>
 
             {/* History for this side */}
             {sides[side].history && sides[side].history.length > 0 && (
               <div className="mt-8">
-                <h4 className="text-sm font-bold text-muted mb-4 uppercase tracking-wider">
+                <h4 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wider">
                   Previous Rounds
                 </h4>
                 <div className="flex flex-col gap-8 opacity-60">
                   {[...sides[side].history].reverse().map((roundData: any) => (
                     <div key={roundData.round}>
-                      <div className="text-xs text-muted mb-2">
+                      <div className="text-xs text-muted-foreground mb-2">
                         Round {roundData.round}
                       </div>
                       <div className="grid gap-2 scale-90 origin-top-left">
