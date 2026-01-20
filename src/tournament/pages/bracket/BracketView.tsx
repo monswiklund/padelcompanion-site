@@ -196,7 +196,7 @@ const StandardBracketTree: React.FC<{ root: TreeNode; onMatchClick: (id: number)
 
       {/* Children (Previous Rounds) */}
       {root.children.length > 0 && (
-        <div className="flex flex-col justify-center mr-6 relative"> <!-- mr (margin right) pushes children away to left -->
+        <div className="flex flex-col justify-center mr-6 relative"> {/* mr (margin right) pushes children away to left */}
            {/* We need to clear margin logic. Flex-row-reverse: 
               [Final] <--- [Semis] <--- [Quarters]
            */}

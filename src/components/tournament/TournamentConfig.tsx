@@ -15,8 +15,9 @@ export interface TournamentConfigState {
   scoringMode: "total" | "race" | "time";
   pointsPerMatch: number;
   maxRepeats: number;
-  pairingStrategy: "optimal" | "oneThree" | "oneTwo" | "oneFour";
+  pairingStrategy: "optimal" | "oneTwo" | "oneThree" | "oneFour";
   strictStrategy: boolean;
+  allowCourtChange: boolean;
   courtFormat: "number" | "court" | "custom";
   customCourtNames: string[];
 }
@@ -75,80 +76,258 @@ const CONFIG_OPTIONS = {
 };
 
 export const TournamentConfig: React.FC<TournamentConfigProps> = ({
+
   config,
+
   playerCount,
+
   onChange,
+
 }) => {
+
+  const isTeamMex = config.format === "teamMexicano";
+
+  // If current format is teamMexicano, base is mexicano. Otherwise respect current format.
+
+  // Note: 'team' format is effectively deprecated in UI but handled as 'americano' base if present.
+
+  const baseFormat = isTeamMex ? "mexicano" : (config.format === "team" ? "americano" : config.format);
+
+
+
   const isMexicano =
+
     config.format === "mexicano" || config.format === "teamMexicano";
+
   const effectiveMaxCourts = Math.max(1, Math.floor(playerCount / 4));
 
-  const handleNumberChange = (
-    key: keyof TournamentConfigState,
-    val: number,
-    min: number,
-    max: number
-  ) => {
-    const clamped = Math.min(max, Math.max(min, val));
-    onChange(key, clamped);
+
+
+  const handleFormatChange = (f: string) => {
+
+    // When switching format, reset to individual version
+
+    onChange("format", f);
+
   };
+
+
+
+  const toggleTeamMexicano = () => {
+
+    onChange("format", config.format === "mexicano" ? "teamMexicano" : "mexicano");
+
+  };
+
+
+
+  const handleNumberChange = (
+
+    key: keyof TournamentConfigState,
+
+    val: number,
+
+    min: number,
+
+    max: number,
+
+  ) => {
+
+    const clamped = Math.min(max, Math.max(min, val));
+
+    onChange(key, clamped);
+
+  };
+
+
 
   const getPointsLabel = () => {
+
     if (config.scoringMode === "time") return "Minutes";
+
     if (config.scoringMode === "race") return "Race to";
+
     return "Total Points";
+
   };
 
+
+
   return (
+
     <div className="space-y-6">
+
       {/* Format Selector */}
+
       <Section
+
         title="Format"
+
         help={
+
           CONFIG_OPTIONS.format.find((o) => o.value === config.format)?.help
+
         }
+
       >
+
         <div className="grid grid-cols-2 gap-2">
-          {CONFIG_OPTIONS.format.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              className={`py-3 px-3 rounded-xl text-left transition-all ${
-                config.format === o.value
-                  ? "bg-accent text-white ring-2 ring-accent/30"
-                  : "bg-popover border border-border text-muted-foreground hover:text-foreground hover:border-accent/50"
-              }`}
-              onClick={() => onChange("format", o.value)}
-            >
-              <div className="font-semibold text-sm">{o.label}</div>
-              <div
-                className={`text-xs ${
-                  config.format === o.value ? "text-white/70" : "text-muted-foreground"
+
+          {["americano", "mexicano"].map((f) => {
+
+            const opt = CONFIG_OPTIONS.format.find((o) => o.value === f)!;
+
+            const isActive = baseFormat === f;
+
+            return (
+
+              <button
+
+                key={f}
+
+                type="button"
+
+                className={`py-3 px-3 rounded-xl text-left transition-all ${
+
+                  isActive
+
+                    ? "bg-accent text-white ring-2 ring-accent/30"
+
+                    : "bg-popover border border-border text-muted-foreground hover:text-foreground hover:border-accent/50"
+
                 }`}
+
+                onClick={() => handleFormatChange(f)}
+
               >
-                {o.desc}
-              </div>
-            </button>
-          ))}
+
+                <div className="font-semibold text-sm">{opt.label}</div>
+
+                <div
+
+                  className={`text-xs ${
+
+                    isActive ? "text-white/70" : "text-muted-foreground"
+
+                  }`}
+
+                >
+
+                  {opt.desc}
+
+                </div>
+
+              </button>
+
+            );
+
+          })}
+
         </div>
+
       </Section>
 
-      {/* Game Settings */}
-      <Section title="Game Settings">
-        <div className="divide-y divide-white/[0.06]">
-          <ConfigRow label="Courts" hint="Simultaneous courts">
-            <Stepper
-              value={config.courts}
-              min={1}
-              max={effectiveMaxCourts}
-              onChange={(v) =>
-                handleNumberChange("courts", v, 1, effectiveMaxCourts)
-              }
-              disabledMax={config.courts >= effectiveMaxCourts}
-            />
-          </ConfigRow>
 
-          <ConfigRow label="Scoring" hint="Win condition">
+
+      {/* Game Settings */}
+
+      <Section title="Game Settings">
+
+        <div className="divide-y divide-white/[0.06]">
+
+          {baseFormat === "mexicano" && (
+
+            <ConfigRow label="Team Mode" hint="Fixed teams">
+
+              <Toggle enabled={isTeamMex} onChange={toggleTeamMexicano} />
+
+            </ConfigRow>
+
+          )}
+
+
+
+                    <ConfigRow label="Courts" hint="Simultaneous courts">
+
+
+
+                      <Stepper
+
+
+
+                        value={config.courts}
+
+
+
+                        min={1}
+
+
+
+                        max={effectiveMaxCourts}
+
+
+
+                        onChange={(v) =>
+
+
+
+                          handleNumberChange("courts", v, 1, effectiveMaxCourts)
+
+
+
+                        }
+
+
+
+                        disabledMax={config.courts >= effectiveMaxCourts}
+
+
+
+                      />
+
+
+
+                    </ConfigRow>
+
+
+
+          
+
+
+
+                    <ConfigRow label="Court Toggle" hint="Allow manual court swap">
+
+
+
+                      <Toggle
+
+
+
+                        enabled={config.allowCourtChange ?? true}
+
+
+
+                        onChange={() => onChange("allowCourtChange", !(config.allowCourtChange ?? true))}
+
+
+
+                      />
+
+
+
+                    </ConfigRow>
+
+
+
+          
+
+
+
+                    <ConfigRow label="Scoring" hint="Win condition">
+
+
+
+          
             <select
               className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
               value={config.scoringMode}

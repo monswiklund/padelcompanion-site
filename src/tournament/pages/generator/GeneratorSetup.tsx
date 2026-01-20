@@ -245,7 +245,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
               </div>
             }
           />
-        </Card>
+        </GlassCard>
 
         {/* Config Section */}
         <div className="space-y-6">
@@ -259,6 +259,7 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
                 maxRepeats: state.maxRepeats,
                 pairingStrategy: state.pairingStrategy,
                 strictStrategy: state.strictStrategy,
+                allowCourtChange: state.allowCourtChange,
                 courtFormat: state.courtFormat,
                 customCourtNames: state.customCourtNames,
               }}

@@ -9,7 +9,7 @@ import { launchConfetti } from "@/tournament/confetti";
 import { saveToHistory } from "@/tournament/history/repository";
 
 const TournamentActiveView: React.FC = () => {
-  const { state, dispatch } = useTournament();
+  const { state, dispatch, undo, canUndo } = useTournament();
   const { tournamentName, format, courts, scoringMode, pointsPerMatch } = state;
 
   useEffect(() => {
@@ -57,7 +57,10 @@ const TournamentActiveView: React.FC = () => {
   };
 
   const handleUndo = () => {
-    console.log("Undo not implemented yet in React");
+    if (canUndo) {
+      undo();
+      showToast("Undo successful");
+    }
   };
 
   const handleAddLatePlayer = () => {
@@ -144,94 +147,105 @@ const TournamentActiveView: React.FC = () => {
 
         <MatchTimer />
 
-        {/* Tool Panel */}
-        <div className="bg-card/50 backdrop-blur-md border border-border rounded-2xl p-4 max-w-4xl mx-auto">
-          {/* Actions Row */}
-          <div className="flex flex-wrap gap-3 justify-center items-center mb-4">
-            <button
-              className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
-              onClick={handleUndo}
-              title="Undo last action"
-            >
-              <span>↩</span> Undo
-            </button>
+        {/* Enhanced Sticky Toolbar */}
+        <div className="sticky top-20 z-40 mb-8 mx-auto max-w-4xl">
+          <div className="bg-card/80 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl p-2 md:p-3 transition-all duration-300">
+            <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+              
+              {/* Primary Actions Group */}
+              <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-start">
+                <button
+                  className={`p-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                    canUndo
+                      ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border border-border hover:border-accent/30 shadow-sm"
+                      : "opacity-40 cursor-not-allowed bg-popover/50 text-muted-foreground border border-transparent"
+                  }`}
+                  onClick={handleUndo}
+                  disabled={!canUndo}
+                  title="Undo last action"
+                >
+                  <span className="text-lg">↩</span>
+                  <span className="hidden sm:inline text-sm font-medium">Undo</span>
+                </button>
 
-            <div className="w-px h-6 bg-theme hidden sm:block" />
+                <div className="w-px h-8 bg-border hidden sm:block mx-1" />
 
-            <button
-              className="px-4 py-2 text-sm font-medium bg-accent hover:bg-accent-dark text-white rounded-lg transition-colors flex items-center gap-2 shadow-md"
-              onClick={handleAddLatePlayer}
-            >
-              <span className="text-lg">+</span> Add Player
-            </button>
+                <button
+                  className="flex-1 sm:flex-none py-3 px-4 bg-accent hover:bg-accent-dark text-white rounded-xl font-bold shadow-lg shadow-accent/20 hover:shadow-accent/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={handleAddLatePlayer}
+                >
+                  <span className="text-lg">+</span>
+                  <span className="text-sm">Add Player</span>
+                </button>
+              </div>
 
-            <div className="flex-1" />
+              {/* Settings & Destructive Group */}
+              <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+                
+                {/* View Settings (Compact) */}
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5">
+                    <span className="text-xs font-bold text-muted-foreground ml-1">GRID</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="4"
+                      step="1"
+                      className="w-16 accent-accent cursor-pointer"
+                      value={state.gridColumns}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "UPDATE_FIELD",
+                          key: "gridColumns",
+                          value: parseInt(e.target.value),
+                        })
+                      }
+                      title="Adjust Grid Columns"
+                    />
+                  </div>
 
-            <button
-              className="px-3 py-1.5 text-sm font-medium text-success hover:bg-success/10 rounded-lg transition-colors flex items-center gap-2"
-              onClick={handleEnd}
-            >
-              <span>🏆</span> Finish Tournament
-            </button>
+                  <div className="flex items-center gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5">
+                    <span className="text-xs font-bold text-muted-foreground ml-1">SIZE</span>
+                    <input
+                      type="range"
+                      min="50"
+                      max="350"
+                      step="10"
+                      className="w-16 accent-accent cursor-pointer"
+                      value={state.textSize}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "UPDATE_FIELD",
+                          key: "textSize",
+                          value: parseInt(e.target.value),
+                        })
+                      }
+                      title="Adjust Text Size"
+                    />
+                  </div>
+                </div>
 
-            <button
-              className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
-              onClick={handleReset}
-            >
-              <span>🔄</span> Reset
-            </button>
-          </div>
+                <div className="w-px h-8 bg-border hidden sm:block mx-1" />
 
-          <div className="h-px bg-theme w-full mb-4" />
+                {state.schedule.some((r) => r.completed) && (
+                  <button
+                    className="py-2.5 px-4 bg-success/10 hover:bg-success/20 text-success border border-success/20 rounded-xl font-bold transition-all hover:scale-105 flex items-center gap-2"
+                    onClick={handleEnd}
+                    title="Finish & Save"
+                  >
+                    🏆 <span className="hidden sm:inline">Finish</span>
+                  </button>
+                )}
 
-          {/* Settings Row */}
-          <div className="flex flex-wrap gap-6 justify-center items-center text-sm">
-            <div className="flex items-center gap-3 bg-popover/50 px-3 py-2 rounded-lg border border-border">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Grid
-              </span>
-              <input
-                type="range"
-                min="0"
-                max="4"
-                step="1"
-                className="w-24 accent-accent"
-                value={state.gridColumns}
-                onChange={(e) =>
-                  dispatch({
-                    type: "UPDATE_FIELD",
-                    key: "gridColumns",
-                    value: parseInt(e.target.value),
-                  })
-                }
-              />
-              <span className="w-8 text-center font-mono text-xs bg-black/20 rounded px-1 text-muted-foreground">
-                {state.gridColumns || "Auto"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 bg-popover/50 px-3 py-2 rounded-lg border border-border">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Text Size
-              </span>
-              <input
-                type="range"
-                min="50"
-                max="350"
-                step="10"
-                className="w-32 accent-accent"
-                value={state.textSize}
-                onChange={(e) =>
-                  dispatch({
-                    type: "UPDATE_FIELD",
-                    key: "textSize",
-                    value: parseInt(e.target.value),
-                  })
-                }
-              />
-              <span className="w-10 text-center font-mono text-xs bg-black/20 rounded px-1 text-muted-foreground">
-                {state.textSize}%
-              </span>
+                <button
+                  className="p-3 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors flex items-center gap-2"
+                  onClick={handleReset}
+                  title="Reset Tournament"
+                >
+                  <span>🔄</span>
+                  <span className="hidden sm:inline text-sm font-medium">Reset</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -243,7 +257,7 @@ const TournamentActiveView: React.FC = () => {
       </div>
 
       {/* Leaderboard */}
-      <div className="mb-24">
+      <div className="mb-24 leaderboard-section">
         <Leaderboard />
       </div>
     </div>

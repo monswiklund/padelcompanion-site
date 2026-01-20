@@ -68,6 +68,7 @@ export interface TournamentState {
   textSize: number;
   bracketScale: number;
   isLocked: boolean;
+  allowCourtChange: boolean;
   tournamentName: string;
   tournamentNotes: string;
   schedule: Round[];
@@ -132,6 +133,7 @@ const DEFAULT_STATE: TournamentState = {
   textSize: 100,
   bracketScale: 100,
   isLocked: false,
+  allowCourtChange: true,
   tournamentName: "",
   tournamentNotes: "",
   schedule: [],
@@ -162,6 +164,8 @@ interface TournamentContextType {
   dispatch: (action: StateAction) => void;
   save: () => void;
   reset: () => void;
+  undo: () => void;
+  canUndo: boolean;
 }
 
 type StateAction =
@@ -194,7 +198,13 @@ type StateAction =
       winner: 1 | 2;
     }
   | { type: "ADVANCE_WC_ROUND"; side: string }
-  | { type: "CLEAR_WC_SIDE"; side: string };
+  | { type: "CLEAR_WC_SIDE"; side: string }
+  | {
+      type: "SWAP_MATCH_COURT";
+      roundIndex: number;
+      matchIndex: number;
+      newCourt: number;
+    };
 
 const TournamentContext = createContext<TournamentContextType | undefined>(
   undefined
@@ -205,6 +215,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [state, setState] = useState<TournamentState>(DEFAULT_STATE);
+  const [undoStack, setUndoStack] = useState<TournamentState[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load state on mount
@@ -224,8 +235,46 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [state, isLoaded]);
 
+  const undo = useCallback(() => {
+    setUndoStack((prevStack) => {
+      if (prevStack.length === 0) return prevStack;
+      const previousState = prevStack[prevStack.length - 1];
+      const newStack = prevStack.slice(0, -1);
+      setState(previousState);
+      return newStack;
+    });
+  }, []);
+
   const dispatch = useCallback((action: StateAction) => {
     setState((prev) => {
+      // Actions that should trigger an undo checkpoint
+      const undoableActions = [
+        "COMPLETE_ROUND",
+        "EDIT_ROUND",
+        "SWAP_MATCH_COURT",
+        "ADD_LATE_PLAYER",
+        "REMOVE_PLAYER",
+        "RESET_TOURNAMENT",
+      ];
+
+      let shouldSnapshot = undoableActions.includes(action.type);
+
+      // Special case for UPDATE_FIELD: only snapshot if it's a "data" field (like schedule)
+      if (action.type === "UPDATE_FIELD") {
+        const dataFields = ["schedule", "players", "leaderboard", "format", "allowCourtChange"];
+        if (dataFields.includes(action.key as string)) {
+          shouldSnapshot = true;
+        }
+      }
+
+      if (shouldSnapshot) {
+        setUndoStack((stack) => {
+          const newStack = [...stack, prev];
+          if (newStack.length > 20) newStack.shift();
+          return newStack;
+        });
+      }
+
       switch (action.type) {
         case "SET_STATE":
           return { ...prev, ...action.payload };
@@ -277,6 +326,16 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           if (!prev.winnersCourt) return prev;
           const cleared = clearSide(prev.winnersCourt, action.side);
           return { ...prev, winnersCourt: cleared };
+        }
+        case "SWAP_MATCH_COURT": {
+          const { roundIndex, matchIndex, newCourt } = action;
+          const newSchedule = [...prev.schedule];
+          if (newSchedule[roundIndex] && newSchedule[roundIndex].matches[matchIndex]) {
+            const newMatches = [...newSchedule[roundIndex].matches];
+            newMatches[matchIndex] = { ...newMatches[matchIndex], court: newCourt };
+            newSchedule[roundIndex] = { ...newSchedule[roundIndex], matches: newMatches };
+          }
+          return { ...prev, schedule: newSchedule };
         }
         case "ADD_PLAYER":
           return { ...prev, players: [...prev.players, action.player] };
@@ -489,10 +548,11 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const reset = useCallback(() => {
     setState(DEFAULT_STATE);
+    setUndoStack([]);
   }, []);
 
   return (
-    <TournamentContext.Provider value={{ state, dispatch, save, reset }}>
+    <TournamentContext.Provider value={{ state, dispatch, save, reset, undo, canUndo: undoStack.length > 0 }}>
       {children}
     </TournamentContext.Provider>
   );

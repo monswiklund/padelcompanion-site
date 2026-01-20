@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { WatchMockup } from "@/components/landing/WatchMockup";
 import {

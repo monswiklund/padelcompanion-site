@@ -304,7 +304,7 @@ export const WinnersCourtSetup: React.FC = () => {
 
           <div className="space-y-6">
             {/* Courts */}
-            <div>
+            <div className="max-w-[140px]">
               <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Courts
               </label>
@@ -314,12 +314,15 @@ export const WinnersCourtSetup: React.FC = () => {
                 onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
               >
                 <option value={maxCourts}>Auto ({maxCourts})</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((c) => (
+                {Array.from({ length: maxCourts }, (_, i) => i + 1).map((c) => (
                   <option key={c} value={c}>
-                    {c} Courts
+                    {c} {c === 1 ? "Court" : "Courts"}
                   </option>
                 ))}
               </select>
+              <p className="text-[10px] leading-tight text-muted-foreground mt-1">
+                Active matches. Extras queue.
+              </p>
             </div>
 
             {/* Twist Mode Toggle */}
@@ -411,15 +414,16 @@ export const WinnersCourtSetup: React.FC = () => {
               </div>
             )}
 
-            <Button
-              size="lg"
-              disabled={players.length < 4}
-              onClick={handleGenerate}
-              fullWidth
-              className="mt-4"
-            >
-              Start Session
-            </Button>
+            <div className="flex justify-center pt-4">
+              <Button
+                size="lg"
+                disabled={players.length < 4}
+                onClick={handleGenerate}
+                className="px-12"
+              >
+                Start Session
+              </Button>
+            </div>
           </div>
         </GlassCard>
       </div>
