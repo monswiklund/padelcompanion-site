@@ -82,6 +82,8 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
           allRounds: result.allRounds ? [...result.allRounds] : null,
           currentRound: result.currentRound,
           isLocked: result.isLocked,
+          roundStartedAt: Date.now(),
+          sessionStartedAt: Date.now(),
         },
       });
 

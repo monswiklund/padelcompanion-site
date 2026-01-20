@@ -241,6 +241,8 @@ export const WinnersCourtSetup: React.FC = () => {
     try {
       const wcState = generateWinnersCourt(wcPlayers, config);
       dispatch({ type: "SET_WINNERS_COURT", winnersCourtState: wcState });
+      dispatch({ type: "UPDATE_FIELD", key: "roundStartedAt", value: Date.now() });
+      dispatch({ type: "UPDATE_FIELD", key: "sessionStartedAt", value: Date.now() });
 
       const totalCourts = Object.values(courtsPerPool).reduce((a, b) => a + b, 0);
       showToast(
@@ -268,6 +270,25 @@ export const WinnersCourtSetup: React.FC = () => {
       </button>
     );
   };
+
+  const renderPlayerActions = useCallback((p: SetupPlayer) => {
+    if (!useSkillLevels) return null;
+    return (
+      <div className="flex items-center gap-1 mr-2 bg-black/20 rounded-lg px-2 py-0.5 border border-white/5">
+        <span className="text-[10px] text-muted-foreground font-bold uppercase">Lvl</span>
+        <input
+          type="number"
+          min="1"
+          max="10"
+          value={p.skill}
+          onChange={(e) =>
+            handleUpdateSkill(p.id, parseInt(e.target.value) || 5)
+          }
+          className="w-10 h-8 bg-transparent text-sm text-center font-bold text-accent focus:outline-none"
+        />
+      </div>
+    );
+  }, [useSkillLevels, handleUpdateSkill]);
 
   const sortedPlayers = poolCount > 1
     ? [...players].sort((a, b) => a.poolId.localeCompare(b.poolId))
@@ -322,10 +343,13 @@ export const WinnersCourtSetup: React.FC = () => {
         </NoticeBar>
       )}
       {poolCount > 1 &&
-        players.filter((p) => p.poolId !== "B").length < 4 &&
-        players.length >= 4 && (
+        players.length >= 4 &&
+        Array.from({ length: poolCount }).some((_, i) => {
+          const pid = ["A", "B", "C", "D", "E", "F"][i];
+          return players.filter((p) => p.poolId === pid).length < 4;
+        }) && (
           <NoticeBar type="warning" className="mb-4">
-            Pool A needs at least 4 players.
+            Each pool needs at least 4 players.
           </NoticeBar>
         )}
 

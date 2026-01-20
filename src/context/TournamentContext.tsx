@@ -44,6 +44,7 @@ export interface Round {
   completed?: boolean;
   matches: Match[];
   byes?: Player[];
+  durationSeconds?: number;
 }
 
 export interface TournamentState {
@@ -73,6 +74,8 @@ export interface TournamentState {
   tournamentNotes: string;
   schedule: Round[];
   currentRound: number;
+  roundStartedAt: number | null;
+  sessionStartedAt: number | null;
   leaderboard: any[];
   allRounds: Round[] | null;
   historyData: any[];
@@ -138,6 +141,8 @@ const DEFAULT_STATE: TournamentState = {
   tournamentNotes: "",
   schedule: [],
   currentRound: 0,
+  roundStartedAt: null,
+  sessionStartedAt: null,
   leaderboard: [],
   allRounds: null,
   historyData: [],
@@ -470,7 +475,8 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           }
 
           const newSchedule = [...prev.schedule];
-          newSchedule[currentRoundIdx] = { ...currentRound, completed: true };
+          const duration = prev.roundStartedAt ? Math.round((Date.now() - prev.roundStartedAt) / 1000) : 0;
+          newSchedule[currentRoundIdx] = { ...currentRound, completed: true, durationSeconds: duration };
 
           // 4. Generate next round logic
           let nextRoundBase: Round | null = null;
@@ -514,6 +520,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             leaderboard: newLeaderboard,
             currentRound: nextRoundIndex,
             manualByes: [],
+            roundStartedAt: Date.now(), // Start timing the new round
           };
         }
         case "EDIT_ROUND": {
