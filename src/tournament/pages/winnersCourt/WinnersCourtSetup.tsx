@@ -18,7 +18,7 @@ interface SetupPlayer {
   id: string;
   name: string;
   skill: number;
-  side: "A" | "B" | null;
+  poolId: string; // "A", "B", "C", etc.
 }
 
 type AssignStrategy = "random" | "manual";
@@ -28,8 +28,9 @@ export const WinnersCourtSetup: React.FC = () => {
   const navigate = useNavigate();
 
   const [players, setPlayers] = useState<SetupPlayer[]>([]);
-  const [splitSides, setSplitSides] = useState(false);
+  const [poolCount, setPoolCount] = useState<number>(1);
   const [isTwist, setIsTwist] = useState(false);
+  const [useSkillLevels, setUseSkillLevels] = useState(false);
   const [courtCountInput, setCourtCountInput] = useState<number | null>(null);
   const [assignStrategy, setAssignStrategy] =
     useState<AssignStrategy>("random");
@@ -38,10 +39,21 @@ export const WinnersCourtSetup: React.FC = () => {
   useEffect(() => {
     const saved = StorageService.getItem("wc_setup_players");
     if (saved && Array.isArray(saved)) {
-      setPlayers(saved);
+      // Migrate old data (side -> poolId)
+      const migrated = saved.map((p: any) => ({
+        ...p,
+        poolId: p.poolId || p.side || "A",
+        // Ensure skill is present
+        skill: p.skill || 5,
+      }));
+      setPlayers(migrated);
     }
-    const savedSplit = StorageService.getItem("wc_split_sides", "false");
-    setSplitSides(savedSplit === "true");
+    const savedPools = StorageService.getItem("wc_pool_count", "1");
+    const savedSkill = StorageService.getItem("wc_use_skills", "false");
+    const savedTwist = StorageService.getItem("wc_twist", "false"); // Load twist setting
+    setPoolCount(parseInt(savedPools) || 1);
+    setUseSkillLevels(savedSkill === "true");
+    setIsTwist(savedTwist === "true");
     setIsLoaded(true);
   }, []);
 
@@ -52,8 +64,10 @@ export const WinnersCourtSetup: React.FC = () => {
   }, [players, isLoaded]);
 
   useEffect(() => {
-    StorageService.setItem("wc_split_sides", String(splitSides));
-  }, [splitSides]);
+    StorageService.setItem("wc_pool_count", String(poolCount));
+    StorageService.setItem("wc_use_skills", String(useSkillLevels));
+    StorageService.setItem("wc_twist", String(isTwist));
+  }, [poolCount, useSkillLevels, isTwist]);
 
   const maxCourts = Math.max(1, Math.floor(players.length / 4));
   const selectedCourts = courtCountInput || maxCourts;
@@ -67,17 +81,24 @@ export const WinnersCourtSetup: React.FC = () => {
       const newPlayer: SetupPlayer = {
         id: createId(),
         name,
-        skill: 0,
-        side: splitSides ? "A" : null,
+        skill: 5,
+        poolId: "A",
       };
       setPlayers((prev) => [...prev, newPlayer]);
       showToast(`${name} added`, "success");
     },
-    [players, splitSides],
+    [players],
   );
 
   const handleRemovePlayer = useCallback((index: number) => {
     setPlayers((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleUpdateSkill = useCallback((id: string, skill: number) => {
+    const clamped = Math.max(1, Math.min(10, skill));
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, skill: clamped } : p)),
+    );
   }, []);
 
   const handleClearPlayers = useCallback(() => {
@@ -94,7 +115,7 @@ export const WinnersCourtSetup: React.FC = () => {
       lines.forEach((l) => {
         const parts = l.split(":");
         const name = parts[0].trim();
-        const skill = parts[1] ? parseInt(parts[1]) || 0 : 0;
+        const skill = parts[1] ? parseInt(parts[1]) || 5 : 5;
 
         if (name) {
           const isDuplicate =
@@ -108,7 +129,7 @@ export const WinnersCourtSetup: React.FC = () => {
               id: createId(),
               name,
               skill,
-              side: splitSides ? "A" : null,
+              poolId: "A",
             });
           } else {
             duplicateCount++;
@@ -125,8 +146,10 @@ export const WinnersCourtSetup: React.FC = () => {
         showToast(`Skipped ${duplicateCount} duplicates`, "warning");
       }
     },
-    [players, splitSides],
+    [players],
   );
+
+  const poolIds = ["A", "B", "C", "D", "E", "F"];
 
   const autoAssignSides = useCallback(() => {
     const newPlayers = [...players];
@@ -135,50 +158,83 @@ export const WinnersCourtSetup: React.FC = () => {
       const shuffled = [...newPlayers].sort(() => Math.random() - 0.5);
       shuffled.forEach((p, i) => {
         const original = newPlayers.find((o) => o.id === p.id);
-        if (original) original.side = i % 2 === 0 ? "A" : "B";
+        if (original) {
+          const poolIndex = i % poolCount;
+          original.poolId = poolIds[poolIndex];
+        }
       });
     }
 
     setPlayers(newPlayers);
-    const countA = newPlayers.filter((p) => p.side !== "B").length;
-    const countB = newPlayers.filter((p) => p.side === "B").length;
-    showToast(`Assigned: A (${countA}) / B (${countB})`, "success");
-  }, [players, assignStrategy]);
+    
+    // Toast summary
+    const counts = poolIds.slice(0, poolCount).map(pid => {
+        const count = newPlayers.filter(p => p.poolId === pid).length;
+        return `${pid}: ${count}`;
+    });
+    showToast(`Assigned: ${counts.join(" / ")}`, "success");
+  }, [players, assignStrategy, poolCount]);
 
   const togglePlayerSide = useCallback((id: string) => {
     setPlayers((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, side: p.side === "B" ? "A" : "B" } : p,
-      ),
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const currentIdx = poolIds.indexOf(p.poolId || "A");
+        const nextIdx = (currentIdx + 1) % poolCount;
+        return { ...p, poolId: poolIds[nextIdx] };
+      }),
     );
     setAssignStrategy("manual");
-  }, []);
+  }, [poolCount]);
 
   const handleGenerate = useCallback(() => {
-    const sideA = players.filter((p) => p.side !== "B");
-    const sideB = players.filter((p) => p.side === "B");
+    // If skill levels enabled, sort players by skill (desc) before generating
+    let sortedPlayers = [...players];
+    if (useSkillLevels) {
+      sortedPlayers.sort((a, b) => b.skill - a.skill);
+    }
 
-    const courtCountA = splitSides
-      ? Math.floor(sideA.length / 4)
-      : selectedCourts;
-    const courtCountB = splitSides ? Math.floor(sideB.length / 4) : 0;
+    // Validate player counts per pool
+    const courtsPerPool: Record<string, number> = {};
+    let totalPlayers = 0;
 
-    if (courtCountA === 0 && courtCountB === 0) {
+    for (let i = 0; i < poolCount; i++) {
+        const pid = poolIds[i];
+        const poolPlayers = sortedPlayers.filter(p => p.poolId === pid);
+        const count = poolPlayers.length;
+        totalPlayers += count;
+        
+        // Calculate courts for this pool
+        // If poolCount > 1, auto-calc per pool. If poolCount=1, use selectedCourts or auto.
+        let cCount = 0;
+        if (poolCount > 1) {
+            cCount = Math.floor(count / 4);
+        } else {
+            cCount = selectedCourts;
+        }
+        
+        if (count < 4 && poolCount > 1) {
+             showToast(`Pool ${pid} needs at least 4 players`, "error");
+             return;
+        }
+        courtsPerPool[pid] = cCount;
+    }
+
+    if (totalPlayers < 4) {
       showToast("Need at least 4 players to start", "error");
       return;
     }
 
-    const wcPlayers: WCPlayer[] = players.map((p) => ({
+    const wcPlayers: WCPlayer[] = sortedPlayers.map((p) => ({
       id: p.id,
       name: p.name,
       skill: p.skill,
-      side: p.side,
+      side: p.poolId, // Map poolId to side
     }));
 
     const config: WCConfig = {
-      courtCountA,
-      courtCountB,
-      splitSides,
+      poolCount,
+      courtsPerPool,
       twist: isTwist,
     };
 
@@ -186,7 +242,7 @@ export const WinnersCourtSetup: React.FC = () => {
       const wcState = generateWinnersCourt(wcPlayers, config);
       dispatch({ type: "SET_WINNERS_COURT", winnersCourtState: wcState });
 
-      const totalCourts = courtCountA + courtCountB;
+      const totalCourts = Object.values(courtsPerPool).reduce((a, b) => a + b, 0);
       showToast(
         `Winners Court started with ${totalCourts} court(s)`,
         "success",
@@ -195,29 +251,26 @@ export const WinnersCourtSetup: React.FC = () => {
     } catch (e: any) {
       showToast(e.message || "Generation failed", "error");
     }
-  }, [players, splitSides, selectedCourts, isTwist, dispatch, navigate]);
+  }, [players, poolCount, selectedCourts, isTwist, useSkillLevels, dispatch, navigate]);
 
   const renderPlayerPrefix = (p: SetupPlayer) => {
-    if (!splitSides) return null;
+    if (poolCount <= 1) return null;
     return (
       <button
         onClick={() => togglePlayerSide(p.id)}
-        className={`text-xs font-semibold px-2 py-0.5 rounded cursor-pointer mr-2 transition-colors ${
-          p.side === "B"
-            ? "bg-warning/20 text-warning border border-warning"
-            : "bg-accent/20 text-accent border border-accent"
+        className={`text-xs font-semibold px-2 py-0.5 rounded cursor-pointer mr-2 transition-colors border ${
+          p.poolId === "A" ? "bg-accent/20 text-accent border-accent" :
+          p.poolId === "B" ? "bg-warning/20 text-warning border-warning" :
+          "bg-white/10 text-muted-foreground border-white/20"
         }`}
       >
-        {p.side === "B" ? "Pool B" : "Pool A"}
+        Pool {p.poolId}
       </button>
     );
   };
 
-  const sortedPlayers = splitSides
-    ? [...players].sort((a, b) => {
-        if (a.side === b.side) return 0;
-        return a.side === "B" ? 1 : -1;
-      })
+  const sortedPlayers = poolCount > 1
+    ? [...players].sort((a, b) => a.poolId.localeCompare(b.poolId))
     : players;
 
   const getPlayerHint = () => {
@@ -225,12 +278,14 @@ export const WinnersCourtSetup: React.FC = () => {
     if (count < 4) {
       return `Add at least ${4 - count} more player${4 - count > 1 ? "s" : ""}`;
     }
-    if (splitSides) {
-      const countA = players.filter((p) => p.side !== "B").length;
-      const countB = players.filter((p) => p.side === "B").length;
+    if (poolCount > 1) {
+      const counts = poolIds.slice(0, poolCount).map(pid => {
+          const c = players.filter(p => p.poolId === pid).length;
+          return `${pid}: ${c}`;
+      });
       return (
         <span className="text-success">
-          ✓ {count} ready | A: {countA} | B: {countB}
+          ✓ {count} ready | ${counts.join(" | ")}
         </span>
       );
     }
@@ -266,8 +321,8 @@ export const WinnersCourtSetup: React.FC = () => {
           Need at least 4 players to start Winners Court.
         </NoticeBar>
       )}
-      {splitSides &&
-        players.filter((p) => p.side !== "B").length < 4 &&
+      {poolCount > 1 &&
+        players.filter((p) => p.poolId !== "B").length < 4 &&
         players.length >= 4 && (
           <NoticeBar type="warning" className="mb-4">
             Pool A needs at least 4 players.
@@ -285,6 +340,7 @@ export const WinnersCourtSetup: React.FC = () => {
             onClear={handleClearPlayers}
             onImport={handleImportPlayers}
             renderPrefix={renderPlayerPrefix}
+            renderActions={renderPlayerActions}
             defaultView="grid"
             showViewToggle={true}
             hintText={
@@ -325,6 +381,31 @@ export const WinnersCourtSetup: React.FC = () => {
               </p>
             </div>
 
+            {/* Use Skill Levels Toggle */}
+            <div className="bg-popover p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm font-medium text-foreground">
+                  Use Skill Levels
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setUseSkillLevels(!useSkillLevels)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    useSkillLevels ? "bg-accent" : "bg-white/20"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                      useSkillLevels ? "translate-x-6" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Rank players (1-10) to seed courts (Higher skill = Court 1).
+              </p>
+            </div>
+
             {/* Twist Mode Toggle */}
             <div className="bg-popover p-4 rounded-xl border border-border">
               <div className="flex items-center justify-between mb-1">
@@ -350,33 +431,31 @@ export const WinnersCourtSetup: React.FC = () => {
               </p>
             </div>
 
-            {/* Split Sides Toggle */}
+            {/* Pools Selector */}
             <div className="bg-popover p-4 rounded-xl border border-border">
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-foreground">
-                  Split Pools
+                  Pools
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setSplitSides(!splitSides)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    splitSides ? "bg-accent" : "bg-white/20"
-                  }`}
+                <select
+                  className="bg-black/20 text-xs px-2 py-1 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
+                  value={poolCount}
+                  onChange={(e) => setPoolCount(parseInt(e.target.value))}
                 >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                      splitSides ? "translate-x-6" : ""
-                    }`}
-                  />
-                </button>
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <option key={n} value={n}>
+                      {n} Pool{n > 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
               <p className="text-xs text-muted-foreground">
-                Create separate A & B pools.
+                Split players into separate Winners Courts (A, B, etc.).
               </p>
             </div>
 
             {/* Pool Assignment Options */}
-            {splitSides && (
+            {poolCount > 1 && (
               <div className="animate-fade-in space-y-3 pt-4 border-t border-border">
                 <label className="block text-xs font-bold text-muted-foreground uppercase">
                   Pool Assignment

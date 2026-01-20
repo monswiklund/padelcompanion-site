@@ -8,7 +8,7 @@
 export interface WCPlayer {
   id: string;
   name: string;
-  side: "A" | "B" | null;
+  side: string | null;
 }
 
 export interface WCCourt {
@@ -38,9 +38,8 @@ export interface WinnersCourtState {
 }
 
 export interface WCConfig {
-  courtCountA: number;
-  courtCountB: number;
-  splitSides: boolean;
+  poolCount: number;
+  courtsPerPool: Record<string, number>; // Map of pool ID (A, B, C...) to court count
   twist: boolean;
 }
 
@@ -96,27 +95,27 @@ export function generateWinnersCourt(
   players: WCPlayer[],
   config: WCConfig
 ): WinnersCourtState {
-  const { courtCountA, courtCountB, splitSides, twist } = config;
+  const { poolCount, courtsPerPool, twist } = config;
   const sides: Record<string, WCSideState> = {};
+  const poolIds = ["A", "B", "C", "D", "E", "F"];
 
-  if (splitSides) {
-    // Split mode - separate A and B sides
-    const playersA = shuffleArray(players.filter((p) => p.side !== "B"));
-    const playersB = shuffleArray(players.filter((p) => p.side === "B"));
+  if (poolCount > 1) {
+    // Multi-pool mode
+    for (let i = 0; i < poolCount; i++) {
+      const pid = poolIds[i];
+      const poolPlayers = shuffleArray(players.filter((p) => p.side === pid));
+      const count = courtsPerPool[pid] || 0;
 
-    if (playersA.length >= 4 && courtCountA >= 1) {
-      const { courts, queue } = createCourts(playersA, courtCountA);
-      sides["A"] = { courts, queue, round: 1, history: [] };
-    }
-
-    if (playersB.length >= 4 && courtCountB >= 1) {
-      const { courts, queue } = createCourts(playersB, courtCountB);
-      sides["B"] = { courts, queue, round: 1, history: [] };
+      if (poolPlayers.length >= 4 && count >= 1) {
+        const { courts, queue } = createCourts(poolPlayers, count);
+        sides[pid] = { courts, queue, round: 1, history: [] };
+      }
     }
   } else {
-    // Single side mode - everyone is Side A
+    // Single pool mode - ignore side property, everyone is A
     const shuffled = shuffleArray(players);
-    const { courts, queue } = createCourts(shuffled, courtCountA);
+    const count = courtsPerPool["A"] || 0;
+    const { courts, queue } = createCourts(shuffled, count);
 
     if (courts.length > 0) {
       sides["A"] = { courts, queue, round: 1, history: [] };
