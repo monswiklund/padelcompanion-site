@@ -23,6 +23,8 @@
     </script>
 
     <!-- Preconnect to external origins for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="preconnect"
       href="https://scripts.simpleanalyticscdn.com"
@@ -34,6 +36,12 @@
       crossorigin
     />
     <link rel="dns-prefetch" href="https://scripts.simpleanalyticscdn.com" />
+
+    <!-- Inter Font from Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -97,7 +105,7 @@
     <!-- Security Headers -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://scripts.simpleanalyticscdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://padelcompanion.se data: https://queue.simpleanalyticscdn.com; font-src 'self' data:; connect-src 'self' https://queue.simpleanalyticscdn.com"
+      content="default-src 'self'; script-src 'self' https://scripts.simpleanalyticscdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://padelcompanion.se data: https://queue.simpleanalyticscdn.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://queue.simpleanalyticscdn.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
@@ -118,8 +126,8 @@
         }
       }
     </script>
-    <script type="module" crossorigin src="/assets/main-BsPkHb-Q.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/main-BUoH81-6.css">
+    <script type="module" crossorigin src="/assets/main-BnC1FR7u.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-H__goEy0.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
