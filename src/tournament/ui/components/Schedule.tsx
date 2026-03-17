@@ -51,7 +51,81 @@ const RoundCard: React.FC<{
     const s = secs % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
-// ... (later in JSX)
+
+  const getCourtName = (courtNum: number) => {
+    if (
+      state.courtFormat === "custom" &&
+      state.customCourtNames[courtNum - 1]
+    ) {
+      return state.customCourtNames[courtNum - 1];
+    }
+    return `Court ${courtNum}`;
+  };
+
+  const getConstraintLabel = (constraint?: string) => {
+    if (constraint === "repeats") return "Repeat allowed (Priority: Pattern)";
+    if (constraint === "pattern") return "Pattern override (Priority: Repeats)";
+    return "Constraint relaxed (Best effort)";
+  };
+
+  const getRoundCompletionStatus = () => {
+    let completedCount = 0;
+    const missing: string[] = [];
+
+    round.matches.forEach((m) => {
+      const hasScores =
+        m.score1 !== undefined &&
+        m.score1 !== null &&
+        m.score2 !== undefined &&
+        m.score2 !== null;
+      if (hasScores) {
+        completedCount++;
+      } else {
+        missing.push(getCourtName(m.court));
+      }
+    });
+
+    if (completedCount === 0) return { status: "empty", missing };
+    if (completedCount === round.matches.length)
+      return { status: "complete", missing: [] };
+    return { status: "partial", missing };
+  };
+
+  const { status, missing } = getRoundCompletionStatus();
+
+  const handleCompleteClick = () => {
+    if (status === "complete") {
+      onComplete();
+    } else if (status === "partial") {
+      const msg = `Missing scores for:\n${missing
+        .map((c) => "• " + c)
+        .join("\n")}\n\nContinue anyway?`;
+      showConfirmModal("Incomplete Round", msg, "Continue Anyway", onComplete);
+    } else {
+      showConfirmModal(
+        "No Scores Entered",
+        "You haven't entered any scores for this round. Are you sure you want to complete it as all 0-0?",
+        "Complete w/ Zeros",
+        onComplete,
+      );
+    }
+  };
+
+  return (
+    <GlassCard
+      padding="none"
+      className={`overflow-hidden mb-6 transition-all scroll-mt-24 ${
+        round.completed ? "opacity-80" : ""
+      }`}
+      id={`round-${roundIndex}`}
+    >
+      {/* Round Header */}
+      <div
+        className={`flex items-center justify-between px-4 py-3 border-b border-border cursor-pointer ${
+          round.completed ? "bg-popover/50" : "bg-accent/5"
+        }`}
+        onClick={() => round.completed && setIsCollapsed(!isCollapsed)}
+      >
         <div className="flex items-center gap-3">
           <span className="text-lg font-bold text-foreground">
             Round {round.number}
@@ -62,7 +136,6 @@ const RoundCard: React.FC<{
               : formatDuration(elapsed)}
           </span>
           {round.completed ? (
-// ...
             <span className="px-2 py-0.5 text-xs font-medium bg-success/20 text-success rounded-full">
               ✓ Completed
             </span>
