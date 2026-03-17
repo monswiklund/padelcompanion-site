@@ -11,7 +11,6 @@ import { GlassCard } from "@/components/ui/GlassCard";
 
 const LandingPage: React.FC = () => {
   const [email, setEmail] = useState("");
-  const [platform, setPlatform] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -34,15 +33,10 @@ const LandingPage: React.FC = () => {
       return;
     }
 
-    if (!platform) {
-      setError("Please select a platform (iOS or Android)");
-      return;
-    }
-
     setLoading(true);
-    const subject = encodeURIComponent("Beta Testing Signup");
+    const subject = encodeURIComponent("Android Testing Signup");
     const body = encodeURIComponent(
-      `Hi Team,\n\nI'm excited to join the Padel Companion beta for ${platform}!\n\nMy email is: ${email}\n\nLooking forward to testing it out!`,
+      `Hi Team,\n\nI'm interested in testing Padel Companion on Android.\n\nMy email is: ${email}\n\nLooking forward to trying it out!`,
     );
 
     window.location.href = `mailto:wiklund.labs@gmail.com?subject=${subject}&body=${body}`;
@@ -50,7 +44,6 @@ const LandingPage: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       setEmail("");
-      setPlatform("");
     }, 2000);
   };
 
@@ -90,57 +83,82 @@ const LandingPage: React.FC = () => {
                 organize tournaments, and sync across platforms.
               </p>
 
-              <div className="relative group">
-                <GlassCard className="p-2 border-white/5 shadow-2xl group-hover:border-blue-500/30 transition-colors">
-                  <form
-                    className="flex flex-col md:flex-row items-stretch md:items-center gap-2"
-                    onSubmit={handleSubmit}
-                  >
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      className="flex-1 bg-white/5 rounded-xl px-4 py-3 text-foreground outline-none border border-transparent focus:border-blue-500/50 transition-all placeholder:text-muted-foreground/50"
-                    />
-                    <select
-                      className="bg-white/5 rounded-xl px-4 py-3 text-muted-foreground outline-none border border-transparent focus:border-blue-500/50 transition-all cursor-pointer appearance-none min-w-[120px]"
-                      value={platform}
-                      onChange={(e) => setPlatform(e.target.value)}
-                    >
-                      <option value="" disabled className="bg-slate-900">
-                        Platform
-                      </option>
-                      <option value="iOS" className="bg-slate-900">
-                        iOS
-                      </option>
-                      <option value="Android" className="bg-slate-900">
-                        Android
-                      </option>
-                    </select>
-                    <motion.button
+              <div className="space-y-4">
+                <GlassCard className="p-5 border-white/5 shadow-2xl">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.2em] text-blue-300 font-bold mb-2">
+                        iPhone & iPad
+                      </p>
+                      <h3 className="text-2xl font-black text-foreground">
+                        Now live on the App Store
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Includes the Apple Watch app.
+                      </p>
+                    </div>
+                    <motion.a
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-blue-600/20"
-                      disabled={loading}
+                      href="https://apps.apple.com/se/app/padel-companion/id6755152442"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-blue-600/20"
                     >
-                      {loading ? "Joining..." : "Join Beta"}
-                    </motion.button>
-                  </form>
+                      Download on App Store
+                    </motion.a>
+                  </div>
                 </GlassCard>
 
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="absolute -bottom-10 left-0 right-0 text-sm text-red-400 font-medium text-center md:text-left"
-                  >
-                    {error}
-                  </motion.div>
-                )}
+                <div className="relative group">
+                  <GlassCard className="p-5 border-white/5 shadow-2xl group-hover:border-blue-500/30 transition-colors">
+                    <div className="mb-4">
+                      <p className="text-sm uppercase tracking-[0.2em] text-blue-300 font-bold mb-2">
+                        Android
+                      </p>
+                      <h3 className="text-2xl font-black text-foreground mb-2">
+                        Still looking for testers
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Leave your email and we will reach out with Android test
+                        access.
+                      </p>
+                    </div>
+                    <form
+                      className="flex flex-col md:flex-row items-stretch md:items-center gap-2"
+                      onSubmit={handleSubmit}
+                    >
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="flex-1 bg-white/5 rounded-xl px-4 py-3 text-foreground outline-none border border-transparent focus:border-blue-500/50 transition-all placeholder:text-muted-foreground/50"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="bg-white/10 hover:bg-white/15 text-white px-8 py-3 rounded-xl font-bold transition-colors"
+                        disabled={loading}
+                      >
+                        {loading ? "Sending..." : "Become an Android tester"}
+                      </motion.button>
+                    </form>
+                  </GlassCard>
+
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute -bottom-10 left-0 right-0 text-sm text-red-400 font-medium text-center md:text-left"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-muted-foreground/60 mt-8 font-medium">
-                Coming soon to Apple Watch & Wear OS
+                Apple Watch is included with iOS. Wear OS follows the Android release.
               </p>
             </motion.div>
 

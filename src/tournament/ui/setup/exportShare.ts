@@ -2,28 +2,37 @@
  * Export and share utilities for tournament data.
  */
 
-import { state as globalState, TournamentState } from "../../core/state";
+import type { TournamentState } from "@/context/TournamentContext";
+import { state as globalState } from "../../core/state";
+import {
+  createTournamentSnapshot,
+  parseTournamentSnapshot,
+  restoreTournamentStateFromSnapshot,
+} from "@/tournament/sync/snapshot";
 
 /**
  * Export tournament data as JSON.
  */
-export function exportTournamentData(): string {
-  const data = {
-    name: globalState.tournamentName,
-    format: globalState.format,
-    players: globalState.players,
-    schedule: globalState.schedule,
-    leaderboard: globalState.leaderboard,
-    exportedAt: new Date().toISOString(),
-  };
-  return JSON.stringify(data, null, 2);
+export function exportTournamentData(
+  stateOverride?: TournamentState | Partial<TournamentState>,
+): string {
+  const sourceState = (stateOverride || globalState) as TournamentState;
+  return JSON.stringify(createTournamentSnapshot(sourceState), null, 2);
+}
+
+export function importTournamentData(data: string) {
+  const snapshot = parseTournamentSnapshot(data);
+  return restoreTournamentStateFromSnapshot(snapshot);
 }
 
 /**
  * Download tournament data as a file.
  */
-export function downloadTournamentData(filename?: string): void {
-  const data = exportTournamentData();
+export function downloadTournamentData(
+  filename?: string,
+  stateOverride?: TournamentState | Partial<TournamentState>,
+): void {
+  const data = exportTournamentData(stateOverride);
   const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
 

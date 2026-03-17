@@ -7,6 +7,14 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   base: "/", // Change to '/repo-name/' if using project pages
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:8787",
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

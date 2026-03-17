@@ -27,12 +27,14 @@ interface GeneratorSetupProps {
 export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
   onGameActive,
 }) => {
-  const { state, dispatch } = useTournament();
+  const { state, dispatch, isLoaded } = useTournament() as any;
   const { players, preferredPartners: pairs, format, courts } = state;
 
   useEffect(() => {
-    Object.assign(legacyState, state);
-  }, [state]);
+    if (isLoaded) {
+      Object.assign(legacyState, state);
+    }
+  }, [state, isLoaded]);
 
   const handleAddPlayer = (name: string) => {
     if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {

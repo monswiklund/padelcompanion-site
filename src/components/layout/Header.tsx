@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { initTheme, toggleTheme } from "@/shared/theme";
+import {
+  getLastTournamentRoute,
+  isRememberedTournamentRoute,
+  rememberTournamentRoute,
+} from "@/tournament/navigation";
 
 const Header: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const [theme, setTheme] = useState<string>("dark");
   const [scrolled, setScrolled] = useState(false);
+  const [tournamentLink, setTournamentLink] = useState("/tournament/generator");
   const location = useLocation();
 
   useEffect(() => {
     const currentTheme = initTheme();
     setTheme(currentTheme);
+    setTournamentLink(getLastTournamentRoute());
 
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -19,6 +26,15 @@ const Header: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isRememberedTournamentRoute(location.pathname)) {
+      return;
+    }
+
+    rememberTournamentRoute(location.pathname);
+    setTournamentLink(location.pathname);
+  }, [location.pathname]);
 
   const handleToggleTheme = () => {
     const newTheme = toggleTheme();
@@ -98,7 +114,7 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           <NavLink to="/">Home</NavLink>
           <NavLink to="/tournament/history">History</NavLink>
-          <NavLink to="/tournament/generator">Tournament</NavLink>
+          <NavLink to={tournamentLink}>Tournament</NavLink>
           <NavLink to="/support">Support</NavLink>
         </nav>
 
@@ -114,22 +130,24 @@ const Header: React.FC = () => {
 
           {/* Hamburger Menu (Mobile) */}
           <button
-            className="md:hidden flex flex-col justify-center gap-1.5 w-8 h-8 p-1"
+            className="md:hidden flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-full bg-card/80 p-2 text-foreground backdrop-blur-sm"
             onClick={() => setIsNavOpen(!isNavOpen)}
             aria-label="Toggle menu"
+            aria-expanded={isNavOpen}
+            aria-controls="mobile-navigation"
           >
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
+              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
                 isNavOpen ? "rotate-45 translate-y-2" : ""
               }`}
             ></span>
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
+              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
                 isNavOpen ? "opacity-0" : ""
               }`}
             ></span>
             <span
-              className={`block w-6 h-0.5 bg-[var(--color-text-foreground)] rounded-full transition-all duration-300 ${
+              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
                 isNavOpen ? "-rotate-45 -translate-y-2" : ""
               }`}
             ></span>
@@ -139,10 +157,19 @@ const Header: React.FC = () => {
 
       {/* MOBILE NAVIGATION OVERLAY */}
       <div
+        id="mobile-navigation"
         className={`fixed inset-0 bg-background z-[400] flex flex-col items-center justify-center gap-8 transition-transform duration-300 md:hidden ${
           isNavOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
+        <button
+          type="button"
+          onClick={closeNav}
+          aria-label="Close menu"
+          className="absolute right-6 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-card/80 text-foreground backdrop-blur-sm"
+        >
+          <span className="text-2xl leading-none">&times;</span>
+        </button>
         <Link
           to="/"
           className="text-2xl font-medium text-foreground"
@@ -158,7 +185,7 @@ const Header: React.FC = () => {
           History
         </Link>
         <Link
-          to="/tournament/generator"
+          to={tournamentLink}
           className="text-2xl font-medium text-foreground"
           onClick={closeNav}
         >

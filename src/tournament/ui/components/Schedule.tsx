@@ -8,16 +8,21 @@ import {
 } from "@/context/TournamentContext";
 import { showConfirmModal } from "@/tournament/core/modals";
 import { showToast } from "@/shared/utils";
+import { launchConfetti } from "@/tournament/confetti";
+import {
+  formatEstimatedRoundStart,
+  getEstimatedRoundStartRelativeLabel,
+} from "./scheduleTiming";
 
 const RoundCard: React.FC<{
   round: Round;
   roundIndex: number;
   isLast: boolean;
   onComplete: () => void;
-  onEdit: () => void;
+  onEdit: (matchIndex: number) => void;
   onScoreChange: (matchIndex: number, team: 1 | 2, val: number) => void;
   onToggleBye: (playerId: string) => void;
-  onSwapCourt?: (matchIndex: number, newCourt: number) => void;
+  nextRoundPreview?: Round | null;
 }> = ({
   round,
   roundIndex,
@@ -26,12 +31,44 @@ const RoundCard: React.FC<{
   onEdit,
   onScoreChange,
   onToggleBye,
-  onSwapCourt,
+  nextRoundPreview,
 }) => {
-  const { state } = useTournament();
+  const { state, dispatch } = useTournament();
   const [isCollapsed, setIsCollapsed] = useState(round.completed && !isLast);
-  const [swappingMatchIdx, setSwappingMatchIdx] = useState<number | null>(null);
+
+  const getDivisionStyles = (division: string) => {
+    switch (division.toUpperCase()) {
+      case "A": return "bg-pool-a/10 text-pool-a border-pool-a/20";
+      case "B": return "bg-pool-b/10 text-pool-b border-pool-b/20";
+      case "C": return "bg-pool-c/10 text-pool-c border-pool-c/20";
+      case "D": return "bg-pool-d/10 text-pool-d border-pool-d/20";
+      default: return "bg-accent/10 text-accent border-accent/20";
+    }
+  };
   const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (round.completed) return;
+
+    const selectedMatchId = state.ui.selectedMatchId;
+    if (!selectedMatchId?.startsWith(`round-${roundIndex}-match-`)) return;
+
+    const matchEl = document.getElementById(selectedMatchId);
+    if (!matchEl) return;
+
+    matchEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    const firstInput = matchEl.querySelector("input");
+    if (firstInput instanceof HTMLInputElement) {
+      firstInput.focus();
+      firstInput.select();
+    }
+
+    dispatch({
+      type: "UPDATE_FIELD",
+      key: "ui",
+      value: { ...state.ui, selectedMatchId: null },
+    });
+  }, [dispatch, round.completed, roundIndex, state.ui]);
 
   // Live timer for active round
   useEffect(() => {
@@ -111,6 +148,17 @@ const RoundCard: React.FC<{
     }
   };
 
+  const getCompleteButtonLabel = () => {
+    if (round.name === "Final") return "Finish Tournament";
+    if (nextRoundPreview?.name === "Semifinal") {
+      return `Complete Round ${round.number} & Generate Semis`;
+    }
+    if (round.name === "Semifinal" || nextRoundPreview?.name === "Final") {
+      return "Complete Semifinal & Generate Final";
+    }
+    return `Complete Round ${round.number}`;
+  };
+
   return (
     <GlassCard
       padding="none"
@@ -128,20 +176,37 @@ const RoundCard: React.FC<{
       >
         <div className="flex items-center gap-3">
           <span className="text-lg font-bold text-foreground">
-            Round {round.number}
+            {round.name || `Round ${round.number}`}
           </span>
-          <span className="text-sm font-mono bg-black/20 px-2 py-0.5 rounded border border-white/5 text-muted-foreground">
-            {round.completed 
-              ? formatDuration(round.durationSeconds || 0) 
-              : formatDuration(elapsed)}
-          </span>
+          {!round.completed && !state.roundStartedAt ? (
+            /* Timer not started yet — show Start button */
+            <button
+              className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold bg-success hover:bg-success/80 text-white rounded-lg transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({ type: "UPDATE_FIELD", key: "roundStartedAt", value: Date.now() });
+              }}
+            >
+              ▶ Start
+            </button>
+          ) : (
+            <span className="text-sm font-mono bg-black/20 px-2 py-0.5 rounded border border-white/5 text-muted-foreground">
+              {round.completed 
+                ? formatDuration(round.durationSeconds || 0) 
+                : formatDuration(elapsed)}
+            </span>
+          )}
           {round.completed ? (
             <span className="px-2 py-0.5 text-xs font-medium bg-success/20 text-success rounded-full">
               ✓ Completed
             </span>
-          ) : (
+          ) : state.roundStartedAt ? (
             <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded-full animate-pulse">
               ● Ongoing
+            </span>
+          ) : (
+            <span className="px-2 py-0.5 text-xs font-medium bg-warning/20 text-warning rounded-full">
+              ⏸ Ready
             </span>
           )}
         </div>
@@ -172,6 +237,8 @@ const RoundCard: React.FC<{
             }}
           >
             {round.matches.map((match, mIdx) => {
+              const matchCardId = `round-${roundIndex}-match-${mIdx}`;
+              const isSelectedMatch = state.ui.selectedMatchId === matchCardId;
               // Determine division from players in this match
               const matchDivision = state.format === "division"
                 ? (match.team1[0] as any)?.division || "A"
@@ -185,9 +252,14 @@ const RoundCard: React.FC<{
 
               return (
               <div
+                id={matchCardId}
                 key={mIdx}
                 className={`bg-popover rounded-xl border overflow-hidden relative group ${
-                  divStyle ? `${divStyle.border} shadow-lg ${divStyle.glow}` : "border-border"
+                  isSelectedMatch
+                    ? "border-accent ring-2 ring-accent/40 shadow-lg shadow-accent/20"
+                    : divStyle
+                      ? `${divStyle.border} shadow-lg ${divStyle.glow}`
+                      : "border-border"
                 }`}
               >
                 {/* Court Background */}
@@ -208,44 +280,6 @@ const RoundCard: React.FC<{
                       <span className="text-sm font-bold text-white drop-shadow-md">
                         {getCourtName(match.court)}
                       </span>
-                      {!round.completed && state.allowCourtChange && (
-                        <div className="relative">
-                          <button
-                            className="w-5 h-5 flex items-center justify-center text-[10px] bg-white/20 hover:bg-white/30 text-white rounded transition-colors border border-white/20"
-                            onClick={() =>
-                              setSwappingMatchIdx(
-                                swappingMatchIdx === mIdx ? null : mIdx,
-                              )
-                            }
-                            title="Change Court"
-                          >
-                            ⇄
-                          </button>
-                          {swappingMatchIdx === mIdx && (
-                            <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl p-1 min-w-[100px] grid grid-cols-2 gap-1 animate-fade-in">
-                              {Array.from(
-                                { length: state.courts },
-                                (_, i) => i + 1,
-                              ).map((c) => (
-                                <button
-                                  key={c}
-                                  className={`px-2 py-1 text-xs rounded hover:bg-accent/10 ${
-                                    match.court === c
-                                      ? "bg-accent/20 text-accent font-bold"
-                                      : "text-muted-foreground"
-                                  }`}
-                                  onClick={() => {
-                                    onSwapCourt?.(mIdx, c);
-                                    setSwappingMatchIdx(null);
-                                  }}
-                                >
-                                  {c}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </div>
                     <span className="text-xs text-white/80 font-medium">
                       {state.scoringMode === "total"
@@ -266,39 +300,40 @@ const RoundCard: React.FC<{
 
                   {/* Teams */}
                   <div className="p-4 flex-1 flex flex-col justify-between">
-                    <div className="flex justify-between items-center mb-4">
-                                          <div className="flex-1 text-center">
-                                            {match.team1.map((p) => {
-                                              // Support splitting team names like "John/Jane" into two lines
-                                              const names = p.name.includes("/") ? p.name.split("/") : [p.name];
-                                              return names.map((name, ni) => (
-                                                <div
-                                                  key={`${p.id}-${ni}`}
-                                                  className="font-bold text-white drop-shadow-md truncate"
-                                                >
-                                                  {name.trim()}
-                                                </div>
-                                              ));
-                                            })}
-                                          </div>
-                                          <div className="text-white/60 font-black px-3 text-sm italic">
-                                            VS
-                                          </div>
-                                          <div className="flex-1 text-center">
-                                            {match.team2.map((p) => {
-                                              // Support splitting team names like "John/Jane" into two lines
-                                              const names = p.name.includes("/") ? p.name.split("/") : [p.name];
-                                              return names.map((name, ni) => (
-                                                <div
-                                                  key={`${p.id}-${ni}`}
-                                                  className="font-bold text-white drop-shadow-md truncate"
-                                                >
-                                                  {name.trim()}
-                                                </div>
-                                              ));
-                                            })}
-                                          </div>
-                      
+                    <div className="flex justify-between items-center mb-4 relative">
+                      {/* Team 1 */}
+                      <div className="flex-1 text-center">
+                        {match.team1.map((p) => {
+                          const names = p.name.includes("/") ? p.name.split("/") : [p.name];
+                          return names.map((name, ni) => (
+                            <div
+                              key={`${p.id}-${ni}`}
+                              className="font-bold drop-shadow-md truncate text-white"
+                            >
+                              {name.trim()}
+                            </div>
+                          ));
+                        })}
+                      </div>
+
+                      <div className="text-white/60 font-black px-3 text-sm italic shrink-0">
+                        VS
+                      </div>
+
+                      {/* Team 2 */}
+                      <div className="flex-1 text-center">
+                        {match.team2.map((p) => {
+                          const names = p.name.includes("/") ? p.name.split("/") : [p.name];
+                          return names.map((name, ni) => (
+                            <div
+                              key={`${p.id}-${ni}`}
+                              className="font-bold drop-shadow-md truncate text-white"
+                            >
+                              {name.trim()}
+                            </div>
+                          ));
+                        })}
+                      </div>
                     </div>
 
                     {/* Score Input/Display */}
@@ -306,53 +341,74 @@ const RoundCard: React.FC<{
                       {!round.completed ? (
                         <>
                           <input
-                            type="number"
-                            className="w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
+                              (match.score1 ?? 0) > (match.score2 ?? 0) ? "text-green-400" : (match.score1 ?? 0) < (match.score2 ?? 0) ? "text-red-400" : (match.score1 !== 0 || match.score2 !== 0) ? "text-orange-400" : "text-white"
+                            }`}
                             placeholder="0"
-                            value={match.score1 ?? ""}
-                            onChange={(e) =>
-                              onScoreChange(
-                                mIdx,
-                                1,
-                                parseInt(e.target.value) || 0,
-                              )
-                            }
+                            value={match.score1 != null && match.score1 !== 0 ? match.score1 : ""}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                              const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                              if (!isNaN(val)) onScoreChange(mIdx, 1, val);
+                            }}
                           />
                           <span className="text-2xl text-white/50 font-black">
                             -
                           </span>
                           <input
-                            type="number"
-                            className="w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg text-white placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
+                              (match.score2 ?? 0) > (match.score1 ?? 0) ? "text-green-400" : (match.score2 ?? 0) < (match.score1 ?? 0) ? "text-red-400" : (match.score2 !== 0 || match.score1 !== 0) ? "text-orange-400" : "text-white"
+                            }`}
                             placeholder="0"
-                            value={match.score2 ?? ""}
-                            onChange={(e) =>
-                              onScoreChange(
-                                mIdx,
-                                2,
-                                parseInt(e.target.value) || 0,
-                              )
-                            }
+                            value={match.score2 != null && match.score2 !== 0 ? match.score2 : ""}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                              const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                              if (!isNaN(val)) onScoreChange(mIdx, 2, val);
+                            }}
                           />
                         </>
                       ) : (
-                        <div className="flex items-center gap-3">
-                          <span className="text-3xl font-black text-white drop-shadow-lg">
-                            {match.score1} - {match.score2}
-                          </span>
+                        <div className="flex flex-col items-center gap-2 w-full">
+                          <div className="flex items-center gap-4">
+                            <span className={`text-4xl font-black drop-shadow-xl ${
+                              (match.score1 ?? 0) > (match.score2 ?? 0) ? "text-green-400" : (match.score1 ?? 0) < (match.score2 ?? 0) ? "text-red-400" : "text-orange-400"
+                            }`}>
+                              {match.score1}
+                            </span>
+                            <span className="text-2xl text-white/40 font-black">-</span>
+                            <span className={`text-4xl font-black drop-shadow-xl ${
+                              (match.score2 ?? 0) > (match.score1 ?? 0) ? "text-green-400" : (match.score2 ?? 0) < (match.score1 ?? 0) ? "text-red-400" : "text-orange-400"
+                            }`}>
+                              {match.score2}
+                            </span>
+                          </div>
                           <button
-                            className="px-2 py-1 text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded border border-white/10 transition-colors"
-                            onClick={onEdit}
+                            className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all"
+                            onClick={() => onEdit(mIdx)}
                           >
-                            Edit
+                            Edit Result
                           </button>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+                {/* Completed Checkmark Overlay */}
+                {(match.score1 != null && match.score2 != null) && !round.completed && (
+                  <div className="absolute top-2 right-2 z-20 w-5 h-5 bg-success rounded-full flex items-center justify-center shadow-lg border border-white/20 animate-in zoom-in duration-300">
+                    <span className="text-[10px] text-white font-bold">✓</span>
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Byes */}
@@ -367,49 +423,115 @@ const RoundCard: React.FC<{
             </div>
           )}
 
+          {nextRoundPreview && nextRoundPreview.matches.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-accent/20 bg-accent/5 p-4">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
+                    Nästa Runda (Förhandsvisning)
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    <p className="text-sm text-muted-foreground">
+                      Lag som väntar på Runda {nextRoundPreview.number}.
+                    </p>
+                    <span className="text-sm font-bold text-foreground">
+                      Est. start: {formatEstimatedRoundStart(state, nextRoundPreview.number - 1)}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-background/70 border border-accent/15 text-[10px] font-black uppercase tracking-wider text-accent">
+                      {getEstimatedRoundStartRelativeLabel(state, nextRoundPreview.number - 1)}
+                    </span>
+                  </div>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-accent text-white text-[10px] font-black uppercase tracking-wider">
+                  Runda {nextRoundPreview.number}
+                </span>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {nextRoundPreview.matches.map((match, idx) => {
+                  const matchDivision =
+                    state.format === "division"
+                      ? (match.team1[0] as any)?.division || "A"
+                      : null;
+
+                  return (
+                  <div
+                    key={`${nextRoundPreview.number}-${idx}`}
+                    className="rounded-2xl border border-border bg-card/80 px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {getCourtName(match.court)}
+                      </div>
+                      {matchDivision && (
+                        <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getDivisionStyles(matchDivision)}`}>
+                          Division {matchDivision}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <div className="flex-1 font-semibold text-foreground truncate">
+                        {match.team1.map((player) => player.name).join(" / ")}
+                      </div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                        vs
+                      </div>
+                      <div className="flex-1 text-right font-semibold text-foreground truncate">
+                        {match.team2.map((player) => player.name).join(" / ")}
+                      </div>
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Bye Selector & Complete Button */}
           {!round.completed && isLast && (
             <div className="mt-6 space-y-4">
-              {/* Bye Selector */}
-              <div className="bg-popover rounded-xl p-4 border border-border">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Toggle who rests next round:
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    ({state.manualByes.length} selected)
-                  </span>
+              {/* Bye Selector - Hidden in division format since schedule is predetermined */}
+              {state.format !== "division" && (
+                <div className="bg-popover rounded-xl p-4 border border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Toggle who rests next round:
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      ({state.manualByes.length} selected)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {state.leaderboard.map((p) => (
+                      <button
+                        key={p.id}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                          state.manualByes.includes(p.id)
+                            ? "bg-warning/20 border-warning text-warning"
+                            : "bg-card border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                        onClick={() => onToggleBye(p.id)}
+                      >
+                        {p.name}
+                        <span className="text-xs ml-1 opacity-60">
+                          ({p.byeCount || 0})
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {state.leaderboard.map((p) => (
-                    <button
-                      key={p.id}
-                      className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                        state.manualByes.includes(p.id)
-                          ? "bg-warning/20 border-warning text-warning"
-                          : "bg-card border-border text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => onToggleBye(p.id)}
-                    >
-                      {p.name}
-                      <span className="text-xs ml-1 opacity-60">
-                        ({p.byeCount || 0})
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
 
               {/* Complete Button */}
               <button
-                className={`w-full py-3 font-semibold rounded-xl transition-colors ${
+                className={`w-full py-3 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 ${
                   status === "complete"
-                    ? "bg-success hover:bg-success/80 text-white"
+                    ? "bg-success hover:bg-success/80 text-white shadow-success/20"
                     : "bg-popover hover:bg-card border border-border text-muted-foreground"
                 }`}
                 onClick={handleCompleteClick}
               >
-                Complete Round {round.number}
+                {getCompleteButtonLabel()}
               </button>
             </div>
           )}
@@ -418,6 +540,8 @@ const RoundCard: React.FC<{
     </GlassCard>
   );
 };
+
+import FullScheduleModal from "./FullScheduleModal";
 
 const Schedule: React.FC = () => {
   const { state, dispatch } = useTournament();
@@ -436,6 +560,25 @@ const Schedule: React.FC = () => {
       }
     }
   }, [schedule.length]);
+
+  const getCourtName = (courtNum: number) => {
+    if (
+      state.courtFormat === "custom" &&
+      state.customCourtNames[courtNum - 1]
+    ) {
+      return state.customCourtNames[courtNum - 1];
+    }
+    return `Court ${courtNum}`;
+  };
+
+  const nextRoundPreview =
+    state.format === "division" &&
+    state.allRounds &&
+    schedule.length < state.allRounds.length
+      ? state.allRounds[schedule.length]
+      : null;
+
+  const [isFullScheduleOpen, setIsFullScheduleOpen] = useState(false);
 
   const handleScoreChange = (
     rIdx: number,
@@ -465,13 +608,16 @@ const Schedule: React.FC = () => {
   };
 
   const handleCompleteRound = (rIdx: number) => {
+    if (schedule[rIdx]?.name === "Final") {
+      launchConfetti();
+    }
     dispatch({ type: "COMPLETE_ROUND" });
     showToast(`Round ${rIdx + 1} Completed!`, "success");
   };
 
-  const handleEditRound = (rIdx: number) => {
-    dispatch({ type: "EDIT_ROUND", roundIndex: rIdx });
-    showToast(`Round ${rIdx + 1} re-opened for editing`, "info");
+  const handleEditRound = (rIdx: number, mIdx: number) => {
+    dispatch({ type: "EDIT_ROUND", roundIndex: rIdx, matchIndex: mIdx });
+    showToast(`Round ${rIdx + 1} re-opened. Match ${mIdx + 1} is ready to edit`, "info");
   };
 
   const handleToggleBye = (playerId: string) => {
@@ -481,33 +627,58 @@ const Schedule: React.FC = () => {
     dispatch({ type: "UPDATE_FIELD", key: "manualByes", value: newByes });
   };
 
-  const handleSwapCourt = (rIdx: number, mIdx: number, newCourt: number) => {
-    dispatch({
-      type: "SWAP_MATCH_COURT",
-      roundIndex: rIdx,
-      matchIndex: mIdx,
-      newCourt,
-    });
-    showToast(`Match moved to court ${newCourt}`, "info");
+  const getRoundMetaLabel = (round: Round, idx: number) => {
+    if (!round.completed) {
+      return `Est. Start: ${formatEstimatedRoundStart(state, idx)}`;
+    }
+
+    if (round.durationSeconds == null) {
+      return "Finished";
+    }
+
+    return `Finished · ${Math.round(round.durationSeconds / 60)} min`;
   };
 
   return (
     <div>
       {schedule.map((round, idx) => (
-        <RoundCard
-          key={idx}
-          round={round}
-          roundIndex={idx}
-          isLast={idx === schedule.length - 1}
-          onComplete={() => handleCompleteRound(idx)}
-          onEdit={() => handleEditRound(idx)}
-          onScoreChange={(mIdx, team, val) =>
-            handleScoreChange(idx, mIdx, team, val)
-          }
-          onToggleBye={handleToggleBye}
-          onSwapCourt={(mIdx, newCourt) => handleSwapCourt(idx, mIdx, newCourt)}
-        />
+        <div key={idx} id={`round-${idx}`} className="relative">
+          <div className="absolute -top-4 left-6 z-10">
+            <span className="px-3 py-1 rounded-full bg-background border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground shadow-sm">
+              {getRoundMetaLabel(round, idx)}
+            </span>
+          </div>
+          <RoundCard
+            round={round}
+            roundIndex={idx}
+            isLast={idx === schedule.length - 1}
+            onComplete={() => handleCompleteRound(idx)}
+            onEdit={(matchIndex) => handleEditRound(idx, matchIndex)}
+            onScoreChange={(mIdx, team, val) =>
+              handleScoreChange(idx, mIdx, team, val)
+            }
+            onToggleBye={handleToggleBye}
+            nextRoundPreview={idx === schedule.length - 1 ? nextRoundPreview : null}
+          />
+        </div>
       ))}
+
+      {/* Full Schedule Access Button */}
+      {state.format === "division" && state.allRounds && state.allRounds.length > 0 && (
+        <div className="mt-8 text-center pb-8">
+          <button
+            onClick={() => setIsFullScheduleOpen(true)}
+            className="inline-flex items-center px-6 py-3 rounded-xl bg-popover hover:bg-card border border-border text-foreground hover:text-accent font-bold transition-all shadow-lg"
+          >
+            Visa hela spelschemat
+          </button>
+        </div>
+      )}
+
+      <FullScheduleModal
+        isOpen={isFullScheduleOpen}
+        onClose={() => setIsFullScheduleOpen(false)}
+      />
     </div>
   );
 };

@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "api": "node backend/server.js",
+    "api:migrate": "node backend/migrate.js",
     "dev": "vite",
+    "dev:full": "node backend/server.js & vite",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "vite build && cp dist/index.html dist/404.html && gh-pages -d dist",
@@ -33,6 +36,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "framer-motion": "^12.27.5",
+    "pg": "^8.20.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0",

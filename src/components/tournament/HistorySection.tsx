@@ -3,9 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
 import { useTournament } from "@/context/TournamentContext";
 import { getHistory, deleteFromHistory } from "@/tournament/history/repository";
-import { exportTournamentData } from "@/tournament/ui/setup/exportShare";
+import {
+  importTournamentData,
+  downloadTournamentData,
+} from "@/tournament/ui/setup/exportShare";
 import { showToast } from "@/shared/utils";
 import { showConfirmModal } from "@/tournament/core/modals";
+import { Dialog } from "@/components/ui/Dialog";
+import { CloudService } from "@/tournament/sync/cloud";
+import { getTournamentRoute } from "@/tournament/navigation";
 
 interface HistoryItem {
   id: string;
@@ -26,6 +32,9 @@ export const HistorySection: React.FC = () => {
   const navigate = useNavigate();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [search, setSearch] = useState("");
+  const [isOpenByCode, setIsOpenByCode] = useState(false);
+  const [shareCode, setShareCode] = useState("");
+  const [isLoadingCode, setIsLoadingCode] = useState(false);
 
   useEffect(() => {
     loadHistory();
@@ -34,16 +43,6 @@ export const HistorySection: React.FC = () => {
   const loadHistory = () => {
     const data = getHistory();
     setHistory(data);
-  };
-
-  const getTargetRoute = (data: any): string => {
-    if (data.winnersCourt) {
-      return "/tournament/winners-court";
-    }
-    if (data.bracket) {
-      return "/tournament/bracket";
-    }
-    return "/tournament/generator";
   };
 
   const handleLoad = (item: HistoryItem) => {
@@ -56,10 +55,57 @@ export const HistorySection: React.FC = () => {
       () => {
         dispatch({ type: "SET_STATE", payload: item.data });
         showToast("Tournament loaded");
-        const targetRoute = getTargetRoute(item.data);
+        const targetRoute = getTournamentRoute(item.data);
         navigate(targetRoute);
       }
     );
+  };
+
+  const applyImportedState = (data: any, successMessage: string) => {
+    dispatch({ type: "SET_STATE", payload: data });
+    showToast(successMessage, "success");
+    navigate(getTournamentRoute(data));
+  };
+
+  const handleLoadByCode = async () => {
+    const code = shareCode.trim();
+    if (!code) {
+      showToast("Enter a share code", "warning");
+      return;
+    }
+
+    setIsLoadingCode(true);
+    try {
+      const snapshot = await CloudService.getSession(code);
+      const restoredState = CloudService.restoreState(snapshot);
+      applyImportedState(restoredState, "Tournament loaded from cloud");
+      setIsOpenByCode(false);
+      setShareCode("");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to load tournament";
+      showToast(message, "error");
+    } finally {
+      setIsLoadingCode(false);
+    }
+  };
+
+  const handleImportFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const restoredState = importTournamentData(text);
+      applyImportedState(restoredState, "Tournament imported");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to import tournament";
+      showToast(message, "error");
+    }
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -85,8 +131,6 @@ export const HistorySection: React.FC = () => {
     );
   });
 
-  if (history.length === 0) return null;
-
   return (
     <section className="px-4 animate-fade-in">
       {/* Header */}
@@ -110,6 +154,34 @@ export const HistorySection: React.FC = () => {
           />
         </div>
       </div>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsOpenByCode(true)}
+        >
+          Open with code
+        </Button>
+        <label className="inline-flex">
+          <input
+            type="file"
+            accept="application/json"
+            className="sr-only"
+            onChange={handleImportFile}
+          />
+          <span className="px-3 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 bg-card hover:bg-popover border border-border text-foreground hover:border-accent/50 cursor-pointer">
+            Import JSON
+          </span>
+        </label>
+      </div>
+
+      {history.length === 0 ? (
+        <div className="bg-card border border-border rounded-2xl px-6 py-10 text-center text-muted-foreground">
+          No saved local history yet. You can still open a tournament with a share code or import a JSON backup.
+        </div>
+      ) : (
+        <>
 
       {/* Table */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
@@ -175,20 +247,12 @@ export const HistorySection: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          const data = exportTournamentData();
-                          const blob = new Blob([data], {
-                            type: "application/json",
-                          });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement("a");
-                          a.href = url;
-                          a.download = `${
-                            item.summary.name || "tournament"
-                          }.json`;
-                          a.click();
-                          URL.revokeObjectURL(url);
-                        }}
+                        onClick={() =>
+                          downloadTournamentData(
+                            `${item.summary.name || "tournament"}.json`,
+                            item.data,
+                          )
+                        }
                         title="Download"
                       >
                         📥
@@ -215,6 +279,45 @@ export const HistorySection: React.FC = () => {
           </div>
         )}
       </div>
+        </>
+      )}
+
+      <Dialog
+        isOpen={isOpenByCode}
+        onClose={() => {
+          if (!isLoadingCode) {
+            setIsOpenByCode(false);
+          }
+        }}
+        title="Open Tournament"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setIsOpenByCode(false)}
+              disabled={isLoadingCode}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleLoadByCode} disabled={isLoadingCode}>
+              {isLoadingCode ? "Loading..." : "Open"}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Enter the share code from another device to restore the tournament here.
+          </p>
+          <input
+            type="text"
+            placeholder="ABC123"
+            className="w-full px-4 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors uppercase tracking-[0.2em]"
+            value={shareCode}
+            onChange={(e) => setShareCode(e.target.value.toUpperCase())}
+          />
+        </div>
+      </Dialog>
     </section>
   );
 };

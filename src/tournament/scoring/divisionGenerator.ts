@@ -40,6 +40,35 @@ function generateRoundRobin(teams: Player[]): [Player, Player][][] {
   }
 
   const numTeams = teamList.length;
+
+  // Custom Optimal 8-Team Schedule (User Requested)
+  if (numTeams === 8 && !hasOddTeams) {
+    // The user provided the optimal pairings sequence for 8 teams across 7 rounds (4 matches per round)
+    // We map the incoming teams to this structure
+    // Teams index 0-7 represents Lag 1-8
+    const t = teamList;
+    const customPairingsIndices = [
+      // Round 1
+      [[0, 7], [1, 6], [2, 5], [3, 4]],
+      // Round 2
+      [[0, 6], [7, 5], [1, 4], [2, 3]],
+      // Round 3
+      [[0, 5], [6, 4], [7, 3], [1, 2]],
+      // Round 4
+      [[0, 4], [5, 3], [6, 2], [7, 1]],
+      // Round 5
+      [[0, 3], [4, 2], [5, 1], [6, 7]],
+      // Round 6
+      [[0, 2], [3, 1], [4, 7], [5, 6]],
+      // Round 7
+      [[0, 1], [2, 7], [3, 6], [4, 5]]
+    ];
+
+    return customPairingsIndices.map(roundStr => 
+      roundStr.map(pair => [t[pair[0]], t[pair[1]]] as [Player, Player])
+    );
+  }
+
   const numRounds = numTeams - 1;
   const half = numTeams / 2;
 
@@ -96,15 +125,25 @@ export function generateDivisionSchedule(
   // Sort division names for deterministic court assignment
   const divNames = [...divisions.keys()].sort();
 
-  // Generate round-robin for each division
+  // Generate round-robin for each division. If a round has more matches than
+  // available courts, split it into multiple scheduled sub-rounds instead of
+  // dropping the overflow matches.
   const divisionRounds = new Map<string, [Player, Player][][]>();
   let maxRounds = 0;
 
   for (const divName of divNames) {
     const teams = divisions.get(divName)!;
     const rounds = generateRoundRobin(teams);
-    divisionRounds.set(divName, rounds);
-    maxRounds = Math.max(maxRounds, rounds.length);
+    const expandedRounds: [Player, Player][][] = [];
+
+    rounds.forEach((roundPairings) => {
+      for (let idx = 0; idx < roundPairings.length; idx += courtsPerDivision) {
+        expandedRounds.push(roundPairings.slice(idx, idx + courtsPerDivision));
+      }
+    });
+
+    divisionRounds.set(divName, expandedRounds);
+    maxRounds = Math.max(maxRounds, expandedRounds.length);
   }
 
   // Merge rounds: for each round number, combine matches from all divisions
@@ -123,25 +162,13 @@ export function generateDivisionSchedule(
       if (r < divRounds.length) {
         const roundPairings = divRounds[r];
 
-        // Assign courts within the division's allocation
-        // If more pairings than courts, split into sub-rounds (handled later)
-        const pairingsForThisRound = roundPairings.slice(0, courtsPerDivision);
-        const overflow = roundPairings.slice(courtsPerDivision);
-
-        pairingsForThisRound.forEach((pair, mIdx) => {
+        roundPairings.forEach((pair, mIdx) => {
           matches.push({
             court: courtOffset + mIdx + 1,
             team1: [pair[0]],
             team2: [pair[1]],
           });
         });
-
-        // Players in overflow matches are effectively waiting (byes for this sub-round)
-        overflow.forEach((pair) => {
-          byes.push(pair[0], pair[1]);
-        });
-
-        // Players not in any match this round (when division finished earlier)
       } else {
         // This division has no more rounds; all its teams are idle
         byes.push(...divTeams);

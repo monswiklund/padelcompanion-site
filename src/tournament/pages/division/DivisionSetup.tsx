@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
@@ -19,6 +19,8 @@ interface DivisionSetupProps {
   onGameActive: () => void;
 }
 
+type DivisionEntryMode = "teamName" | "playerPair";
+
 const HELP_DIVISION = {
   title: "Division",
   content:
@@ -28,33 +30,184 @@ const HELP_DIVISION = {
 export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   onGameActive,
 }) => {
-  const { state, dispatch } = useTournament();
+  const { state, dispatch, isLoaded } = useTournament() as any;
   const { players, courts } = state;
+  const [entryMode, setEntryMode] = useState<DivisionEntryMode>("teamName");
+  const [teamNameInput, setTeamNameInput] = useState("");
+  const [playerOneInput, setPlayerOneInput] = useState("");
+  const [playerTwoInput, setPlayerTwoInput] = useState("");
 
-  // Ensure format is set to division when this page mounts
+  // Ensure format is set to division when this page mounts (but only after loaded)
   useEffect(() => {
-    if (state.format !== "division") {
+    if (isLoaded && state.format !== "division") {
       dispatch({ type: "UPDATE_FIELD", key: "format", value: "division" });
     }
-  }, []);
+  }, [isLoaded]);
 
   useEffect(() => {
     Object.assign(legacyState, state);
   }, [state]);
 
-  const handleAddTeam = (name: string) => {
-    if (players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
-      showToast("Team already exists", "error");
-      return;
+  const buildTeamMembers = (name: string) =>
+    name
+      .split("/")
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+  const getTeamDuplicateKey = (name: string) => {
+    const members = buildTeamMembers(name);
+    if (members.length < 2) {
+      return name.trim().toLowerCase();
     }
+
+    return members
+      .map((member) => member.toLowerCase())
+      .sort((a, b) => a.localeCompare(b))
+      .join("::");
+  };
+
+  const addDivisionTeam = (name: string) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return false;
+
+    const existingTeamKeys = new Set(
+      players.map((player) => getTeamDuplicateKey(player.name)),
+    );
+
+    if (existingTeamKeys.has(getTeamDuplicateKey(trimmedName))) {
+      showToast("Team already exists", "error");
+      return false;
+    }
+
     const newTeam: DivisionTeam = {
       id: createId(),
-      name,
+      name: trimmedName,
       lockedCourt: null,
       division: "A",
     };
     dispatch({ type: "ADD_PLAYER", player: newTeam });
-    showToast(`${name} added`, "success");
+    showToast(`${trimmedName} added`, "success");
+    return true;
+  };
+
+  const handleAddTeam = (name: string) => {
+    addDivisionTeam(name);
+  };
+
+  const handleAddPlayerPair = () => {
+    const playerOne = playerOneInput.trim();
+    const playerTwo = playerTwoInput.trim();
+
+    if (!playerOne || !playerTwo) {
+      showToast("Add both players to create a team", "warning");
+      return;
+    }
+
+    const didAdd = addDivisionTeam(`${playerOne} / ${playerTwo}`);
+    if (!didAdd) return;
+
+    setPlayerOneInput("");
+    setPlayerTwoInput("");
+  };
+
+  const parseImportedTeams = (text: string) => {
+    const addedTeams: DivisionTeam[] = [];
+    let duplicateCount = 0;
+    let invalidCount = 0;
+    let extraNameCount = 0;
+
+    const queuedNames = new Set(
+      players.map((player) => getTeamDuplicateKey(player.name)),
+    );
+
+    const queueTeam = (teamName: string) => {
+      const normalized = getTeamDuplicateKey(teamName);
+      if (queuedNames.has(normalized)) {
+        duplicateCount++;
+        return;
+      }
+
+      queuedNames.add(normalized);
+      addedTeams.push({
+        id: createId(),
+        name: teamName,
+        lockedCourt: null,
+        division: "A",
+      });
+    };
+
+    if (entryMode === "teamName") {
+      text.split("\n").forEach((line) => {
+        const raw = line.trim();
+        if (!raw) return;
+        queueTeam(raw);
+      });
+    } else {
+      const pendingSingles: string[] = [];
+
+      text.split("\n").forEach((line) => {
+        const raw = line.trim();
+        if (!raw) return;
+
+        const hasStructuredSeparators = /[\/,;&+|\t]/.test(raw);
+        if (!hasStructuredSeparators) {
+          pendingSingles.push(raw);
+          return;
+        }
+
+        const members = raw
+          .split(/\s*(?:\/|,|;|&|\||\t)\s*|\s+\+\s+/)
+          .map((part) => part.trim())
+          .filter(Boolean);
+
+        if (members.length < 2) {
+          invalidCount++;
+          return;
+        }
+
+        for (let idx = 0; idx + 1 < members.length; idx += 2) {
+          queueTeam(`${members[idx]} / ${members[idx + 1]}`);
+        }
+
+        if (members.length % 2 !== 0) {
+          extraNameCount++;
+        }
+      });
+
+      for (let idx = 0; idx + 1 < pendingSingles.length; idx += 2) {
+        queueTeam(`${pendingSingles[idx]} / ${pendingSingles[idx + 1]}`);
+      }
+
+      if (pendingSingles.length % 2 !== 0) {
+        invalidCount++;
+      }
+    }
+
+    if (addedTeams.length > 0) {
+      dispatch({
+        type: "SET_STATE",
+        payload: { players: [...players, ...addedTeams] },
+      });
+      showToast(`Imported ${addedTeams.length} teams`, "success");
+    }
+
+    if (duplicateCount > 0) {
+      showToast(`Skipped ${duplicateCount} duplicates`, "warning");
+    }
+
+    if (invalidCount > 0) {
+      showToast(
+        `Skipped ${invalidCount} incomplete team rows`,
+        "warning",
+      );
+    }
+
+    if (extraNameCount > 0) {
+      showToast(
+        `Skipped ${extraNameCount} unpaired names from pasted rows`,
+        "warning",
+      );
+    }
   };
 
   const handleGenerate = async () => {
@@ -96,12 +249,18 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
         payload: {
           format: "division",
           courts: totalCourts,
+          timer: {
+            duration: state.pointsPerMatch,
+            remainingSeconds: state.pointsPerMatch * 60,
+            isRunning: false,
+            status: "idle",
+          },
           schedule: generatedSchedule.length > 0 ? [...generatedSchedule] : [],
           leaderboard: result.leaderboard ? [...result.leaderboard] : [],
           allRounds: result.allRounds ? [...result.allRounds] : null,
           currentRound: result.currentRound,
           isLocked: result.isLocked,
-          roundStartedAt: Date.now(),
+          roundStartedAt: null,
           sessionStartedAt: Date.now(),
         },
       });
@@ -148,57 +307,139 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
         {/* Teams Section */}
         <GlassCard>
           <PlayerList
+            title="Teams"
+            singularTitle="Team"
             items={players}
             onAdd={handleAddTeam}
             onRemove={(idx) => {
               dispatch({ type: "REMOVE_PLAYER", playerId: players[idx].id });
             }}
             onClear={() => dispatch({ type: "CLEAR_PLAYERS" })}
-            onImport={(text) => {
-              const lines = text.split("\n");
-              const addedTeams: DivisionTeam[] = [];
-              let duplicateCount = 0;
+            onImport={parseImportedTeams}
+            importTitle={
+              entryMode === "teamName" ? "Import team names" : "Import player pairs"
+            }
+            importDescription={
+              entryMode === "teamName" ? (
+                <div className="space-y-1">
+                  <p>Paste one team per line.</p>
+                  <p className="text-xs">Example: <span className="text-foreground">Lag 1</span></p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p>Paste teams as either two names on one row or one player per line.</p>
+                  <p className="text-xs">
+                    Examples:
+                    <span className="text-foreground"> Anna / Lisa</span>,
+                    <span className="text-foreground"> Anna, Lisa</span>,
+                    <span className="text-foreground"> Anna[TAB]Lisa</span>,
+                    or lines like
+                    <span className="text-foreground"> Anna</span> then
+                    <span className="text-foreground"> Lisa</span>.
+                  </p>
+                </div>
+              )
+            }
+            importPlaceholder={
+              entryMode === "teamName"
+                ? "Lag 1\nLag 2\nLag 3"
+                : "Anna / Lisa\nMaja / Elin\n\nor:\nAnna\nLisa\nMaja\nElin"
+            }
+            renderInput={
+              <div className="space-y-3">
+                <div className="inline-flex rounded-xl border border-border bg-popover p-1">
+                  {[
+                    { id: "teamName", label: "Team Names" },
+                    { id: "playerPair", label: "Players / Team" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setEntryMode(option.id as DivisionEntryMode)}
+                      className={`px-3 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-colors ${
+                        entryMode === option.id
+                          ? "bg-accent text-white"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
 
-              lines.forEach((l) => {
-                const name = l.trim();
-                if (name) {
-                  const isDuplicate =
-                    players.some(
-                      (p) => p.name.toLowerCase() === name.toLowerCase(),
-                    ) ||
-                    addedTeams.some(
-                      (p) => p.name.toLowerCase() === name.toLowerCase(),
-                    );
-
-                  if (!isDuplicate) {
-                    addedTeams.push({
-                      id: createId(),
-                      name,
-                      lockedCourt: null,
-                      division: "A",
-                    });
-                  } else {
-                    duplicateCount++;
-                  }
-                }
-              });
-
-              if (addedTeams.length > 0) {
-                dispatch({
-                  type: "SET_STATE",
-                  payload: { players: [...players, ...addedTeams] },
-                });
-                showToast(`Imported ${addedTeams.length} teams`, "success");
-              }
-
-              if (duplicateCount > 0) {
-                showToast(`Skipped ${duplicateCount} duplicates`, "warning");
-              }
-            }}
+                {entryMode === "teamName" ? (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-4 pr-20 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm"
+                      placeholder="Add team name..."
+                      value={teamNameInput}
+                      onChange={(e) => setTeamNameInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const didAdd = addDivisionTeam(teamNameInput);
+                          if (didAdd) setTeamNameInput("");
+                        }
+                      }}
+                    />
+                    <button
+                      className="absolute right-1 top-1 bottom-1 px-4 bg-accent hover:bg-accent-dark text-white font-medium rounded-lg transition-colors disabled:opacity-0 disabled:pointer-events-none text-sm"
+                      onClick={() => {
+                        const didAdd = addDivisionTeam(teamNameInput);
+                        if (didAdd) setTeamNameInput("");
+                      }}
+                      disabled={!teamNameInput.trim()}
+                    >
+                      Add
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm"
+                      placeholder="Player 1"
+                      value={playerOneInput}
+                      onChange={(e) => setPlayerOneInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddPlayerPair();
+                        }
+                      }}
+                    />
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm"
+                      placeholder="Player 2"
+                      value={playerTwoInput}
+                      onChange={(e) => setPlayerTwoInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddPlayerPair();
+                        }
+                      }}
+                    />
+                    <button
+                      className="px-4 py-3 bg-accent hover:bg-accent-dark text-white font-medium rounded-xl transition-colors text-sm"
+                      onClick={handleAddPlayerPair}
+                      disabled={!playerOneInput.trim() || !playerTwoInput.trim()}
+                    >
+                      Add Team
+                    </button>
+                  </div>
+                )}
+              </div>
+            }
             hintText={
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-success">✓</span>
-                <span>{players.length} teams</span>
+                <span>
+                  {players.length} teams
+                  {entryMode === "playerPair" ? " (built from player pairs)" : ""}
+                </span>
               </div>
             }
           />
@@ -385,9 +626,9 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                                     <button
                                       key={targetDiv}
                                       type="button"
-                                      className={`px-2 py-0.5 text-[10px] font-bold rounded-md border transition-colors ${
+                                      className={`min-w-[56px] px-2.5 py-1 text-[11px] font-black rounded-lg border transition-colors ${
                                         divColors[targetDiv].border
-                                      } ${divColors[targetDiv].text} hover:${divColors[targetDiv].bg} opacity-60 hover:opacity-100`}
+                                      } ${divColors[targetDiv].text} bg-background/80 hover:bg-background shadow-sm`}
                                       title={`Move to Division ${targetDiv}`}
                                       onClick={() => {
                                         const newPlayers = [...players];

@@ -22,6 +22,8 @@ export interface TournamentConfigState {
   customCourtNames: string[];
   tiebreaker?: "difference" | "most_won" | "shared";
   divisionCourts?: number;
+  plannedStartTime: string;
+  matchDuration: number;
 }
 
 interface TournamentConfigProps {
@@ -294,37 +296,6 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
 
           
-
-
-
-                    <ConfigRow label="Court Toggle" hint="Allow manual court swap">
-
-
-
-                      <Toggle
-
-
-
-                        enabled={config.allowCourtChange ?? true}
-
-
-
-                        onChange={() => onChange("allowCourtChange", !(config.allowCourtChange ?? true))}
-
-
-
-                      />
-
-
-
-                    </ConfigRow>
-
-
-
-          
-
-
-
                     <ConfigRow label="Scoring" hint="Win condition">
 
 
@@ -457,6 +428,30 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
             ))}
           </div>
         )}
+      </Section>
+
+      {/* Timing Settings */}
+      <Section title="Timing">
+        <div className="divide-y divide-white/[0.06]">
+          <ConfigRow label="Start Time" hint="Expected first round">
+            <input
+              type="time"
+              className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+              value={config.plannedStartTime || "17:00"}
+              onChange={(e) => onChange("plannedStartTime" as any, e.target.value)}
+            />
+          </ConfigRow>
+
+          <ConfigRow label="Match Duration" hint="Minutes per round">
+            <Stepper
+              value={config.matchDuration || 15}
+              min={5}
+              max={120}
+              step={5}
+              onChange={(v) => onChange("matchDuration" as any, v)}
+            />
+          </ConfigRow>
+        </div>
       </Section>
     </div>
   );

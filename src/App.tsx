@@ -1,43 +1,60 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  Outlet,
 } from "react-router-dom";
 import { TournamentProvider } from "./context/TournamentContext";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
-import LandingPage from "./pages/LandingPage";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
-import SupportPage from "./pages/SupportPage";
 
-// Tournament Pages
-import GeneratorPage from "./tournament/pages/generator/GeneratorPage";
-import BracketPage from "./tournament/pages/bracket/BracketPage";
-import DivisionPage from "./tournament/pages/division/DivisionPage";
-import WinnersCourtPage from "./tournament/pages/winnersCourt/WinnersCourtPage";
-import HistoryPage from "./tournament/pages/history/HistoryPage";
-import NotFoundPage from "./pages/NotFoundPage";
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const GeneratorPage = lazy(() => import("./tournament/pages/generator/GeneratorPage"));
+const BracketPage = lazy(() => import("./tournament/pages/bracket/BracketPage"));
+const DivisionPage = lazy(() => import("./tournament/pages/division/DivisionPage"));
+const WinnersCourtPage = lazy(
+  () => import("./tournament/pages/winnersCourt/WinnersCourtPage"),
+);
+const HistoryPage = lazy(() => import("./tournament/pages/history/HistoryPage"));
+const SharedTournamentPage = lazy(
+  () => import("./tournament/pages/shared/SharedTournamentPage"),
+);
+
+const PageLoader: React.FC = () => (
+  <div className="min-h-[50vh] flex items-center justify-center px-4 text-center text-muted-foreground">
+    Loading...
+  </div>
+);
+
+const TournamentLayout: React.FC = () => (
+  <TournamentProvider>
+    <Outlet />
+  </TournamentProvider>
+);
 
 const App: React.FC = () => {
   return (
-    <TournamentProvider>
-      <Router>
-        <div className="min-h-screen flex flex-col bg-background text-foreground">
-          <Header />
-          <main className="flex-1 pt-20">
+    <Router>
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <Header />
+        <main className="flex-1 pt-20">
+          <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/tournament/generator" element={<GeneratorPage />} />
-              <Route path="/tournament/division" element={<DivisionPage />} />
-              <Route path="/tournament/bracket" element={<BracketPage />} />
-              <Route
-                path="/tournament/winners-court"
-                element={<WinnersCourtPage />}
-              />
-              <Route path="/tournament/history" element={<HistoryPage />} />
+              <Route path="/tournament" element={<TournamentLayout />}>
+                <Route path="generator" element={<GeneratorPage />} />
+                <Route path="division" element={<DivisionPage />} />
+                <Route path="session/:shareCode" element={<SharedTournamentPage />} />
+                <Route path="bracket" element={<BracketPage />} />
+                <Route path="winners-court" element={<WinnersCourtPage />} />
+                <Route path="history" element={<HistoryPage />} />
+              </Route>
 
               {/* Support & Legal */}
               <Route path="/support" element={<SupportPage />} />
@@ -66,11 +83,11 @@ const App: React.FC = () => {
               {/* 404 Page */}
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
-    </TournamentProvider>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
 };
 

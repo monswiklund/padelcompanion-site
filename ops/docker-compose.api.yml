@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    container_name: padel_companion_api
+    restart: always
+    env_file:
+      - ../backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8787/api/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.00
+    pids_limit: 256
+    networks:
+      - vad-handernu_default
+
+networks:
+  vad-handernu_default:
+    external: true

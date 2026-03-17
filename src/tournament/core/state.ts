@@ -38,6 +38,7 @@ export interface Match {
 
 export interface Round {
   number: number;
+  name?: string;
   completed?: boolean;
   matches: Match[];
   byes: Player[];

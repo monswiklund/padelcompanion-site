@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { generateMexicanoNextRound } from "../scoring/index.js";
+import { generateDivisionSchedule } from "../scoring/divisionGenerator";
 import { state } from "../core/state.js";
 
 describe("Mexicano Scoring Logic", () => {
@@ -108,5 +109,35 @@ describe("Mexicano Scoring Logic", () => {
     }
 
     expect(partner.id).toBe(6);
+  });
+});
+
+describe("Division Scheduling", () => {
+  it("splits oversized division rounds into sub-rounds so all teams play evenly", () => {
+    const players = Array.from({ length: 8 }, (_, i) => ({
+      id: i + 1,
+      name: `Lag ${i + 1}`,
+      division: "A",
+    }));
+
+    const schedule = generateDivisionSchedule({
+      players,
+      courtsPerDivision: 2,
+    });
+
+    const playedCounts = new Map<number, number>();
+    schedule.forEach((round) => {
+      round.matches.forEach((match) => {
+        [...match.team1, ...match.team2].forEach((player) => {
+          const playerId = player.id as number;
+          playedCounts.set(playerId, (playedCounts.get(playerId) || 0) + 1);
+        });
+      });
+    });
+
+    expect(schedule).toHaveLength(14);
+    players.forEach((player) => {
+      expect(playedCounts.get(player.id)).toBe(7);
+    });
   });
 });

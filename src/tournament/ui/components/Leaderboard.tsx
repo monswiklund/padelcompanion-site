@@ -1,8 +1,10 @@
 import React from "react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useLeaderboard } from "@/tournament/ui/hooks/useLeaderboard";
+import { useTournament } from "@/context/TournamentContext";
 import { copyLeaderboardToClipboard } from "@/tournament/ui/setup/exportShare";
 import { showToast } from "@/shared/utils";
+import PlayerMatchHistory from "./PlayerMatchHistory";
 
 const Leaderboard: React.FC = () => {
   const {
@@ -22,6 +24,9 @@ const Leaderboard: React.FC = () => {
     setLeaderboardColumns,
     isDivision,
   } = useLeaderboard();
+
+  // Match History Modal State
+  const [historyPlayer, setHistoryPlayer] = React.useState<{ id: string, name: string } | null>(null);
 
   const getColumnData = () => {
     const cols = Math.max(1, leaderboardColumns || 1);
@@ -56,13 +61,26 @@ const Leaderboard: React.FC = () => {
     }
   };
 
+  // Determine if we are in playoff mode (any round has a name)
+  const { state } = useTournament();
+  const isPlayoffs = sortedLeaderboard.length > 0 && state.schedule.some(r => !!r.name);
+
   return (
     <GlassCard padding="none" className="leaderboard-section overflow-hidden">
+      {/* Match History Modal */}
+      {historyPlayer && (
+        <PlayerMatchHistory
+          playerId={historyPlayer.id}
+          playerName={historyPlayer.name}
+          isOpen={!!historyPlayer}
+          onClose={() => setHistoryPlayer(null)}
+        />
+      )}
       {/* Header & Controls */}
       <div className="p-4 border-b border-border">
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full mb-4">
           <h3 className="text-2xl font-bold text-foreground tracking-wide">
-            Leaderboard
+            {isPlayoffs ? "Group Stage (Final Standings)" : "Leaderboard"}
           </h3>
 
           <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
@@ -163,7 +181,13 @@ const Leaderboard: React.FC = () => {
       {/* Table Content */}
       {isDivision ? (
         /* Division grouped tables */
-        <div className="p-4 space-y-6">
+        <div
+          className={`p-4 ${
+            effectiveCols === 1
+              ? "space-y-6"
+              : `grid gap-6 ${effectiveCols === 2 ? "grid-cols-2" : "grid-cols-3"}`
+          }`}
+        >
           {(() => {
             const divGroups = new Map<string, typeof sortedLeaderboard>();
             sortedLeaderboard.forEach((p) => {
@@ -186,13 +210,13 @@ const Leaderboard: React.FC = () => {
                           <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">#</th>
                           <th className="py-2 text-left text-xs font-semibold text-muted-foreground uppercase">Team</th>
                           <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">P</th>
-                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">W</th>
-                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">D</th>
-                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">L</th>
-                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GF</th>
-                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GA</th>
-                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GD</th>
-                          <th className="w-10 py-2 text-center text-xs font-semibold text-accent uppercase font-bold">Pts</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Wins (3 pts)">W</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Draws (1 pt)">D</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Losses (0 pts)">L</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Games Won">GW</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Games Lost">GL</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase" title="Game Difference">GD</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-accent uppercase font-bold" title="Total Points (W=3, D=1, L=0)">Pts</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -211,7 +235,11 @@ const Leaderboard: React.FC = () => {
                                 ? "bg-gradient-to-r from-orange-600/10 to-transparent"
                                 : "";
                           return (
-                            <tr key={player.id} className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}>
+                            <tr 
+                              key={player.id} 
+                              className={`border-b border-border/50 hover:bg-popover transition-colors cursor-pointer group/row ${rankClass}`}
+                              onClick={() => setHistoryPlayer({ id: player.id, name: player.name })}
+                            >
                               <td className="py-2.5 text-center">
                                 <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-xs ${
                                   rank === 1 ? "bg-yellow-500 text-black"
@@ -223,7 +251,7 @@ const Leaderboard: React.FC = () => {
                                 </span>
                               </td>
                               <td className="py-2.5">
-                                <span className="font-medium text-foreground truncate block max-w-[140px] lg:max-w-xs">{player.name}</span>
+                                <span className="font-bold text-foreground truncate block max-w-[140px] lg:max-w-xs group-hover/row:text-accent transition-colors">{player.name}</span>
                               </td>
                               <td className="py-2.5 text-center text-muted-foreground">{!hideLeaderboard ? player.played : "-"}</td>
                               <td className="py-2.5 text-center text-success font-medium">{!hideLeaderboard ? player.wins : "-"}</td>
@@ -297,7 +325,8 @@ const Leaderboard: React.FC = () => {
                     return (
                       <tr
                         key={player.id}
-                        className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}
+                        className={`border-b border-border/50 hover:bg-popover transition-colors cursor-pointer group/row ${rankClass}`}
+                        onClick={() => setHistoryPlayer({ id: player.id, name: player.name })}
                       >
                         {/* Rank Column */}
                         <td className="py-3 text-center">
@@ -337,7 +366,7 @@ const Leaderboard: React.FC = () => {
 
                         {/* Player Column */}
                         <td className="py-3">
-                          <span className="font-medium text-foreground truncate block max-w-[120px] lg:max-w-xs">
+                          <span className="font-bold text-foreground truncate block max-w-[120px] lg:max-w-xs group-hover/row:text-accent transition-colors">
                             {player.name}
                           </span>
                         </td>

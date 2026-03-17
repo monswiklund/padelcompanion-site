@@ -2,6 +2,8 @@ import React, { useState, ReactNode } from "react";
 import { StorageService } from "@/shared/storage";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/utils";
+import { Dialog } from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/Button";
 
 export type ViewMode = "list" | "grid";
 
@@ -13,6 +15,9 @@ export interface PlayerListProps<T extends { name: string }> {
   onRemove: (index: number) => void;
   onClear?: () => void;
   onImport?: (text: string) => void;
+  importTitle?: string;
+  importDescription?: ReactNode;
+  importPlaceholder?: string;
   onReorder?: (fromIndex: number, toIndex: number) => void;
   renderItem?: (item: T, index: number) => ReactNode;
   renderPrefix?: (item: T, index: number) => ReactNode;
@@ -21,6 +26,7 @@ export interface PlayerListProps<T extends { name: string }> {
   maxItems?: number;
   showViewToggle?: boolean;
   defaultView?: ViewMode;
+  renderInput?: ReactNode;
 }
 
 export function PlayerList<T extends { name: string }>({
@@ -31,6 +37,9 @@ export function PlayerList<T extends { name: string }>({
   onRemove,
   onClear,
   onImport,
+  importTitle = "Import names",
+  importDescription = "Paste one entry per line.",
+  importPlaceholder = "Anna\nLisa\nMaja",
   onReorder,
   renderItem,
   renderPrefix,
@@ -39,6 +48,7 @@ export function PlayerList<T extends { name: string }>({
   maxItems = 100,
   showViewToggle = true,
   defaultView = "list",
+  renderInput,
 }: PlayerListProps<T>) {
   const [inputValue, setInputValue] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(
@@ -48,6 +58,8 @@ export function PlayerList<T extends { name: string }>({
   );
   const [showAll, setShowAll] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importValue, setImportValue] = useState("");
 
   const handleAdd = () => {
     const name = inputValue.trim();
@@ -71,8 +83,20 @@ export function PlayerList<T extends { name: string }>({
 
   const handleImport = () => {
     if (!onImport) return;
-    const text = prompt("Paste names (one per line):");
-    if (text) onImport(text);
+    setIsImportOpen(true);
+  };
+
+  const submitImport = () => {
+    const text = importValue.trim();
+    if (!text || !onImport) return;
+    onImport(text);
+    setImportValue("");
+    setIsImportOpen(false);
+  };
+
+  const closeImport = () => {
+    setIsImportOpen(false);
+    setImportValue("");
   };
 
   // Drag and drop handlers simplified
@@ -148,6 +172,33 @@ export function PlayerList<T extends { name: string }>({
 
   return (
     <div className="space-y-4">
+      <Dialog
+        isOpen={isImportOpen}
+        onClose={closeImport}
+        title={importTitle}
+        width="lg"
+        footer={
+          <>
+            <Button variant="ghost" onClick={closeImport}>
+              Cancel
+            </Button>
+            <Button onClick={submitImport} disabled={!importValue.trim()}>
+              Import
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="text-sm text-muted-foreground">{importDescription}</div>
+          <textarea
+            className="min-h-56 w-full rounded-xl bg-popover border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm resize-y"
+            placeholder={importPlaceholder}
+            value={importValue}
+            onChange={(e) => setImportValue(e.target.value)}
+          />
+        </div>
+      </Dialog>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-bold text-foreground">
@@ -179,24 +230,26 @@ export function PlayerList<T extends { name: string }>({
       </div>
 
       {/* Input Row */}
-      <div className="relative">
-        <input
-          type="text"
-          className="w-full pl-4 pr-20 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm"
-          placeholder={`Add ${singularTitle.toLowerCase()}...`}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={items.length >= maxItems}
-        />
-        <button
-          className="absolute right-1 top-1 bottom-1 px-4 bg-accent hover:bg-accent-dark text-white font-medium rounded-lg transition-colors disabled:opacity-0 disabled:pointer-events-none text-sm"
-          onClick={handleAdd}
-          disabled={!inputValue.trim() || items.length >= maxItems}
-        >
-          Add
-        </button>
-      </div>
+      {renderInput ?? (
+        <div className="relative">
+          <input
+            type="text"
+            className="w-full pl-4 pr-20 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-sm"
+            placeholder={`Add ${singularTitle.toLowerCase()}...`}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={items.length >= maxItems}
+          />
+          <button
+            className="absolute right-1 top-1 bottom-1 px-4 bg-accent hover:bg-accent-dark text-white font-medium rounded-lg transition-colors disabled:opacity-0 disabled:pointer-events-none text-sm"
+            onClick={handleAdd}
+            disabled={!inputValue.trim() || items.length >= maxItems}
+          >
+            Add
+          </button>
+        </div>
+      )}
 
       {/* View Toggle */}
       {showViewToggle && items.length > 0 && (

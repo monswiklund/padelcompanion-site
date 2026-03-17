@@ -13,7 +13,12 @@ import {
 import {
   calculateUpdatedLeaderboard,
   sortLeaderboard,
+  type LeaderboardPlayer,
 } from "@/tournament/scoring/playerStats";
+import {
+  generateFinals,
+  generateSemifinals,
+} from "@/tournament/scoring/playoffGenerator";
 import {
   WinnersCourtState,
   recordCourtResult,
@@ -47,6 +52,7 @@ export interface Match {
 
 export interface Round {
   number: number;
+  name?: string;
   completed?: boolean;
   matches: Match[];
   byes?: Player[];
@@ -108,6 +114,8 @@ export interface TournamentState {
     teamsA?: any[];
     teamsB?: any[];
   } | null;
+  plannedStartTime: string;
+  matchDuration: number;
   bracketConfig?: {
     scoreType: string;
     mode: "teams" | "players";
@@ -170,9 +178,59 @@ const DEFAULT_STATE: TournamentState = {
     selectedMatchId: null,
     activeBracketTab: "A",
   },
+  plannedStartTime: "17:00",
+  matchDuration: 15,
 };
 
 const STORAGE_KEY = "tournament-state";
+
+function buildInitialLeaderboard(players: Player[]): LeaderboardPlayer[] {
+  return players.map((player, index) => ({
+    id: player.id,
+    name: player.name,
+    division: player.division,
+    points: 0,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    matchPoints: 0,
+    played: 0,
+    pointsLost: 0,
+    byeCount: 0,
+    playedWith: [],
+    previousRank: index + 1,
+  }));
+}
+
+function recalculateLeaderboard(
+  players: Player[],
+  completedRounds: Round[],
+  rankingCriteria: TournamentState["rankingCriteria"],
+): LeaderboardPlayer[] {
+  let leaderboard = buildInitialLeaderboard(players);
+
+  // Only include rounds that are NOT playoffs (league rounds usually don't have a name)
+  const leagueRounds = completedRounds.filter(r => !r.name);
+
+  leagueRounds.forEach((round) => {
+    const sortedCurrent = sortLeaderboard(leaderboard, rankingCriteria);
+    const currentRankMap = new Map<string | number, number>();
+    sortedCurrent.forEach((player, idx) => currentRankMap.set(player.id, idx + 1));
+
+    const leaderboardWithPrevRanks = leaderboard.map((player) => ({
+      ...player,
+      previousRank: currentRankMap.get(player.id) ?? player.previousRank,
+    }));
+
+    leaderboard = calculateUpdatedLeaderboard(
+      leaderboardWithPrevRanks,
+      round.matches,
+      round.byes || [],
+    );
+  });
+
+  return leaderboard;
+}
 
 // --- Context ---
 interface TournamentContextType {
@@ -182,6 +240,7 @@ interface TournamentContextType {
   reset: () => void;
   undo: () => void;
   canUndo: boolean;
+  isLoaded: boolean;
 }
 
 type StateAction =
@@ -193,7 +252,7 @@ type StateAction =
   | { type: "CLEAR_PLAYERS" }
   | { type: "RESET_TOURNAMENT" }
   | { type: "COMPLETE_ROUND" }
-  | { type: "EDIT_ROUND"; roundIndex: number }
+  | { type: "EDIT_ROUND"; roundIndex: number; matchIndex?: number }
   | { type: "SET_BRACKET"; bracket: any; config?: any }
   | {
       type: "UPDATE_BRACKET_RESULT";
@@ -220,7 +279,8 @@ type StateAction =
       roundIndex: number;
       matchIndex: number;
       newCourt: number;
-    };
+    }
+  | { type: "ADD_ROUND"; round: Round };
 
 const TournamentContext = createContext<TournamentContextType | undefined>(
   undefined
@@ -397,6 +457,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           const currentRoundIdx = prev.schedule.length - 1;
           const currentRound = prev.schedule[currentRoundIdx];
           if (!currentRound || currentRound.completed) return prev;
+          const completedAt = Date.now();
 
           // 1. Snapshot previous ranks before updating
           const sortedCurrent = sortLeaderboard(prev.leaderboard, prev.rankingCriteria);
@@ -408,15 +469,20 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             previousRank: currentRankMap.get(p.id)
           }));
 
-          // 2. Update stats using pure utility
-          const newLeaderboard = calculateUpdatedLeaderboard(
-            leaderboardWithPrevRanks,
-            currentRound.matches,
-            currentRound.byes || []
-          );
+          // 2. Update stats using pure utility (only if NOT a playoff round)
+          const isPlayoff = !!currentRound.name;
+          const newLeaderboard = isPlayoff 
+            ? leaderboardWithPrevRanks 
+            : calculateUpdatedLeaderboard(
+                leaderboardWithPrevRanks,
+                currentRound.matches,
+                currentRound.byes || []
+              );
 
           const newSchedule = [...prev.schedule];
-          const duration = prev.roundStartedAt ? Math.round((Date.now() - prev.roundStartedAt) / 1000) : 0;
+          const duration = prev.roundStartedAt
+            ? Math.round((completedAt - prev.roundStartedAt) / 1000)
+            : 0;
           newSchedule[currentRoundIdx] = { ...currentRound, completed: true, durationSeconds: duration };
 
           // 3. Generate next round logic
@@ -449,16 +515,27 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
               pairingStrategy: prev.pairingStrategy,
               maxRepeats: prev.maxRepeats,
             }) as any;
-          } else if (
-            prev.format === "division" &&
-            prev.allRounds &&
-            nextRoundIndex < prev.allRounds.length
-          ) {
-            nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
+          } else if (prev.format === "division") {
+            if (prev.allRounds && nextRoundIndex < prev.allRounds.length) {
+              nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
+            } else if (!prev.schedule.some((round) => round.name === "Semifinal")) {
+              nextRoundBase = generateSemifinals({
+                ...prev,
+                schedule: newSchedule,
+                leaderboard: newLeaderboard,
+              } as TournamentState);
+            } else if (
+              currentRound.name === "Semifinal" &&
+              !prev.schedule.some((round) => round.name === "Final")
+            ) {
+              nextRoundBase = generateFinals(newSchedule[currentRoundIdx], prev.players);
+            }
           }
 
-          if (nextRoundBase) {
+          if (nextRoundBase && nextRoundBase.matches.length > 0) {
             newSchedule.push(nextRoundBase);
+          } else {
+            nextRoundBase = null;
           }
 
           return {
@@ -467,29 +544,52 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             leaderboard: newLeaderboard,
             currentRound: nextRoundIndex,
             manualByes: [],
-            roundStartedAt: Date.now(),
+            roundStartedAt: nextRoundBase ? completedAt : null,
+            ui: {
+              ...prev.ui,
+              selectedMatchId: null,
+            },
           };
         }
         case "EDIT_ROUND": {
-          const { roundIndex } = action;
+          const { roundIndex, matchIndex } = action;
           if (roundIndex < 0 || roundIndex >= prev.schedule.length) return prev;
 
-          // Reverting rounds subsequent to roundIndex is common in the legacy logic
           const newSchedule = prev.schedule.slice(0, roundIndex + 1);
           newSchedule[roundIndex] = {
             ...newSchedule[roundIndex],
             completed: false,
+            durationSeconds: undefined,
           };
 
-          // Recalculating leaderboard from scratch is more robust for editing
-          // But for now, let's just revert currentRound index
+          const completedRounds = newSchedule.slice(0, roundIndex).filter((round) => round.completed);
+          const recalculatedLeaderboard = recalculateLeaderboard(
+            prev.players,
+            completedRounds,
+            prev.rankingCriteria,
+          );
+
           return {
             ...prev,
             schedule: newSchedule,
             currentRound: roundIndex,
-            // leaderboard would need full recalculation here to be safe
+            leaderboard: recalculatedLeaderboard,
+            manualByes: [],
+            roundStartedAt: null,
+            ui: {
+              ...prev.ui,
+              selectedMatchId:
+                matchIndex != null ? `round-${roundIndex}-match-${matchIndex}` : null,
+            },
           };
         }
+        case "ADD_ROUND":
+          return {
+            ...prev,
+            schedule: [...prev.schedule, { ...action.round, number: prev.schedule.length + 1 }],
+            isLocked: true,
+            hideLeaderboard: false,
+          };
         default:
           return prev;
       }
@@ -506,7 +606,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <TournamentContext.Provider value={{ state, dispatch, save, reset, undo, canUndo: undoStack.length > 0 }}>
+    <TournamentContext.Provider value={{ state, dispatch, save, reset, undo, canUndo: undoStack.length > 0, isLoaded }}>
       {children}
     </TournamentContext.Provider>
   );
