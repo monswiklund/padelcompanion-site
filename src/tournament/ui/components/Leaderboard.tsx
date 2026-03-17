@@ -20,6 +20,7 @@ const Leaderboard: React.FC = () => {
     toggleRanks,
     setCriteria,
     setLeaderboardColumns,
+    isDivision,
   } = useLeaderboard();
 
   const getColumnData = () => {
@@ -159,146 +160,236 @@ const Leaderboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Table Content - Grid Layout */}
-      <div
-        className={`grid gap-4 p-4 ${
-          effectiveCols === 1
-            ? ""
-            : effectiveCols === 2
-              ? "grid-cols-2"
-              : "grid-cols-3"
-        }`}
-      >
-        {columnData.map((dataSlice, colIdx) => (
-          <div key={colIdx} className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="w-16 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    Rank
-                  </th>
-                  <th className="py-2 text-left text-xs font-semibold text-muted-foreground uppercase">
-                    Player
-                  </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    Pts
-                  </th>
-                  <th className="w-12 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    W
-                  </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    Win%
-                  </th>
-                  <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    Pts%
-                  </th>
-                  <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
-                    M
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataSlice.map((player) => {
-                  const rank = player.currentRank;
-                  const prevRank = player.previousRank || rank;
-                  const rankChange = prevRank - rank;
-                  const rankClass = getRankClass(rank);
+      {/* Table Content */}
+      {isDivision ? (
+        /* Division grouped tables */
+        <div className="p-4 space-y-6">
+          {(() => {
+            const divGroups = new Map<string, typeof sortedLeaderboard>();
+            sortedLeaderboard.forEach((p) => {
+              const div = (p as any).division || "A";
+              if (!divGroups.has(div)) divGroups.set(div, []);
+              divGroups.get(div)!.push(p);
+            });
+            const divNames = [...divGroups.keys()].sort();
+            return divNames.map((divName) => {
+              const players = divGroups.get(divName)!;
+              return (
+                <div key={divName}>
+                  <h4 className="text-sm font-bold text-accent uppercase tracking-widest mb-2">
+                    Division {divName}
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">#</th>
+                          <th className="py-2 text-left text-xs font-semibold text-muted-foreground uppercase">Team</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">P</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">W</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">D</th>
+                          <th className="w-8 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">L</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GF</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GA</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">GD</th>
+                          <th className="w-10 py-2 text-center text-xs font-semibold text-accent uppercase font-bold">Pts</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {players.map((player, idx) => {
+                          const mp = (player as any).matchPoints || 0;
+                          const draws = (player as any).draws || 0;
+                          const gf = player.points || 0;
+                          const ga = player.pointsLost || 0;
+                          const gd = gf - ga;
+                          const rank = idx + 1;
+                          const rankClass = rank === 1
+                            ? "bg-gradient-to-r from-yellow-500/20 to-transparent"
+                            : rank === 2
+                              ? "bg-gradient-to-r from-gray-400/10 to-transparent"
+                              : rank === 3
+                                ? "bg-gradient-to-r from-orange-600/10 to-transparent"
+                                : "";
+                          return (
+                            <tr key={player.id} className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}>
+                              <td className="py-2.5 text-center">
+                                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-xs ${
+                                  rank === 1 ? "bg-yellow-500 text-black"
+                                    : rank === 2 ? "bg-gray-400 text-black"
+                                      : rank === 3 ? "bg-orange-600 text-white"
+                                        : "bg-popover text-muted-foreground"
+                                }`}>
+                                  {!hideLeaderboard ? rank : "-"}
+                                </span>
+                              </td>
+                              <td className="py-2.5">
+                                <span className="font-medium text-foreground truncate block max-w-[140px] lg:max-w-xs">{player.name}</span>
+                              </td>
+                              <td className="py-2.5 text-center text-muted-foreground">{!hideLeaderboard ? player.played : "-"}</td>
+                              <td className="py-2.5 text-center text-success font-medium">{!hideLeaderboard ? player.wins : "-"}</td>
+                              <td className="py-2.5 text-center text-muted-foreground">{!hideLeaderboard ? draws : "-"}</td>
+                              <td className="py-2.5 text-center text-error font-medium">{!hideLeaderboard ? player.losses : "-"}</td>
+                              <td className="py-2.5 text-center text-muted-foreground">{!hideLeaderboard ? gf : "-"}</td>
+                              <td className="py-2.5 text-center text-muted-foreground">{!hideLeaderboard ? ga : "-"}</td>
+                              <td className={`py-2.5 text-center font-medium ${gd > 0 ? "text-success" : gd < 0 ? "text-error" : "text-muted-foreground"}`}>
+                                {!hideLeaderboard ? (gd > 0 ? `+${gd}` : gd) : "-"}
+                              </td>
+                              <td className="py-2.5 text-center">
+                                <span className="font-bold text-lg text-accent">{!hideLeaderboard ? mp : "-"}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            });
+          })()}
+        </div>
+      ) : (
+        /* Standard table layout */
+        <div
+          className={`grid gap-4 p-4 ${
+            effectiveCols === 1
+              ? ""
+              : effectiveCols === 2
+                ? "grid-cols-2"
+                : "grid-cols-3"
+          }`}
+        >
+          {columnData.map((dataSlice, colIdx) => (
+            <div key={colIdx} className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="w-16 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      Rank
+                    </th>
+                    <th className="py-2 text-left text-xs font-semibold text-muted-foreground uppercase">
+                      Player
+                    </th>
+                    <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      Pts
+                    </th>
+                    <th className="w-12 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      W
+                    </th>
+                    <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      Win%
+                    </th>
+                    <th className="w-14 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      Pts%
+                    </th>
+                    <th className="w-10 py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
+                      M
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dataSlice.map((player) => {
+                    const rank = player.currentRank;
+                    const prevRank = player.previousRank || rank;
+                    const rankChange = prevRank - rank;
+                    const rankClass = getRankClass(rank);
 
-                  return (
-                    <tr
-                      key={player.id}
-                      className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}
-                    >
-                      {/* Rank Column */}
-                      <td className="py-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <span
-                            className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                              rank === 1
-                                ? "bg-yellow-500 text-black"
-                                : rank === 2
-                                  ? "bg-gray-400 text-black"
-                                  : rank === 3
-                                    ? "bg-orange-600 text-white"
-                                    : "bg-popover text-muted-foreground"
-                            }`}
-                          >
-                            {!hideLeaderboard ? rank : "-"}
-                          </span>
-                          {showPositionChanges && (
+                    return (
+                      <tr
+                        key={player.id}
+                        className={`border-b border-border/50 hover:bg-popover/50 transition-colors ${rankClass}`}
+                      >
+                        {/* Rank Column */}
+                        <td className="py-3 text-center">
+                          <div className="flex items-center justify-center gap-1">
                             <span
-                              className={`text-xs font-medium ${
-                                rankChange > 0
-                                  ? "text-success"
-                                  : rankChange < 0
-                                    ? "text-error"
-                                    : "text-muted-foreground"
+                              className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+                                rank === 1
+                                  ? "bg-yellow-500 text-black"
+                                  : rank === 2
+                                    ? "bg-gray-400 text-black"
+                                    : rank === 3
+                                      ? "bg-orange-600 text-white"
+                                      : "bg-popover text-muted-foreground"
                               }`}
                             >
-                              {rankChange > 0
-                                ? `▲${rankChange}`
-                                : rankChange < 0
-                                  ? `▼${Math.abs(rankChange)}`
-                                  : "-"}
+                              {!hideLeaderboard ? rank : "-"}
                             </span>
-                          )}
-                        </div>
-                      </td>
+                            {showPositionChanges && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  rankChange > 0
+                                    ? "text-success"
+                                    : rankChange < 0
+                                      ? "text-error"
+                                      : "text-muted-foreground"
+                                }`}
+                              >
+                                {rankChange > 0
+                                  ? `▲${rankChange}`
+                                  : rankChange < 0
+                                    ? `▼${Math.abs(rankChange)}`
+                                    : "-"}
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
-                      {/* Player Column */}
-                      <td className="py-3">
-                        <span className="font-medium text-foreground truncate block max-w-[120px] lg:max-w-xs">
-                          {player.name}
-                        </span>
-                      </td>
+                        {/* Player Column */}
+                        <td className="py-3">
+                          <span className="font-medium text-foreground truncate block max-w-[120px] lg:max-w-xs">
+                            {player.name}
+                          </span>
+                        </td>
 
-                      {/* Points */}
-                      <td className="py-3 text-center">
-                        <span className="font-semibold text-lg text-foreground">
-                          {!hideLeaderboard ? player.points : "-"}
-                        </span>
-                      </td>
+                        {/* Points */}
+                        <td className="py-3 text-center">
+                          <span className="font-semibold text-lg text-foreground">
+                            {!hideLeaderboard ? player.points : "-"}
+                          </span>
+                        </td>
 
-                      {/* Wins */}
-                      <td className="py-3 text-center text-muted-foreground">
-                        {!hideLeaderboard ? player.wins : "-"}
-                      </td>
+                        {/* Wins */}
+                        <td className="py-3 text-center text-muted-foreground">
+                          {!hideLeaderboard ? player.wins : "-"}
+                        </td>
 
-                      {/* Win % */}
-                      <td className="py-3 text-center text-muted-foreground">
-                        {!hideLeaderboard && player.played > 0
-                          ? `${Math.round(
-                              (player.wins / player.played) * 100,
-                            )}%`
-                          : "-"}
-                      </td>
+                        {/* Win % */}
+                        <td className="py-3 text-center text-muted-foreground">
+                          {!hideLeaderboard && player.played > 0
+                            ? `${Math.round(
+                                (player.wins / player.played) * 100,
+                              )}%`
+                            : "-"}
+                        </td>
 
-                      {/* Pts % */}
-                      <td className="py-3 text-center text-muted-foreground">
-                        {!hideLeaderboard &&
-                        player.points + (player.pointsLost || 0) > 0
-                          ? `${Math.round(
-                              (player.points /
-                                (player.points + (player.pointsLost || 0))) *
-                                100,
-                            )}%`
-                          : "-"}
-                      </td>
+                        {/* Pts % */}
+                        <td className="py-3 text-center text-muted-foreground">
+                          {!hideLeaderboard &&
+                          player.points + (player.pointsLost || 0) > 0
+                            ? `${Math.round(
+                                (player.points /
+                                  (player.points + (player.pointsLost || 0))) *
+                                  100,
+                              )}%`
+                            : "-"}
+                        </td>
 
-                      {/* Matches Played */}
-                      <td className="py-3 text-center text-muted-foreground text-xs">
-                        {!hideLeaderboard || showPositionChanges
-                          ? player.played
-                          : "-"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ))}
-      </div>
+                        {/* Matches Played */}
+                        <td className="py-3 text-center text-muted-foreground text-xs">
+                          {!hideLeaderboard || showPositionChanges
+                            ? player.played
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination / Expand */}
       {!searchQuery && totalCount > 10 && effectiveCols === 1 && (

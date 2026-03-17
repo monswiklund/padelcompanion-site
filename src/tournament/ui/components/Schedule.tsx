@@ -171,10 +171,24 @@ const RoundCard: React.FC<{
               fontSize: `${state.textSize}%`,
             }}
           >
-            {round.matches.map((match, mIdx) => (
+            {round.matches.map((match, mIdx) => {
+              // Determine division from players in this match
+              const matchDivision = state.format === "division"
+                ? (match.team1[0] as any)?.division || "A"
+                : null;
+              const divColors: Record<string, { border: string; badge: string; glow: string }> = {
+                A: { border: "border-blue-500/50", badge: "bg-blue-500", glow: "shadow-blue-500/20" },
+                B: { border: "border-emerald-500/50", badge: "bg-emerald-500", glow: "shadow-emerald-500/20" },
+                C: { border: "border-orange-500/50", badge: "bg-orange-500", glow: "shadow-orange-500/20" },
+              };
+              const divStyle = matchDivision ? divColors[matchDivision] || divColors.A : null;
+
+              return (
               <div
                 key={mIdx}
-                className="bg-popover rounded-xl border border-border overflow-hidden relative group"
+                className={`bg-popover rounded-xl border overflow-hidden relative group ${
+                  divStyle ? `${divStyle.border} shadow-lg ${divStyle.glow}` : "border-border"
+                }`}
               >
                 {/* Court Background */}
                 <div 
@@ -186,6 +200,11 @@ const RoundCard: React.FC<{
                   {/* Match Header */}
                   <div className="flex items-center justify-between px-3 py-2 bg-black/40 backdrop-blur-sm border-b border-white/10">
                     <div className="flex items-center gap-2">
+                      {matchDivision && divStyle && (
+                        <span className={`px-1.5 py-0.5 text-[10px] font-black rounded ${divStyle.badge} text-white uppercase tracking-wider`}>
+                          {matchDivision}
+                        </span>
+                      )}
                       <span className="text-sm font-bold text-white drop-shadow-md">
                         {getCourtName(match.court)}
                       </span>

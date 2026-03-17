@@ -37,6 +37,16 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* Pool Colors */
+  --color-pool-a: #3b82f6;
+  --color-pool-b: #f59e0b;
+  --color-pool-c: #22c55e;
+  --color-pool-d: #a855f7;
+  --color-pool-e: #ec4899;
+  --color-pool-f: #06b6d4;
+  --color-pool-g: #f97316;
+  --color-pool-h: #ef4444;
+
   /* Legacy Accent Colors (mapped for compatibility or specific use) */
   --color-blue-500: #3b82f6;
   --color-blue-400: #60a5fa;

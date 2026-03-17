@@ -65,7 +65,7 @@ export const WinnersCourtActiveView: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 py-6 pb-32 animate-fade-in">
       {/* Header */}
       <div className="text-center mb-6">
         <h2 className="text-3xl font-bold text-foreground mb-2">
@@ -78,95 +78,6 @@ export const WinnersCourtActiveView: React.FC = () => {
             </span>
           ))}
           {twist && <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-xs font-bold">Twist Active</span>}
-        </div>
-      </div>
-
-      {/* Enhanced Sticky Toolbar */}
-      <div className="sticky top-20 z-40 mb-8 mx-auto max-w-5xl">
-        <div className="bg-card/90 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-2 transition-all duration-300">
-          <div className="flex items-center justify-between gap-2">
-            
-            {/* Primary Actions Group */}
-            <div className="flex items-center gap-1.5">
-              <button
-                className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center border ${
-                  canUndo
-                    ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border-border hover:border-accent/30 shadow-sm"
-                    : "opacity-30 cursor-not-allowed bg-popover/50 text-muted-foreground border-transparent"
-                }`}
-                onClick={handleUndo}
-                disabled={!canUndo}
-                title="Undo (Ctrl+Z)"
-              >
-                <span className="text-lg">↩</span>
-              </button>
-            </div>
-
-            {/* Center: Timer */}
-            <div className="flex-shrink-0">
-              <MatchTimer />
-            </div>
-
-            {/* Settings & Destructive Group */}
-            <div className="flex items-center gap-1.5">
-              
-              {/* View Settings Popover */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center border ${
-                    showSettings 
-                      ? "bg-accent text-white border-accent shadow-glow" 
-                      : "bg-popover hover:bg-white/5 text-muted-foreground border-border"
-                  }`}
-                  title="View Settings"
-                >
-                  <span className="text-lg">⚙️</span>
-                </button>
-
-                {showSettings && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-4 animate-fade-in z-[60]">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase">Grid</span>
-                          <span className="text-[10px] font-mono text-accent">{state.gridColumns || 'Auto'}</span>
-                        </div>
-                        <input
-                          type="range" min="0" max="4" step="1"
-                          className="w-full accent-accent"
-                          value={state.gridColumns}
-                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: parseInt(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase">Zoom</span>
-                          <span className="text-[10px] font-mono text-accent">{state.textSize}%</span>
-                        </div>
-                        <input
-                          type="range" min="50" max="350" step="10"
-                          className="w-full accent-accent"
-                          value={state.textSize}
-                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
-
-              <button
-                className="w-10 h-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors flex items-center justify-center border border-transparent hover:border-destructive/20"
-                onClick={handleFullReset}
-                title="Reset Session"
-              >
-                <span>🔄</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -282,6 +193,95 @@ export const WinnersCourtActiveView: React.FC = () => {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Enhanced Sticky Bottom Toolbar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pointer-events-none">
+        <div className="bg-card/90 backdrop-blur-xl border border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] rounded-3xl p-2 max-w-5xl mx-auto pointer-events-auto transition-all duration-300">
+          <div className="flex items-center justify-between gap-2">
+            
+            {/* Left Actions */}
+            <div className="flex items-center gap-1.5">
+              <button
+                className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
+                  canUndo
+                    ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border-border hover:border-accent/30 shadow-sm"
+                    : "opacity-30 cursor-not-allowed bg-popover/50 text-muted-foreground border-transparent"
+                }`}
+                onClick={handleUndo}
+                disabled={!canUndo}
+                title="Undo (Ctrl+Z)"
+              >
+                <span className="text-lg">↩</span>
+              </button>
+            </div>
+
+            {/* Center: Timer */}
+            <div className="flex-shrink-0">
+              <MatchTimer />
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-1.5">
+              
+              {/* View Settings Popover */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
+                    showSettings 
+                      ? "bg-accent text-white border-accent shadow-glow" 
+                      : "bg-popover hover:bg-white/5 text-muted-foreground border-border"
+                  }`}
+                  title="View Settings"
+                >
+                  <span className="text-lg">⚙️</span>
+                </button>
+
+                {showSettings && (
+                  <div className="absolute right-0 bottom-full mb-4 w-48 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-4 animate-fade-in-up z-[60]">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase">Grid</span>
+                          <span className="text-[10px] font-mono text-accent">{state.gridColumns || 'Auto'}</span>
+                        </div>
+                        <input
+                          type="range" min="0" max="4" step="1"
+                          className="w-full accent-accent"
+                          value={state.gridColumns}
+                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: parseInt(e.target.value) })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase">Zoom</span>
+                          <span className="text-[10px] font-mono text-accent">{state.textSize}%</span>
+                        </div>
+                        <input
+                          type="range" min="50" max="350" step="10"
+                          className="w-full accent-accent"
+                          value={state.textSize}
+                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
+
+              <button
+                className="w-10 h-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center border border-transparent hover:border-destructive/20"
+                onClick={handleFullReset}
+                title="Reset Session"
+              >
+                <span>🔄</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import {
   generateTeamSchedule,
   generateMexicanoFirstRound,
   generateTeamMexicanoFirstRound,
+  generateDivisionSchedule,
 } from "../../scoring/index.js";
 
 // Forward declaration for renderSchedule
@@ -48,7 +49,14 @@ export function generateSchedule(): Promise<any> {
   state.currentRound = 1;
 
   const playersNeededPerCourt =
-    state.format === "team" || state.format === "teamMexicano" ? 2 : 4;
+    state.format === "team" || state.format === "teamMexicano" || state.format === "division" ? 2 : 4;
+
+  // For division format, calculate total courts from divisions × courtsPerDivision
+  if (state.format === "division") {
+    const divisions = new Set(state.players.map((p: any) => p.division || "A"));
+    state.courts = divisions.size * (state.divisionCourts || 2);
+  }
+
   const maxPossibleCourts = Math.floor(
     state.players.length / playersNeededPerCourt
   );
@@ -67,10 +75,22 @@ export function generateSchedule(): Promise<any> {
     }));
 
     if (state.format === "americano") {
-      state.allRounds = generateAmericanoSchedule();
+      state.allRounds = generateAmericanoSchedule({
+        players: state.players,
+        courts: state.courts
+      });
       state.schedule = [state.allRounds[0]];
     } else if (state.format === "team") {
-      state.allRounds = generateTeamSchedule();
+      state.allRounds = generateTeamSchedule({
+        players: state.players,
+        courts: state.courts
+      });
+      state.schedule = [state.allRounds[0]];
+    } else if (state.format === "division") {
+      state.allRounds = generateDivisionSchedule({
+        players: state.players,
+        courtsPerDivision: state.divisionCourts || 2,
+      });
       state.schedule = [state.allRounds[0]];
     } else if (state.format === "teamMexicano") {
       state.schedule = generateTeamMexicanoFirstRound(

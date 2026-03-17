@@ -9,11 +9,11 @@ interface GlassCardProps extends HTMLMotionProps<"div"> {
 }
 
 const variants = {
-  default: "bg-background/40 backdrop-blur-md border border-white/10 shadow-lg",
+  default: "bg-background/80 backdrop-blur-md border border-white/20 shadow-lg",
   hover:
-    "bg-background/40 backdrop-blur-md border border-white/10 shadow-lg hover:bg-background/50 hover:border-white/20 hover:shadow-xl transition-all duration-300",
+    "bg-background/80 backdrop-blur-md border border-white/20 shadow-lg hover:bg-background hover:border-white/30 hover:shadow-xl transition-all duration-300",
   active:
-    "bg-accent/10 backdrop-blur-md border border-accent/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]",
+    "bg-accent/20 backdrop-blur-md border border-accent/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]",
 };
 
 const paddingClasses = {

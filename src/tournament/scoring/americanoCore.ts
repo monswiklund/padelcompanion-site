@@ -1,37 +1,39 @@
 /**
- * Americano Schedule Generator
- * Round-robin schedule generation for Americano format.
+ * Pure Americano generation functions
+ * No state mutation - returns data only
  */
 
-import { state } from "../core/state";
-
-interface Player {
+export interface Player {
   id: string | number;
   name: string;
   isBye?: boolean;
 }
 
-interface Match {
+export interface Match {
   court: number;
   team1: Player[];
   team2: Player[];
 }
 
-interface Round {
+export interface Round {
   number: number;
   matches: Match[];
   byes: Player[];
 }
 
+export interface AmericanoConfig {
+  players: Player[];
+  courts: number;
+}
+
 /**
  * Generate Americano schedule (Round Robin).
  */
-export function generateAmericanoSchedule(): Round[] {
-  const players: Player[] = [...state.players];
-  const n = players.length;
-  const courts = state.courts;
-
-  if (n % 2 !== 0) {
+export function generateAmericanoSchedule(config: AmericanoConfig): Round[] {
+  const { players: inputPlayers, courts } = config;
+  const players: Player[] = [...inputPlayers];
+  
+  if (players.length % 2 !== 0) {
     players.push({ id: -1, name: "BYE", isBye: true });
   }
 
@@ -54,7 +56,6 @@ export function generateAmericanoSchedule(): Round[] {
     }
 
     const matches: Match[] = [];
-    const playersInMatches = new Set<string | number>();
     for (let i = 0; i < pairs.length - 1; i += 2) {
       if (pairs[i] && pairs[i + 1]) {
         matches.push({
@@ -62,8 +63,6 @@ export function generateAmericanoSchedule(): Round[] {
           team1: pairs[i],
           team2: pairs[i + 1],
         });
-        pairs[i].forEach((p) => playersInMatches.add(p.id));
-        pairs[i + 1].forEach((p) => playersInMatches.add(p.id));
       }
     }
 
@@ -73,8 +72,9 @@ export function generateAmericanoSchedule(): Round[] {
       m.team1.forEach((p) => playersInRound.add(p.id));
       m.team2.forEach((p) => playersInRound.add(p.id));
     });
-    const byes = state.players.filter(
-      (p: Player) => !p.isBye && !playersInRound.has(p.id)
+    
+    const byes = inputPlayers.filter(
+      (p) => !p.isBye && !playersInRound.has(p.id)
     );
 
     if (roundMatches.length > 0) {
@@ -94,12 +94,11 @@ export function generateAmericanoSchedule(): Round[] {
 /**
  * Generate Team Americano schedule (Round Robin 1v1).
  */
-export function generateTeamSchedule(): Round[] {
-  const players: Player[] = [...state.players];
-  const n = players.length;
-  const courts = state.courts;
+export function generateTeamSchedule(config: AmericanoConfig): Round[] {
+  const { players: inputPlayers, courts } = config;
+  const players: Player[] = [...inputPlayers];
 
-  if (n % 2 !== 0) {
+  if (players.length % 2 !== 0) {
     players.push({ id: -1, name: "BYE", isBye: true });
   }
 
@@ -113,7 +112,6 @@ export function generateTeamSchedule(): Round[] {
     const roundPlayers = [fixed, ...rotating];
 
     const matches: Match[] = [];
-    const playersInMatches = new Set<string | number>();
 
     for (let i = 0; i < numPlayers / 2; i++) {
       const p1 = roundPlayers[i];
@@ -125,8 +123,6 @@ export function generateTeamSchedule(): Round[] {
           team1: [p1],
           team2: [p2],
         });
-        playersInMatches.add(p1.id);
-        playersInMatches.add(p2.id);
       }
     }
 
@@ -136,8 +132,9 @@ export function generateTeamSchedule(): Round[] {
       m.team1.forEach((p) => playersInRound.add(p.id));
       m.team2.forEach((p) => playersInRound.add(p.id));
     });
-    const byes = state.players.filter(
-      (p: Player) => !p.isBye && !playersInRound.has(p.id)
+    
+    const byes = inputPlayers.filter(
+      (p) => !p.isBye && !playersInRound.has(p.id)
     );
 
     if (roundMatches.length > 0) {

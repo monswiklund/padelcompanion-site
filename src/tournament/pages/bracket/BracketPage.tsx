@@ -7,12 +7,17 @@ import { TournamentNav } from "@/components/tournament/TournamentNav";
 const BracketPage: React.FC = () => {
   const { state } = useTournament();
 
-  const hasBracket =
-    state.bracket &&
-    (state.bracket.isDualBracket
-      ? (state.bracket.matchesA?.length ?? 0) > 0 ||
-        (state.bracket.matchesB?.length ?? 0) > 0
-      : (state.bracket.matches?.length ?? 0) > 0);
+  const hasBracket = state.bracket && (
+    (state.bracket as any).isDualBracket
+      ? (((state.bracket as any).matchesA?.length ?? 0) > 0 ||
+        ((state.bracket as any).matchesB?.length ?? 0) > 0)
+      : (state.bracket as any).isMultiPool
+        ? ((state.bracket as any).pools?.some((p: any) => p.matches.length > 0) ?? false)
+        : (state.bracket as any).isDoubleElimination
+          ? (((state.bracket as any).winnersMatches?.length ?? 0) > 0 ||
+            ((state.bracket as any).losersMatches?.length ?? 0) > 0)
+          : ((state.bracket as any).matches?.length ?? 0) > 0
+  );
 
   return (
     <div className="min-h-screen pb-12">

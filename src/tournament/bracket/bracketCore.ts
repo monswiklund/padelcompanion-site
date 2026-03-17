@@ -40,6 +40,15 @@ export interface MultiBracket {
   hasSharedFinal: boolean;
 }
 
+export interface MultiPoolDoubleEliminationBracket {
+  pools: Pool[];
+  winnersMatches: BracketMatch[];
+  losersMatches: BracketMatch[];
+  grandFinal: BracketMatch | null;
+  isMultiPoolDoubleElimination: true;
+  hasSharedFinal: boolean;
+}
+
 export interface DoubleEliminationBracket {
   winnersMatches: BracketMatch[];
   losersMatches: BracketMatch[];
@@ -59,6 +68,7 @@ export type Bracket =
   | SingleBracket
   | DualBracket
   | MultiBracket
+  | MultiPoolDoubleEliminationBracket
   | DoubleEliminationBracket;
 
 // ============ HELPER FUNCTIONS ============
@@ -205,7 +215,8 @@ export function generateMultiPoolBracket(
   teams: BracketTeam[],
   poolCount: number,
   sharedFinal: boolean = true,
-): MultiBracket {
+  useDoubleElimination: boolean = false,
+): MultiBracket | MultiPoolDoubleEliminationBracket {
   const pools: Pool[] = [];
   let currentIdOffset = 0;
 
@@ -259,6 +270,52 @@ export function generateMultiPoolBracket(
       lastMatchA.nextMatchId = grandFinal.id;
       lastMatchB.nextMatchId = grandFinal.id;
     }
+  }
+
+  if (useDoubleElimination && pools.length > 0) {
+    const winnersMatches: BracketMatch[] = [];
+    const losersMatches: BracketMatch[] = [];
+    
+    pools.forEach((pool) => {
+      winnersMatches.push(...pool.matches);
+    });
+
+    const bracketSize = Math.pow(2, Math.ceil(Math.log2(pools.length)));
+    const numRounds = Math.ceil(Math.log2(bracketSize));
+    
+    const currentIdOffset = Math.max(...winnersMatches.map((m) => m.id), 0);
+    
+    let grandFinalMatch: BracketMatch | null = null;
+    if (sharedFinal && pools.length >= 2) {
+      const poolWinners = pools.map((p) => p.matches[p.matches.length - 1]).filter(Boolean);
+      
+      if (poolWinners.length >= 2) {
+        grandFinalMatch = {
+          id: currentIdOffset + 1,
+          round: numRounds + 1,
+          team1: null,
+          team2: null,
+          score1: null,
+          score2: null,
+          winner: null,
+          nextMatchId: null,
+          prevMatch1Id: poolWinners[0].id,
+          prevMatch2Id: poolWinners[1].id,
+        };
+        
+        poolWinners[0].nextMatchId = grandFinalMatch.id;
+        poolWinners[1].nextMatchId = grandFinalMatch.id;
+      }
+    }
+
+    return {
+      pools,
+      winnersMatches,
+      losersMatches,
+      grandFinal: grandFinalMatch,
+      isMultiPoolDoubleElimination: true,
+      hasSharedFinal: sharedFinal,
+    };
   }
 
   return {

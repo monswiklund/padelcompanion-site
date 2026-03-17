@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog"; // New Dialog
 import { showToast } from "@/shared/utils";
@@ -18,6 +18,7 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
   const { state } = useTournament();
   const [score1, setScore1] = useState<string>(match.score1?.toString() || "");
   const [score2, setScore2] = useState<string>(match.score2?.toString() || "");
+  const score2Ref = useRef<HTMLInputElement>(null);
 
   const savedScoreType = state.bracketConfig?.scoreType || "points";
   const scoreTypeLabel =
@@ -35,6 +36,17 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
     onSave(s1, s2);
     showToast("Match saved!", "success");
     onClose();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, field: "score1" | "score2") => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (field === "score1") {
+        score2Ref.current?.focus();
+      } else {
+        handleSave();
+      }
+    }
   };
 
   return (
@@ -68,6 +80,7 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
               className="w-full h-20 text-center text-4xl font-bold bg-black/20 border border-white/10 rounded-xl text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
               value={score1}
               onChange={(e) => setScore1(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, "score1")}
               min="0"
               max="99"
               placeholder="0"
@@ -83,10 +96,12 @@ export const BracketScoreModal: React.FC<BracketScoreModalProps> = ({
               {match.team2?.name || "Team 2"}
             </div>
             <input
+              ref={score2Ref}
               type="number"
               className="w-full h-20 text-center text-4xl font-bold bg-black/20 border border-white/10 rounded-xl text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
               value={score2}
               onChange={(e) => setScore2(e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, "score2")}
               min="0"
               max="99"
               placeholder="0"

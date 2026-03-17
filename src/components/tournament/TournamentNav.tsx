@@ -18,6 +18,14 @@ export const TournamentNav: React.FC = () => {
         Americano
       </NavLink>
       <NavLink
+        to="/tournament/division"
+        className={({ isActive }) =>
+          `${linkBaseClasses} ${isActive ? activeClasses : inactiveClasses}`
+        }
+      >
+        Division
+      </NavLink>
+      <NavLink
         to="/tournament/bracket"
         className={({ isActive }) =>
           `${linkBaseClasses} ${isActive ? activeClasses : inactiveClasses}`

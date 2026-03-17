@@ -11,17 +11,23 @@ import {
   generateTeamMexicanoNextRound,
 } from "@/tournament/scoring";
 import {
+  calculateUpdatedLeaderboard,
+  sortLeaderboard,
+} from "@/tournament/scoring/playerStats";
+import {
   WinnersCourtState,
   recordCourtResult,
   advanceRound,
   clearSide,
 } from "@/tournament/winnersCourt/winnersCourtCore";
+import { updateMatchResult } from "@/tournament/bracket/bracketCore";
 
 // --- Types ---
 export interface Player {
   id: string;
   name: string;
   lockedCourt?: number | null;
+  division?: string;
 }
 
 export interface PreferredPartner {
@@ -50,7 +56,7 @@ export interface Round {
 export interface TournamentState {
   version: number;
   players: Player[];
-  format: "americano" | "mexicano" | "team" | "teamMexicano";
+  format: "americano" | "mexicano" | "team" | "teamMexicano" | "division";
   courts: number;
   scoringMode: "total" | "race" | "time";
   pointsPerMatch: number;
@@ -112,6 +118,9 @@ export interface TournamentState {
     selectedMatchId: string | null;
     activeBracketTab: string;
   };
+  tiebreaker?: "difference" | "most_won" | "shared";
+  divisionCourts?: number;
+  [key: string]: any;
 }
 
 const DEFAULT_STATE: TournamentState = {
@@ -154,6 +163,8 @@ const DEFAULT_STATE: TournamentState = {
   },
   winnersCourt: null,
   bracket: null,
+  tiebreaker: "difference",
+  divisionCourts: 2,
   ui: {
     currentRoute: "",
     selectedMatchId: null,
@@ -293,9 +304,13 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           };
         case "UPDATE_BRACKET_RESULT": {
           if (!prev.bracket) return prev;
-          // Using inline logic to avoid import issues
-          // This will be replaced with proper import when bracketCore is fully integrated
-          return prev; // Placeholder - will handle in BracketView for now
+          const updatedBracket = updateMatchResult(
+            prev.bracket as any,
+            action.matchId,
+            action.score1,
+            action.score2
+          );
+          return { ...prev, bracket: updatedBracket as any };
         }
         case "CLEAR_BRACKET":
           return { ...prev, bracket: null, bracketConfig: undefined };
@@ -383,104 +398,30 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           const currentRound = prev.schedule[currentRoundIdx];
           if (!currentRound || currentRound.completed) return prev;
 
-          const newLeaderboard = [...prev.leaderboard];
-
-          // 1. Snapshot previous ranks - Sort by points (primary) then wins
-          const sortedCurrent = [...prev.leaderboard].sort((a, b) => {
-            if ((b.points || 0) !== (a.points || 0))
-              return (b.points || 0) - (a.points || 0);
-            if ((b.wins || 0) !== (a.wins || 0))
-              return (b.wins || 0) - (a.wins || 0);
-            return 0;
-          });
-
+          // 1. Snapshot previous ranks before updating
+          const sortedCurrent = sortLeaderboard(prev.leaderboard, prev.rankingCriteria);
           const currentRankMap = new Map();
           sortedCurrent.forEach((p, idx) => currentRankMap.set(p.id, idx + 1));
 
-          newLeaderboard.forEach((p, idx) => {
-            newLeaderboard[idx] = {
-              ...p,
-              previousRank: currentRankMap.get(p.id),
-            };
-          });
+          const leaderboardWithPrevRanks = prev.leaderboard.map(p => ({
+            ...p,
+            previousRank: currentRankMap.get(p.id)
+          }));
 
-          // 2. Update stats
-          currentRound.matches.forEach((match) => {
-            const s1 = match.score1 || 0;
-            const s2 = match.score2 || 0;
-            const t1Won = s1 > s2;
-            const t2Won = s2 > s1;
-            const isDraw = s1 === s2;
-
-            const updatePlayer = (
-              id: string,
-              pFor: number,
-              pAgainst: number,
-              won: boolean,
-              draw: boolean,
-              pId?: string
-            ) => {
-              const pIdx = newLeaderboard.findIndex((p) => p.id === id);
-              if (pIdx !== -1) {
-                const p = { ...newLeaderboard[pIdx] };
-                p.points = (p.points || 0) + pFor;
-                p.pointsLost = (p.pointsLost || 0) + pAgainst;
-                p.played = (p.played || 0) + 1;
-                if (won) p.wins = (p.wins || 0) + 1;
-                else if (!draw) p.losses = (p.losses || 0) + 1;
-                if (pId) {
-                  p.playedWith = [...(p.playedWith || []), pId];
-                }
-                newLeaderboard[pIdx] = p;
-              }
-            };
-
-            match.team1.forEach((p) =>
-              updatePlayer(
-                p.id,
-                s1,
-                s2,
-                t1Won,
-                isDraw,
-                match.team1.length > 1
-                  ? match.team1.find((px) => px.id !== p.id)?.id
-                  : undefined
-              )
-            );
-            match.team2.forEach((p) =>
-              updatePlayer(
-                p.id,
-                s2,
-                s1,
-                t2Won,
-                isDraw,
-                match.team2.length > 1
-                  ? match.team2.find((px) => px.id !== p.id)?.id
-                  : undefined
-              )
-            );
-          });
-
-          // 3. Update byes
-          if (currentRound.byes) {
-            currentRound.byes.forEach((bp) => {
-              const pIdx = newLeaderboard.findIndex((p) => p.id === bp.id);
-              if (pIdx !== -1) {
-                newLeaderboard[pIdx] = {
-                  ...newLeaderboard[pIdx],
-                  byeCount: (newLeaderboard[pIdx].byeCount || 0) + 1,
-                };
-              }
-            });
-          }
+          // 2. Update stats using pure utility
+          const newLeaderboard = calculateUpdatedLeaderboard(
+            leaderboardWithPrevRanks,
+            currentRound.matches,
+            currentRound.byes || []
+          );
 
           const newSchedule = [...prev.schedule];
           const duration = prev.roundStartedAt ? Math.round((Date.now() - prev.roundStartedAt) / 1000) : 0;
           newSchedule[currentRoundIdx] = { ...currentRound, completed: true, durationSeconds: duration };
 
-          // 4. Generate next round logic
+          // 3. Generate next round logic
           let nextRoundBase: Round | null = null;
-          const nextRoundIndex = newSchedule.length; // Index for the NEW round (e.g. 1 if round 1 just completed)
+          const nextRoundIndex = newSchedule.length;
 
           if (
             (prev.format === "americano" || prev.format === "team") &&
@@ -508,6 +449,12 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
               pairingStrategy: prev.pairingStrategy,
               maxRepeats: prev.maxRepeats,
             }) as any;
+          } else if (
+            prev.format === "division" &&
+            prev.allRounds &&
+            nextRoundIndex < prev.allRounds.length
+          ) {
+            nextRoundBase = { ...prev.allRounds[nextRoundIndex] };
           }
 
           if (nextRoundBase) {
@@ -520,7 +467,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             leaderboard: newLeaderboard,
             currentRound: nextRoundIndex,
             manualByes: [],
-            roundStartedAt: Date.now(), // Start timing the new round
+            roundStartedAt: Date.now(),
           };
         }
         case "EDIT_ROUND": {

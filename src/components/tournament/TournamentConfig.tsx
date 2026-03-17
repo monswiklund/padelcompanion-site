@@ -10,7 +10,7 @@ import {
 } from "@/tournament/content/help";
 
 export interface TournamentConfigState {
-  format: "americano" | "mexicano" | "team" | "teamMexicano";
+  format: "americano" | "mexicano" | "team" | "teamMexicano" | "division";
   courts: number;
   scoringMode: "total" | "race" | "time";
   pointsPerMatch: number;
@@ -20,6 +20,8 @@ export interface TournamentConfigState {
   allowCourtChange: boolean;
   courtFormat: "number" | "court" | "custom";
   customCourtNames: string[];
+  tiebreaker?: "difference" | "most_won" | "shared";
+  divisionCourts?: number;
 }
 
 interface TournamentConfigProps {

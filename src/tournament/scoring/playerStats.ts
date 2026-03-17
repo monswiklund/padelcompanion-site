@@ -1,11 +1,10 @@
 /**
  * Player Stats Module
  * Handles updating and subtracting player statistics.
+ * Pure functions - no state mutation.
  */
 
-import { state } from "../core/state";
-
-interface LeaderboardPlayer {
+export interface LeaderboardPlayer {
   id: string | number;
   name: string;
   points: number;
@@ -13,66 +12,128 @@ interface LeaderboardPlayer {
   pointsLost: number;
   wins: number;
   losses: number;
+  draws: number;
+  matchPoints: number;
   playedWith?: (string | number)[];
+  byeCount?: number;
+  previousRank?: number;
+  division?: string;
 }
 
 /**
- * Update player stats after a match.
+ * Update player stats for a set of players based on match results.
  */
-export function updatePlayerStats(
-  playerId: string | number,
-  pointsFor: number,
-  pointsAgainst: number,
-  isWin: boolean,
-  isDraw: boolean,
-  partnerId: string | number | null = null
-): void {
-  const player = state.leaderboard.find(
-    (p: LeaderboardPlayer) => p.id === playerId
-  );
-  if (player) {
-    player.points += pointsFor;
-    player.played += 1;
-    player.pointsLost = (player.pointsLost || 0) + pointsAgainst;
+export function calculateUpdatedLeaderboard(
+  currentLeaderboard: LeaderboardPlayer[],
+  matches: any[],
+  byes: any[] = []
+): LeaderboardPlayer[] {
+  const newLeaderboard = currentLeaderboard.map(p => ({
+    ...p,
+    playedWith: p.playedWith ? [...p.playedWith] : []
+  }));
 
-    if (isWin) player.wins = (player.wins || 0) + 1;
-    else if (!isDraw) player.losses = (player.losses || 0) + 1;
+  matches.forEach((match) => {
+    const s1 = match.score1 || 0;
+    const s2 = match.score2 || 0;
+    const t1Won = s1 > s2;
+    const t2Won = s2 > s1;
+    const isDraw = s1 === s2;
 
-    if (partnerId && !player.playedWith) {
-      player.playedWith = [];
+    const updatePlayer = (
+      id: string | number,
+      pFor: number,
+      pAgainst: number,
+      won: boolean,
+      draw: boolean,
+      partnerId?: string | number
+    ) => {
+      const pIdx = newLeaderboard.findIndex((p) => p.id === id);
+      if (pIdx !== -1) {
+        const p = newLeaderboard[pIdx];
+        p.points += pFor;
+        p.pointsLost += pAgainst;
+        p.played += 1;
+        if (won) {
+          p.wins += 1;
+          p.matchPoints = (p.matchPoints || 0) + 3;
+        } else if (draw) {
+          p.draws = (p.draws || 0) + 1;
+          p.matchPoints = (p.matchPoints || 0) + 1;
+        } else {
+          p.losses = (p.losses || 0) + 1;
+        }
+        if (partnerId) {
+          p.playedWith = [...(p.playedWith || []), partnerId];
+        }
+      }
+    };
+
+    match.team1.forEach((p: any) =>
+      updatePlayer(
+        p.id,
+        s1,
+        s2,
+        t1Won,
+        isDraw,
+        match.team1.length > 1
+          ? match.team1.find((px: any) => px.id !== p.id)?.id
+          : undefined
+      )
+    );
+    match.team2.forEach((p: any) =>
+      updatePlayer(
+        p.id,
+        s2,
+        s1,
+        t2Won,
+        isDraw,
+        match.team2.length > 1
+          ? match.team2.find((px: any) => px.id !== p.id)?.id
+          : undefined
+      )
+    );
+  });
+
+  // Update byes
+  byes.forEach((bp) => {
+    const pIdx = newLeaderboard.findIndex((p) => p.id === bp.id);
+    if (pIdx !== -1) {
+      newLeaderboard[pIdx].byeCount = (newLeaderboard[pIdx].byeCount || 0) + 1;
     }
-    if (partnerId) {
-      player.playedWith.push(partnerId);
-    }
-  }
+  });
+
+  return newLeaderboard;
 }
 
 /**
- * Subtract player stats (for editing rounds).
+ * Sorts leaderboard based on points, wins, and other criteria.
  */
-export function subtractPlayerStats(
-  playerId: string | number,
-  pointsFor: number,
-  pointsAgainst: number,
-  isWin: boolean,
-  isDraw: boolean
-): void {
-  const player = state.leaderboard.find(
-    (p: LeaderboardPlayer) => p.id === playerId
-  );
-  if (player) {
-    player.points -= pointsFor;
-    player.played -= 1;
-    player.pointsLost = (player.pointsLost || 0) - pointsAgainst;
-
-    if (isWin) player.wins = (player.wins || 0) - 1;
-    else if (!isDraw) player.losses = (player.losses || 0) - 1;
-
-    // Clamp to zero
-    if (player.played < 0) player.played = 0;
-    if (player.points < 0) player.points = 0;
-    if (player.wins < 0) player.wins = 0;
-    if (player.losses < 0) player.losses = 0;
-    if (player.pointsLost < 0) player.pointsLost = 0;
-  }
+export function sortLeaderboard(
+  leaderboard: LeaderboardPlayer[],
+  criteria: "points" | "wins" | "winRatio" | "pointRatio" | "matchPoints" = "points",
+  tiebreaker?: "difference" | "most_won" | "shared"
+): LeaderboardPlayer[] {
+  return [...leaderboard].sort((a, b) => {
+    if (criteria === "matchPoints") {
+      // Division mode: sort by matchPoints first
+      if (b.matchPoints !== a.matchPoints) return b.matchPoints - a.matchPoints;
+      // Then apply tiebreaker
+      if (tiebreaker === "difference") {
+        const diffA = a.points - a.pointsLost;
+        const diffB = b.points - b.pointsLost;
+        if (diffB !== diffA) return diffB - diffA;
+      } else if (tiebreaker === "most_won") {
+        if (b.points !== a.points) return b.points - a.points;
+      }
+      // "shared" or further fallback: keep same order
+      return (b.wins || 0) - (a.wins || 0);
+    }
+    if (criteria === "points") {
+      if (b.points !== a.points) return b.points - a.points;
+      return (b.wins || 0) - (a.wins || 0);
+    }
+    // Add more criteria if needed
+    return b.points - a.points;
+  });
 }

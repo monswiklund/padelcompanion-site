@@ -16,6 +16,7 @@ import SupportPage from "./pages/SupportPage";
 // Tournament Pages
 import GeneratorPage from "./tournament/pages/generator/GeneratorPage";
 import BracketPage from "./tournament/pages/bracket/BracketPage";
+import DivisionPage from "./tournament/pages/division/DivisionPage";
 import WinnersCourtPage from "./tournament/pages/winnersCourt/WinnersCourtPage";
 import HistoryPage from "./tournament/pages/history/HistoryPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -30,6 +31,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/tournament/generator" element={<GeneratorPage />} />
+              <Route path="/tournament/division" element={<DivisionPage />} />
               <Route path="/tournament/bracket" element={<BracketPage />} />
               <Route
                 path="/tournament/winners-court"

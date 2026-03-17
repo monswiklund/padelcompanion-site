@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useTournament } from "@/context/TournamentContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/Button";
@@ -61,60 +61,80 @@ interface MatchProps {
   match: BracketMatch;
   onClick: (matchId: number) => void;
   className?: string;
+  poolColor?: { border: string; bg: string; text: string } | null;
 }
 
-const MatchCard: React.FC<MatchProps> = ({ match, onClick, className }) => {
+const MatchCard: React.FC<MatchProps> = ({ match, onClick, className, poolColor }) => {
   const isEditable = match.team1 || match.team2;
   const isPlayed = match.score1 !== null && match.score2 !== null;
+  const hasTwoTeams = match.team1 && match.team2;
+  const isReadyToPlay = hasTwoTeams && !isPlayed;
+  const loser = isPlayed
+    ? match.winner?.id === match.team1?.id
+      ? match.team2
+      : match.team1
+    : null;
+
+  const accentColor = poolColor ? poolColor.border : "border-accent";
 
   return (
     <GlassCard
       padding="sm"
       variant={isEditable ? "hover" : "default"}
       className={cn(
-        "w-48 min-w-[12rem] cursor-pointer relative z-10", // z-10 to stay above connectors
-        isPlayed ? "border-accent/40 bg-accent/5" : "",
+        "w-48 min-w-[12rem] cursor-pointer relative z-10 border-2",
+        isReadyToPlay ? accentColor : "border-white/60",
         className
       )}
       onClick={() => isEditable && onClick(match.id)}
     >
       {/* Team 1 */}
-      <div className="flex justify-between items-center mb-2">
+      <div className={cn(
+        "flex justify-between items-center mb-1 px-2 py-1 rounded",
+        match.winner?.id === match.team1?.id ? "bg-success/20" : "",
+        loser?.id === match.team1?.id ? "opacity-40" : ""
+      )}>
         <span
           className={cn(
             "text-sm font-medium truncate flex-1 mr-2",
             match.winner?.id === match.team1?.id
               ? "text-success font-bold"
-              : "text-foreground"
+              : "text-foreground",
+            loser?.id === match.team1?.id ? "line-through" : ""
           )}
         >
           {match.team1?.name || "TBD"}
         </span>
-        <span className="text-sm font-mono bg-black/20 px-1.5 rounded text-blue-400">
+        <span className="text-sm font-mono bg-black/40 px-1.5 rounded text-blue-400 font-bold">
           {match.score1 ?? "-"}
         </span>
       </div>
 
       {/* Team 2 */}
-      <div className="flex justify-between items-center">
+      <div className={cn(
+        "flex justify-between items-center px-2 py-1 rounded",
+        match.winner?.id === match.team2?.id ? "bg-success/20" : "",
+        loser?.id === match.team2?.id ? "opacity-40" : ""
+      )}>
         <span
           className={cn(
             "text-sm font-medium truncate flex-1 mr-2",
             match.winner?.id === match.team2?.id
               ? "text-success font-bold"
-              : "text-foreground"
+              : "text-foreground",
+            loser?.id === match.team2?.id ? "line-through" : ""
           )}
         >
           {match.team2?.name || "TBD"}
         </span>
-        <span className="text-sm font-mono bg-black/20 px-1.5 rounded text-blue-400">
+        <span className="text-sm font-mono bg-black/40 px-1.5 rounded text-blue-400 font-bold">
           {match.score2 ?? "-"}
         </span>
       </div>
       
       {/* Round Label (Optional, floating above) */}
        <div className="absolute -top-3 left-2 px-1.5 bg-background text-[10px] text-muted-foreground uppercase tracking-wider border border-border rounded shadow-sm">
-         R{match.round}
+         Round {match.round}
        </div>
     </GlassCard>
   );
@@ -123,9 +143,10 @@ const MatchCard: React.FC<MatchProps> = ({ match, onClick, className }) => {
 interface BracketNodeProps {
   node: TreeNode;
   onMatchClick: (id: number) => void;
+  poolColor?: { border: string; bg: string; text: string } | null;
 }
 
-const BracketNode: React.FC<BracketNodeProps> = ({ node, onMatchClick }) => {
+const BracketNode: React.FC<BracketNodeProps> = ({ node, onMatchClick, poolColor }) => {
   const hasChildren = node.children.length > 0;
   
   return (
@@ -135,23 +156,17 @@ const BracketNode: React.FC<BracketNodeProps> = ({ node, onMatchClick }) => {
         <div className="flex flex-col justify-center mr-8 relative">
            {/* Connector Line Vertical */}
            <div className="absolute right-[-2rem] top-1/2 bottom-1/2 w-[2rem] border-r-2 border-border/30 transform -translate-y-1/2" />
-           
+          
           {node.children.map((child, index) => (
              child ? (
                 <div key={child.match.id} className="flex items-center my-4 relative">
-                   <BracketNode node={child} onMatchClick={onMatchClick} />
+                   <BracketNode node={child} onMatchClick={onMatchClick} poolColor={poolColor} />
                    
                    {/* Connector Line Horizontal from Child to Parent */}
-                   {/* We need complex SVG or CSS lines here. 
-                       Simple approach: 
-                       - Horizontal line from child to 'center'.
-                       - Parent has horizontal line from 'center' to itself.
-                       - Vertical line connects them. 
-                   */}
                    <div className={cn(
-                     "absolute left-full w-4 h-px bg-border/50",
-                     
-                   )} />
+                      "absolute left-full w-6 h-0.5 bg-white/40",
+                      
+                    )} />
                 </div>
              ) : (
                 // Bye placeholder
@@ -159,19 +174,13 @@ const BracketNode: React.FC<BracketNodeProps> = ({ node, onMatchClick }) => {
              )
           ))}
           
-           {/* Paint the connector lines via absolute positioning on the wrapper if possible. 
-               Tree layout with flexbox makes standard CSS bracket lines tricky without fixed heights.
-               Let's trust the 'flex items-center' aligns them horizontally.
-               Vertical line connecting children:
-           */}
-           <div className="absolute right-[-1rem] top-[25%] bottom-[25%] w-px bg-border/50" />
-           {/* Horizontal from vertical to parent */}
-           <div className="absolute right-[-1rem] top-1/2 w-4 h-px bg-border/50" />
+          <div className="absolute right-[-1rem] top-[25%] bottom-[25%] w-0.5 bg-white/40" />
+          <div className="absolute right-[-1rem] top-1/2 w-6 h-0.5 bg-white/40" />
         </div>
       )}
 
       {/* The Match Itself */}
-      <MatchCard match={node.match} onClick={onMatchClick} />
+      <MatchCard match={node.match} onClick={onMatchClick} poolColor={poolColor} />
     </div>
   );
 };
@@ -185,35 +194,30 @@ const BracketNode: React.FC<BracketNodeProps> = ({ node, onMatchClick }) => {
 // So getting `roots` (Finals) and displaying them at the end.
 // We need to render the tree `flex-row-reverse`.
 
-const StandardBracketTree: React.FC<{ root: TreeNode; onMatchClick: (id: number) => void }> = ({
+const StandardBracketTree: React.FC<{ root: TreeNode; onMatchClick: (id: number) => void; poolColor?: { border: string; bg: string; text: string } | null }> = ({
   root,
   onMatchClick,
+  poolColor,
 }) => {
   return (
     <div className="flex flex-row-reverse items-center">
       {/* Root (Final) */}
-      <MatchCard match={root.match} onClick={onMatchClick} />
+      <MatchCard match={root.match} onClick={onMatchClick} poolColor={poolColor} />
 
       {/* Children (Previous Rounds) */}
       {root.children.length > 0 && (
         <div className="flex flex-col justify-center mr-6 relative"> {/* mr (margin right) pushes children away to left */}
-           {/* We need to clear margin logic. Flex-row-reverse: 
-              [Final] <--- [Semis] <--- [Quarters]
-           */}
-           
-           {/* Connector System for this node's inputs */}
-           {/* Vertical Bar connecting the children's outputs */}
-           <div className="absolute right-[-1.5rem] top-[25%] bottom-[25%] w-px bg-border/50 border-r border-border/30" />
+           <div className="absolute right-[-1.5rem] top-[25%] bottom-[25%] w-0.5 bg-white/40 border-r border-white/20" />
            
            {/* Horizontal line to Parent */}
-           <div className="absolute right-[-1.5rem] top-1/2 w-6 h-px bg-border/50" />
+           <div className="absolute right-[-1.5rem] top-1/2 w-6 h-0.5 bg-white/40" />
            
            {root.children.map((child, idx) => (
              child ? (
                <div key={child.match.id} className="relative py-4 pr-6"> {/* pr-6 space for connector */}
-                 <StandardBracketTree root={child} onMatchClick={onMatchClick} />
+                 <StandardBracketTree root={child} onMatchClick={onMatchClick} poolColor={poolColor} />
                  {/* Horizontal line from Child to Vertical Bar */}
-                 <div className="absolute right-0 top-1/2 w-6 h-px bg-border/50" />
+                 <div className="absolute right-0 top-1/2 w-6 h-0.5 bg-white/40" />
                </div>
              ) : (
                 <div key={`bye-${idx}`} className="w-48 h-24 invisible" />
@@ -229,39 +233,23 @@ const StandardBracketTree: React.FC<{ root: TreeNode; onMatchClick: (id: number)
 // A flattened column view is safer for responsive scrolling.
 // But let's try this for "Phase 3 Modernization".
 
-const RecursiveBracket: React.FC<{ root: TreeNode; onMatchClick: (n: number) => void }> = ({ root, onMatchClick }) => {
-    // We want visual order: Round 1 -> Final.
-    // The Tree is Final -> Round 1.
-    // So if we render `flex-row-reverse` at the TOP level?
-    // Let's implement a component that recurses but produces the layout:
-    // <Sources> <Connector> <Self>
-    
-    // To do this recursively:
-    // <Node> returns:
-    // <div flex row>
-    //    <div col> <Node(child1) /> <Node(child2) /> </div>
-    //    <Connector />
-    //    <MatchCard />
-    // </div>
-    // This renders Left-to-Right naturally if we start from Root and say "Children go Left".
-    // So `flex-row` but children are *inserted before* match.
-    
+const RecursiveBracket: React.FC<{ root: TreeNode; onMatchClick: (n: number) => void; poolColor?: { border: string; bg: string; text: string } | null }> = ({ root, onMatchClick, poolColor }) => {
     return (
         <div className="flex items-center">
              {root.children.length > 0 && (
                  <div className="flex flex-col justify-center mr-8 relative">
                      {/* Connectors */}
                      {/* Vertical Line spanning children centers */}
-                     <div className="absolute right-[-1rem] top-[25%] bottom-[25%] w-px bg-border/50" />
+                     <div className="absolute right-[-1rem] top-[25%] bottom-[25%] w-0.5 bg-white/40" />
                      {/* Horizontal Line to Self */}
-                     <div className="absolute right-[-1rem] top-1/2 w-4 h-px bg-border/50" />
+                     <div className="absolute right-[-1rem] top-1/2 w-6 h-0.5 bg-white/40" />
                      
                      {root.children.map((child, i) => (
                          child ? (
                              <div key={child.match.id} className="relative my-4 pr-4">
-                                 <RecursiveBracket root={child} onMatchClick={onMatchClick} />
+                                 <RecursiveBracket root={child} onMatchClick={onMatchClick} poolColor={poolColor} />
                                  {/* Line from Child to Vertical */}
-                                 <div className="absolute right-0 top-1/2 w-4 h-px bg-border/50" />
+                                 <div className="absolute right-0 top-1/2 w-6 h-0.5 bg-white/40" />
                              </div>
                          ) : (
                            // Just strict spacing
@@ -270,7 +258,7 @@ const RecursiveBracket: React.FC<{ root: TreeNode; onMatchClick: (n: number) => 
                      ))}
                  </div>
              )}
-             <MatchCard match={root.match} onClick={onMatchClick} />
+             <MatchCard match={root.match} onClick={onMatchClick} poolColor={poolColor} />
         </div>
     );
 };
@@ -294,6 +282,124 @@ export const BracketView: React.FC = () => {
     setSelectedMatchId(null);
   }
 
+  const [poolLayout, setPoolLayout] = useState<"vertical" | "horizontal" | "grid">("vertical");
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  const isMultiPool = (bracket as any)?.isMultiPool;
+  const isMultiPoolDoubleElimination = (bracket as any)?.isMultiPoolDoubleElimination;
+  const isDoubleElimination = (bracket as any)?.isDoubleElimination || isMultiPoolDoubleElimination;
+  const poolCount = isMultiPool || isMultiPoolDoubleElimination ? (bracket as any).pools?.length || 0 : 0;
+
+  interface Standing {
+    rank: number;
+    name: string;
+    wins: number;
+    losses: number;
+    pointsFor: number;
+    pointsAgainst: number;
+    pool?: string;
+    currentRound: number;
+  }
+
+  const leaderboard = useMemo(() => {
+    if (!bracket) return [];
+    
+    const teamsMap = new Map<string, Standing>();
+    const addTeam = (name: string, pool?: string) => {
+      if (!teamsMap.has(name)) {
+        teamsMap.set(name, { rank: 0, name, wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, pool, currentRound: 0 });
+      }
+    };
+
+    const getAllMatches = () => {
+      if ((bracket as any).isMultiPool) {
+        return (bracket as any).pools.flatMap((p: any) => {
+          const poolLabel = p.name?.replace("Pool ", "") || "A";
+          p.matches.forEach((m: BracketMatch) => {
+            if (m.team1) m.team1.side = poolLabel;
+            if (m.team2) m.team2.side = poolLabel;
+          });
+          return p.matches;
+        });
+      }
+      if ((bracket as any).isMultiPoolDoubleElimination) {
+        return (bracket as any).pools.flatMap((p: any) => {
+          const poolLabel = p.name?.replace("Pool ", "") || "A";
+          p.matches.forEach((m: BracketMatch) => {
+            if (m.team1) m.team1.side = poolLabel;
+            if (m.team2) m.team2.side = poolLabel;
+          });
+          return p.matches;
+        });
+      }
+      if (bracket.isDualBracket) {
+        return [...(bracket as any).matchesA, ...(bracket as any).matchesB];
+      }
+      if ((bracket as any).isDoubleElimination) {
+        return [...(bracket as any).winnersMatches, ...(bracket as any).losersMatches];
+      }
+      return (bracket as any).matches;
+    };
+
+    const matches = getAllMatches();
+    
+    matches.forEach((m: BracketMatch) => {
+      if (m.team1 && m.team2 && m.score1 !== null && m.score2 !== null) {
+        addTeam(m.team1.name, m.team1.side);
+        addTeam(m.team2.name, m.team2.side);
+        
+        const t1 = teamsMap.get(m.team1.name)!;
+        const t2 = teamsMap.get(m.team2.name)!;
+        
+        t1.pointsFor += m.score1;
+        t1.pointsAgainst += m.score2;
+        t2.pointsFor += m.score2;
+        t2.pointsAgainst += m.score1;
+        
+        if (m.score1 > m.score2) {
+          t1.wins++;
+          t2.losses++;
+        } else {
+          t2.wins++;
+          t1.losses++;
+        }
+      }
+    });
+
+    const standings = Array.from(teamsMap.values())
+      .filter(t => t.wins + t.losses > 0)
+      .sort((a, b) => {
+        if (a.wins !== b.wins) return b.wins - a.wins;
+        return (b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst);
+      })
+      .map((t, i) => ({ ...t, rank: i + 1 }));
+
+    return standings;
+  }, [bracket]);
+
+  const getPoolColor = (label: string) => {
+    switch (label) {
+      case "A":
+        return { border: "border-pool-a/50", bg: "bg-pool-a/20", text: "text-pool-a" };
+      case "B":
+        return { border: "border-pool-b/50", bg: "bg-pool-b/20", text: "text-pool-b" };
+      case "C":
+        return { border: "border-pool-c/50", bg: "bg-pool-c/20", text: "text-pool-c" };
+      case "D":
+        return { border: "border-pool-d/50", bg: "bg-pool-d/20", text: "text-pool-d" };
+      case "E":
+        return { border: "border-pool-e/50", bg: "bg-pool-e/20", text: "text-pool-e" };
+      case "F":
+        return { border: "border-pool-f/50", bg: "bg-pool-f/20", text: "text-pool-f" };
+      case "G":
+        return { border: "border-pool-g/50", bg: "bg-pool-g/20", text: "text-pool-g" };
+      case "H":
+        return { border: "border-pool-h/50", bg: "bg-pool-h/20", text: "text-pool-h" };
+      default:
+        return { border: "border-white/20", bg: "", text: "" };
+    }
+  };
+
   // Build Trees
   const trees = useMemo(() => {
     if (!bracket) return [];
@@ -303,10 +409,36 @@ export const BracketView: React.FC = () => {
       if (multi.grandFinal) {
         // Find all matches including grand final
         const allMatches = [...multi.pools.flatMap((p: any) => p.matches), multi.grandFinal];
-        return buildBracketTree(allMatches);
+        return buildBracketTree(allMatches).map((tree, idx) => ({
+          ...tree,
+          poolLabel: multi.pools[idx]?.name?.replace("Pool ", "") || "A"
+        }));
       } else {
         // Multiple independent trees
-        return multi.pools.flatMap((p: any) => buildBracketTree(p.matches));
+        return multi.pools.flatMap((p: any, idx: number) => 
+          buildBracketTree(p.matches).map(tree => ({
+            ...tree,
+            poolLabel: p.name?.replace("Pool ", "") || String.fromCharCode(65 + idx)
+          }))
+        );
+      }
+    }
+
+    if ((bracket as any).isMultiPoolDoubleElimination) {
+      const multi = bracket as any;
+      if (multi.grandFinal) {
+        const allMatches = [...multi.pools.flatMap((p: any) => p.matches), multi.grandFinal];
+        return buildBracketTree(allMatches).map((tree, idx) => ({
+          ...tree,
+          poolLabel: multi.pools[idx]?.name?.replace("Pool ", "") || "A"
+        }));
+      } else {
+        return multi.pools.flatMap((p: any, idx: number) => 
+          buildBracketTree(p.matches).map(tree => ({
+            ...tree,
+            poolLabel: p.name?.replace("Pool ", "") || String.fromCharCode(65 + idx)
+          }))
+        );
       }
     }
 
@@ -333,6 +465,16 @@ export const BracketView: React.FC = () => {
 
     const single = bracket as SingleBracket;
     return buildBracketTree(single.matches);
+  }, [bracket]);
+
+  // Build Losers Trees (separate from winners)
+  const losersTrees = useMemo(() => {
+    if (!bracket) return [];
+    const de = bracket as any;
+    if (de.isDoubleElimination || de.isMultiPoolDoubleElimination) {
+      return buildBracketTree(de.losersMatches || []);
+    }
+    return [];
   }, [bracket]);
 
   if (!bracket) return <div />; 
@@ -366,18 +508,143 @@ export const BracketView: React.FC = () => {
            Tournament Bracket
         </h2>
         <div className="flex justify-center gap-4 mt-6">
-           <Button variant="secondary" size="sm" onClick={() => window.print()}>Print</Button>
-           <Button variant="danger" size="sm" onClick={handleClear}>Reset Tournament</Button>
-        </div>
-      </div>
+           {isMultiPool && (
+             <div className="flex gap-2 bg-white/5 p-1 rounded-lg">
+               {(["vertical", "horizontal", "grid"] as const).map((layout) => (
+                 <button
+                   key={layout}
+                   onClick={() => setPoolLayout(layout)}
+                   className={cn(
+                     "px-3 py-1 text-xs font-bold rounded transition-all capitalize",
+                     poolLayout === layout
+                       ? "bg-accent text-white"
+                       : "text-muted-foreground hover:text-foreground"
+                   )}
+                 >
+                   {layout}
+                 </button>
+               ))}
+             </div>
+            )}
+            <Button 
+              variant={showLeaderboard ? "primary" : "secondary"} 
+              size="sm" 
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+            >
+              Leaderboard
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => window.print()}>Print</Button>
+            <Button variant="danger" size="sm" onClick={handleClear}>Reset Tournament</Button>
+         </div>
+       </div>
 
-      <div className="px-8 pb-20 flex flex-col items-center gap-16">
-        {trees.map((root, i) => (
-           <div key={root.match.id} className="flex">
-               {/* Label for Dual Bracket Pools if needed */}
-               <RecursiveBracket root={root} onMatchClick={handleMatchClick} />
-           </div>
-        ))}
+      {showLeaderboard && leaderboard.length > 0 && (
+        <div className="px-4 pb-8">
+          <GlassCard className="max-w-2xl mx-auto">
+            <h3 className="text-xl font-bold mb-4 text-center">Leaderboard</h3>
+            <div className="space-y-2">
+              <div className="grid grid-cols-7 gap-2 text-xs font-black text-muted-foreground uppercase px-4">
+                <div>#</div>
+                <div className="col-span-2">Team</div>
+                <div className="text-center">Pool</div>
+                <div className="text-center">W</div>
+                <div className="text-center">L</div>
+                <div className="text-right">+/-</div>
+              </div>
+              {leaderboard.map((team) => (
+                <div key={team.name} className="grid grid-cols-7 gap-2 items-center px-4 py-2 bg-white/5 rounded-lg">
+                  <div className={cn(
+                    "text-lg font-black",
+                    team.rank === 1 ? "text-yellow-400" :
+                    team.rank === 2 ? "text-gray-300" :
+                    team.rank === 3 ? "text-amber-600" : "text-muted-foreground"
+                  )}>{team.rank}</div>
+                  <div className="col-span-2 font-bold truncate">{team.name}</div>
+                  <div className="flex justify-center">
+                    {team.pool && (
+                      <span className={cn(
+                        "px-2 py-0.5 rounded text-xs font-black",
+                        getPoolColor(team.pool).bg,
+                        getPoolColor(team.pool).border,
+                        getPoolColor(team.pool).text
+                      )}>
+                        {team.pool}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-center text-success font-bold">{team.wins}</div>
+                  <div className="text-center text-error font-bold">{team.losses}</div>
+                  <div className="text-right font-mono text-sm">
+                    {team.pointsFor - team.pointsAgainst > 0 ? "+" : ""}{team.pointsFor - team.pointsAgainst}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      <div className={cn(
+        "px-8 pb-20 gap-8",
+        isMultiPool && poolLayout === "horizontal" ? "flex flex-row items-start justify-center" :
+        isMultiPool && poolLayout === "grid" ? "grid grid-cols-2 gap-8" :
+        "flex flex-col items-center"
+      )}>
+        {/* Winners Bracket */}
+        {trees.map((root, i) => {
+          const poolColors = isMultiPool && (root as any).poolLabel 
+            ? getPoolColor((root as any).poolLabel) 
+            : isDoubleElimination ? { border: "border-accent/50", bg: "bg-accent/20", text: "text-accent" } : null;
+          return (
+            <div key={`w-${root.match.id}`} className="flex flex-col items-center">
+              {isMultiPool && poolColors && (
+                <div className={cn(
+                  "px-4 py-1 rounded-full text-xs font-black mb-4 border",
+                  (poolColors as any).bg,
+                  (poolColors as any).border,
+                  (poolColors as any).text
+                )}>
+                  Pool {(root as any).poolLabel || "A"}
+                </div>
+              )}
+              {isDoubleElimination && i === 0 && (
+                <div className="px-4 py-1 rounded-full text-xs font-black mb-4 border bg-accent/20 border-accent/50 text-accent">
+                  Winners Bracket
+                </div>
+              )}
+              <div className={cn(
+                poolColors ? `border-2 ${(poolColors as any).border} rounded-2xl p-4` : ""
+              )}>
+                <RecursiveBracket root={root} onMatchClick={handleMatchClick} poolColor={poolColors} />
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Losers Bracket - only for double elimination */}
+        {isDoubleElimination && (
+          <div className="flex flex-col items-center">
+            <div className="px-4 py-1 rounded-full text-xs font-black mb-4 border bg-error/20 border-error/50 text-error">
+              Losers Bracket
+            </div>
+            <div className="border-2 border-error/50 rounded-2xl p-4">
+              {losersTrees.length > 0 ? (
+                losersTrees.slice(0, 1).map((root) => (
+                  <RecursiveBracket 
+                    key={`l-${root.match.id}`} 
+                    root={root} 
+                    onMatchClick={handleMatchClick} 
+                    poolColor={{ border: "border-error/50", bg: "bg-error/20", text: "text-error" }} 
+                  />
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground py-8 px-4">
+                  Losers bracket matches will appear here as teams lose
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedMatch && (

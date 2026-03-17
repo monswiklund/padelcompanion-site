@@ -9,7 +9,11 @@ export const useLeaderboard = () => {
     hideLeaderboard,
     showPositionChanges,
     leaderboardColumns,
+    format,
+    tiebreaker,
   } = state;
+
+  const isDivision = format === "division";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -31,6 +35,23 @@ export const useLeaderboard = () => {
   const processedLeaderboard = useMemo(() => {
     // 1. Calculate actual standings first (to get real ranks)
     const standings = [...leaderboard].sort((a, b) => {
+      // Division mode: always sort by matchPoints first
+      if (isDivision) {
+        const mpA = (a as any).matchPoints || 0;
+        const mpB = (b as any).matchPoints || 0;
+        if (mpB !== mpA) return mpB - mpA;
+        // Apply tiebreaker
+        if (tiebreaker === "difference") {
+          const diffA = (a.points || 0) - (a.pointsLost || 0);
+          const diffB = (b.points || 0) - (b.pointsLost || 0);
+          if (diffB !== diffA) return diffB - diffA;
+        } else if (tiebreaker === "most_won") {
+          if ((b.points || 0) !== (a.points || 0)) return (b.points || 0) - (a.points || 0);
+        }
+        // Final fallback: wins
+        return (b.wins || 0) - (a.wins || 0);
+      }
+
       switch (rankingCriteria) {
         case "wins":
           if (b.wins !== a.wins) return b.wins - a.wins;
@@ -81,7 +102,7 @@ export const useLeaderboard = () => {
     }
 
     return list;
-  }, [leaderboard, rankingCriteria, hideLeaderboard, searchQuery]);
+  }, [leaderboard, rankingCriteria, hideLeaderboard, searchQuery, isDivision, tiebreaker]);
 
   const visibleLeaderboard = useMemo(() => {
     // If we have grid columns, we usually show everything or a larger chunk
@@ -140,5 +161,6 @@ export const useLeaderboard = () => {
     setCriteria,
     setLeaderboardColumns,
     isSmallScreen,
+    isDivision,
   };
 };

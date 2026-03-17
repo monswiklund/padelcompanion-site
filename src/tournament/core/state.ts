@@ -11,12 +11,15 @@ export interface Player {
   points?: number;
   wins?: number;
   losses?: number;
+  draws?: number;
   pointsLost?: number;
   played?: number;
   byeCount?: number;
+  matchPoints?: number;
   playedWith?: (string | number)[];
   lockedCourt?: number;
   isBye?: boolean;
+  division?: string;
 }
 
 export interface PreferredPartner {
@@ -118,6 +121,9 @@ export interface TournamentState {
   bracket: BracketState;
   winnersCourt: WinnersCourtState | null;
   ui: UIState;
+  tiebreaker?: "difference" | "most_won" | "shared";
+  divisionCourts?: number;
+  [key: string]: any;
 }
 
 export const state: TournamentState = {
@@ -224,6 +230,8 @@ export function saveState(): void {
     bracket: state.bracket,
     ui: state.ui,
     winnersCourt: state.winnersCourt,
+    tiebreaker: state.tiebreaker,
+    divisionCourts: state.divisionCourts,
   });
 }
 
@@ -293,6 +301,8 @@ export function loadState(): boolean {
     }
 
     state.winnersCourt = data.winnersCourt || null;
+    state.tiebreaker = data.tiebreaker || "difference";
+    state.divisionCourts = data.divisionCourts || 2;
 
     return true;
   } catch (e) {
@@ -344,9 +354,11 @@ export function initLeaderboard(): void {
     points: 0,
     wins: 0,
     losses: 0,
+    draws: 0,
     pointsLost: 0,
     played: 0,
     byeCount: 0,
+    matchPoints: 0,
     playedWith: [],
   }));
 }
