@@ -1,0 +1,1 @@
+import{j as o}from"./main-Bjw95hyK.js";const e={standard:"p-6",compact:"p-4",none:"p-0"},t=({children:r,className:d="",style:s={},padding:a="standard"})=>o.jsx("div",{className:`bg-card border border-border rounded-2xl ${e[a]} ${d}`,style:s,children:r});export{t as C};
