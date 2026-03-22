@@ -144,7 +144,7 @@ export const MatchTimer: React.FC = () => {
             ? "bg-error/20 border-error/50 text-error"
             : timer.isRunning
             ? "bg-accent/10 border-accent/40 text-accent shadow-sm"
-            : "bg-black/20 border-white/10 text-muted-foreground"
+            : "bg-surface-hover border-border text-muted-foreground"
         }`}
       >
         <button
@@ -173,7 +173,7 @@ export const MatchTimer: React.FC = () => {
       </div>
 
       {/* Total Timer Pill */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/5 bg-black/20 text-muted-foreground/60 min-w-[70px]">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-surface-hover text-muted-foreground/60 min-w-[70px]">
         <div className="flex flex-col items-center w-full">
           <span className="text-[8px] font-black uppercase tracking-tighter leading-none opacity-40">
             Total

@@ -237,7 +237,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
       <Section title="Game Settings">
 
-        <div className="divide-y divide-white/[0.06]">
+        <div className="divide-y divide-border">
 
           {baseFormat === "mexicano" && (
 
@@ -346,7 +346,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
       {/* Mexicano Settings */}
       {isMexicano && (
         <Section title="Advanced">
-          <div className="divide-y divide-white/[0.06]">
+          <div className="divide-y divide-border">
             <ConfigRow label="Partner Repeats" hint="Max same pair plays">
               <select
                 className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
@@ -394,7 +394,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
 
       {/* Court Settings */}
       <Section title="Display">
-        <div className="divide-y divide-white/[0.06]">
+        <div className="divide-y divide-border">
           <ConfigRow label="Court Names" hint="Label format">
             <select
               className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
@@ -529,12 +529,12 @@ const Toggle: React.FC<{
     type="button"
     onClick={disabled ? undefined : onChange}
     disabled={disabled}
-    className={`relative w-12 h-7 rounded-full transition-colors ${
+    className={`relative w-12 h-7 rounded-full transition-colors border ${
       disabled
-        ? "opacity-40 cursor-not-allowed bg-white/10"
+        ? "opacity-40 cursor-not-allowed bg-surface-hover border-transparent"
         : enabled
-        ? "bg-accent"
-        : "bg-white/20 hover:bg-white/30"
+        ? "bg-accent border-accent"
+        : "bg-muted/20 hover:bg-muted/30 border-border"
     }`}
   >
     <span

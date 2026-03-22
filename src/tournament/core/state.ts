@@ -2,6 +2,7 @@
 // Central state object with reactive updates
 
 import { StorageService } from "../../shared/storage";
+import { normalizeTournamentState } from "./normalization";
 
 const STATE_VERSION = 1;
 
@@ -20,6 +21,7 @@ export interface Player {
   lockedCourt?: number;
   isBye?: boolean;
   division?: string;
+  divisionId?: string;
 }
 
 export interface PreferredPartner {
@@ -64,6 +66,14 @@ export interface UIState {
   activeBracketTab: string;
 }
 
+export interface DivisionConfig {
+  id: string;
+  name: string;
+  courts: number;
+  color?: string;
+  order: number;
+}
+
 export interface WCPlayer {
   name: string;
   skill: number;
@@ -101,6 +111,7 @@ export interface TournamentState {
   rankingCriteria: string;
   courtFormat: string;
   customCourtNames: string[];
+  divisionCourtNames: Record<string, string[]>;
   maxRepeats: number;
   pairingStrategy: string;
   strictStrategy?: boolean;
@@ -114,6 +125,7 @@ export interface TournamentState {
   isLocked: boolean;
   tournamentName: string;
   tournamentNotes: string;
+  divisions: Array<DivisionConfig>;
   schedule: Round[];
   currentRound: number;
   leaderboard: Player[];
@@ -137,6 +149,7 @@ export const state: TournamentState = {
   rankingCriteria: "points",
   courtFormat: "court",
   customCourtNames: [],
+  divisionCourtNames: {},
   maxRepeats: 99,
   pairingStrategy: "optimal",
   preferredPartners: [],
@@ -149,6 +162,7 @@ export const state: TournamentState = {
   isLocked: false,
   tournamentName: "",
   tournamentNotes: "",
+  divisions: [],
   schedule: [],
   currentRound: 0,
   leaderboard: [],
@@ -214,6 +228,7 @@ export function saveState(): void {
     rankingCriteria: state.rankingCriteria,
     courtFormat: state.courtFormat,
     customCourtNames: state.customCourtNames,
+    divisionCourtNames: state.divisionCourtNames,
     maxRepeats: state.maxRepeats,
     pairingStrategy: state.pairingStrategy,
     preferredPartners: state.preferredPartners,
@@ -258,6 +273,12 @@ export function loadState(): boolean {
     state.customCourtNames = Array.isArray(data.customCourtNames)
       ? data.customCourtNames.slice(0, 50)
       : [];
+    state.divisionCourtNames =
+      data.divisionCourtNames &&
+      typeof data.divisionCourtNames === "object" &&
+      !Array.isArray(data.divisionCourtNames)
+        ? data.divisionCourtNames
+        : {};
     state.maxRepeats = Math.max(
       0,
       Math.min(99, data.maxRepeats !== undefined ? data.maxRepeats : 99)
@@ -304,6 +325,8 @@ export function loadState(): boolean {
     state.winnersCourt = data.winnersCourt || null;
     state.tiebreaker = data.tiebreaker || "difference";
     state.divisionCourts = data.divisionCourts || 2;
+
+    normalizeTournamentState(state);
 
     return true;
   } catch (e) {
@@ -380,6 +403,8 @@ export function restoreState(snapshot: Partial<TournamentState>): void {
   state.players = state.players || [];
   state.schedule = state.schedule || [];
   state.leaderboard = state.leaderboard || [];
+
+  normalizeTournamentState(state);
 
   saveState();
 }

@@ -129,6 +129,7 @@ export function parseTournamentSnapshot(
       rankingCriteria: "points",
       courtFormat: "court",
       customCourtNames: [],
+      divisionCourtNames: {},
       maxRepeats: 99,
       pairingStrategy: "optimal",
       strictStrategy: false,

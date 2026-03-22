@@ -53,7 +53,15 @@ describe("Mexicano Scoring Logic", () => {
     state.maxRepeats = 0; // 0 repeats allowed
 
     // Run Logic
-    const round = generateMexicanoNextRound(players);
+    const round = generateMexicanoNextRound({
+      leaderboard: players,
+      manualByes: state.manualByes || [],
+      courts: state.courts,
+      preferredPartners: state.preferredPartners || [],
+      pairingStrategy: state.pairingStrategy,
+      maxRepeats: state.maxRepeats,
+      strictStrategy: state.strictStrategy
+    });
 
     // Should NOT pair 8 & 6.
     const matchWith8 = round.matches.find(
@@ -94,7 +102,15 @@ describe("Mexicano Scoring Logic", () => {
     state.strictStrategy = true; // STRICT
     state.maxRepeats = 0;
 
-    const round = generateMexicanoNextRound(players);
+    const round = generateMexicanoNextRound({
+      leaderboard: players,
+      manualByes: state.manualByes || [],
+      courts: state.courts,
+      preferredPartners: state.preferredPartners || [],
+      pairingStrategy: state.pairingStrategy,
+      maxRepeats: state.maxRepeats,
+      strictStrategy: state.strictStrategy
+    });
 
     // Should pair 8 & 6 because we forced it.
     const matchWith8 = round.matches.find(
@@ -117,12 +133,14 @@ describe("Division Scheduling", () => {
     const players = Array.from({ length: 8 }, (_, i) => ({
       id: i + 1,
       name: `Lag ${i + 1}`,
-      division: "A",
+      divisionId: "div_A",
     }));
 
     const schedule = generateDivisionSchedule({
       players,
-      courtsPerDivision: 2,
+      divisions: [
+        { id: "div_A", name: "A", courts: 2, order: 0 }
+      ]
     });
 
     const playedCounts = new Map<number, number>();
@@ -139,5 +157,34 @@ describe("Division Scheduling", () => {
     players.forEach((player) => {
       expect(playedCounts.get(player.id)).toBe(7);
     });
+  });
+
+  it("handles asymmetrical courts gracefully (e.g. 4 vs 2)", () => {
+    // 8 players in A (4 courts) -> 4 matches per round -> 7 rounds total
+    // 8 players in B (2 courts) -> 2 matches per sub-round -> 14 rounds total
+    const playersA = Array.from({ length: 8 }, (_, i) => ({
+      id: `A${i + 1}`, name: `Lag A${i + 1}`, divisionId: "div_A",
+    }));
+    const playersB = Array.from({ length: 8 }, (_, i) => ({
+      id: `B${i + 1}`, name: `Lag B${i + 1}`, divisionId: "div_B",
+    }));
+
+    const schedule = generateDivisionSchedule({
+      players: [...playersA, ...playersB],
+      divisions: [
+        { id: "div_A", name: "A", courts: 4, order: 0 },
+        { id: "div_B", name: "B", courts: 2, order: 1 } // Less courts = longer schedule
+      ]
+    });
+
+    expect(schedule).toHaveLength(14); // Driven by Div B taking 14 sub-rounds
+
+    // Round 1 should have 4 matches from A + 2 matches from B = 6 matches
+    expect(schedule[0].matches).toHaveLength(6);
+
+    // Round 8 should have 0 matches from A + 2 matches from B = 2 matches
+    expect(schedule[7].matches).toHaveLength(2);
+    // and all 8 teams from A should be in byes
+    expect(schedule[7].byes.length).toBeGreaterThanOrEqual(8);
   });
 });

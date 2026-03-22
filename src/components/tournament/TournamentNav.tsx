@@ -5,7 +5,7 @@ export const TournamentNav: React.FC = () => {
   const linkBaseClasses =
     "px-4 py-2 text-sm font-medium rounded-lg transition-colors";
   const activeClasses = "bg-accent text-white";
-  const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-white/5";
+  const inactiveClasses = "text-muted-foreground hover:text-foreground hover:bg-surface-hover";
 
   return (
     <nav className="flex justify-center gap-2 p-4 animate-fade-in">

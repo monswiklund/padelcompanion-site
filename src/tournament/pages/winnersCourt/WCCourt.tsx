@@ -33,10 +33,10 @@ export const WCCourt: React.FC<WCCourtProps> = ({
     return cn(
       "flex-1 p-4 rounded-xl text-center transition-all duration-300 relative overflow-hidden group border",
       canSelect && !isComplete
-        ? "cursor-pointer hover:bg-white/5 hover:border-white/20 hover:shadow-lg hover:-translate-y-0.5"
+        ? "cursor-pointer hover:bg-surface-hover hover:border-glass-border hover:shadow-lg hover:-translate-y-0.5"
         : "",
       canSelect && isComplete && !isWinner && !isLoser
-        ? "cursor-pointer hover:bg-white/5"
+        ? "cursor-pointer hover:bg-surface-hover"
         : "", // When complete but re-selecting?
       // Winner State
       isWinner &&
@@ -53,7 +53,7 @@ export const WCCourt: React.FC<WCCourtProps> = ({
       padding="none"
       className={cn(
         "overflow-hidden relative",
-        isComplete ? "border-white/20 shadow-2xl" : "border-white/10",
+        isComplete ? "border-glass-border shadow-2xl" : "border-glass-border/50",
       )}
     >
       {/* Court Background */}
@@ -64,7 +64,7 @@ export const WCCourt: React.FC<WCCourtProps> = ({
 
       <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
-        <div className="px-4 py-2 bg-black/40 backdrop-blur-sm border-b border-white/10 text-xs font-black uppercase tracking-wider flex justify-between items-center text-white/90">
+        <div className="px-4 py-2 bg-black/40 backdrop-blur-sm border-b border-glass-border text-xs font-black uppercase tracking-wider flex justify-between items-center text-white/90">
           <span className="drop-shadow-sm">Court {court.id}</span>
           {isComplete && (
             <span className="text-success-light flex items-center gap-1 font-bold">
@@ -113,7 +113,7 @@ export const WCCourt: React.FC<WCCourtProps> = ({
           {/* VS Divider */}
           <div className="flex flex-col items-center justify-center relative px-1">
             <div className="w-px h-full bg-gradient-to-b from-white/0 via-white/50 to-white/0 absolute" />
-            <div className="z-10 bg-black/80 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center text-xs font-black text-white border border-white/30 shadow-lg">
+            <div className="z-10 bg-black/80 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center text-xs font-black text-white border border-glass-border shadow-lg">
               VS
             </div>
           </div>
@@ -134,7 +134,7 @@ export const WCCourt: React.FC<WCCourtProps> = ({
             onClick={() => canSelect && onSelectWinner?.(2)}
           >
             {court.winner === 2 && (
-              <div className="absolute top-1 right-2 text-white text-[10px] font-black tracking-tighter bg-black/20 px-1.5 py-0.5 rounded shadow-sm border border-white/20">
+              <div className="absolute top-1 right-2 text-white text-[10px] font-black tracking-tighter bg-black/20 px-1.5 py-0.5 rounded shadow-sm border border-glass-border">
                 WINNER
               </div>
             )}

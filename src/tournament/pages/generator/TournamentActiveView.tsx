@@ -213,7 +213,9 @@ const TournamentActiveView: React.FC = () => {
     : null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 pb-32 animate-fade-in">
+    <div className={`mx-auto px-4 py-6 pb-32 animate-fade-in ${
+      isDivision ? "max-w-[1600px]" : "max-w-7xl"
+    }`}>
       {/* Header */}
       <header className="mb-12">
         <div className="text-center mb-6">
@@ -241,7 +243,7 @@ const TournamentActiveView: React.FC = () => {
 
       {/* Toolbar (Under Schedule) */}
       <div className="mb-16 flex justify-center w-full relative z-10">
-        <div className={`bg-card/95 backdrop-blur-xl border border-white/10 shadow-xl rounded-3xl p-3 w-full mx-auto ${
+        <div className={`bg-glass-background backdrop-blur-xl border border-glass-border shadow-xl rounded-3xl p-3 w-full mx-auto ${
           isDivision ? "max-w-6xl" : "max-w-5xl"
         }`}>
           {isDivision ? (
@@ -311,8 +313,8 @@ const TournamentActiveView: React.FC = () => {
                     onClick={() => setShowSettings(!showSettings)}
                     className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center border ${
                       showSettings
-                        ? "bg-accent text-white border-accent shadow-glow"
-                        : "bg-popover hover:bg-white/5 text-muted-foreground border-border"
+                        ? "bg-accent text-white border-accent shadow-glow" 
+                        : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
                     }`}
                     title="View Settings"
                   >
@@ -418,7 +420,7 @@ const TournamentActiveView: React.FC = () => {
                     className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl transition-all flex items-center justify-center border ${
                       showSettings 
                         ? "bg-accent text-white border-accent shadow-glow" 
-                        : "bg-popover hover:bg-white/5 text-muted-foreground border-border"
+                        : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
                     }`}
                     title="View Settings"
                   >
@@ -466,7 +468,7 @@ const TournamentActiveView: React.FC = () => {
                   )}
                 </div>
 
-                <div className="w-px h-8 bg-white/10 mx-1 hidden sm:block" />
+                <div className="w-px h-8 bg-border mx-1 hidden sm:block" />
 
                 <button
                   className="h-10 md:h-12 px-4 md:px-6 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"

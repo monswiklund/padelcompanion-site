@@ -7,12 +7,18 @@ import { showToast, createId } from "@/shared/utils";
 import { useTournament } from "@/context/TournamentContext";
 import { generateSchedule } from "../../ui/setup/scheduleGeneration";
 import { state as legacyState } from "../../core/state";
+import { DIVISION_COLORS } from "../../core/constants";
+import {
+  getCourtDisplayName,
+  getSortedDivisionNames,
+  syncDivisionCourtNames,
+} from "../../ui/courtNames";
 
 interface DivisionTeam {
   id: string;
   name: string;
   lockedCourt?: number | null;
-  division?: string;
+  divisionId?: string;
 }
 
 interface DivisionSetupProps {
@@ -47,6 +53,25 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   useEffect(() => {
     Object.assign(legacyState, state);
   }, [state]);
+
+  useEffect(() => {
+    const syncedNames = syncDivisionCourtNames(
+      players,
+      state.divisionCourts || 2,
+      state.divisionCourtNames || {},
+    );
+
+    if (
+      JSON.stringify(syncedNames) !==
+      JSON.stringify(state.divisionCourtNames || {})
+    ) {
+      dispatch({
+        type: "UPDATE_FIELD",
+        key: "divisionCourtNames",
+        value: syncedNames,
+      });
+    }
+  }, [dispatch, players, state.divisionCourtNames, state.divisionCourts]);
 
   const buildTeamMembers = (name: string) =>
     name
@@ -83,7 +108,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
       id: createId(),
       name: trimmedName,
       lockedCourt: null,
-      division: "A",
+      divisionId: state.divisions?.[0]?.id || "default",
     };
     dispatch({ type: "ADD_PLAYER", player: newTeam });
     showToast(`${trimmedName} added`, "success");
@@ -132,7 +157,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
         id: createId(),
         name: teamName,
         lockedCourt: null,
-        division: "A",
+        divisionId: state.divisions?.[0]?.id || "default",
       });
     };
 
@@ -214,7 +239,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
     // Count teams per division
     const divCounts = new Map<string, number>();
     players.forEach((p) => {
-      const div = (p as any).division || "A";
+      const div = (p as any).divisionId || state.divisions?.[0]?.id || "default";
       divCounts.set(div, (divCounts.get(div) || 0) + 1);
     });
 
@@ -241,8 +266,8 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
       const generatedSchedule = result.schedule || [];
 
       // Calculate total courts based on divisions
-      const divisions = new Set(players.map((p) => (p as any).division || "A"));
-      const totalCourts = divisions.size * (state.divisionCourts || 2);
+      // Calculate total courts based on divisions
+      const totalCourts = state.divisions ? state.divisions.reduce((sum: number, d: any) => sum + Math.max(1, d.courts), 0) : 2;
 
       dispatch({
         type: "SET_STATE",
@@ -275,6 +300,10 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
 
   const divisionCourts = state.divisionCourts || 2;
   const tiebreaker = state.tiebreaker || "difference";
+  const divisionCourtNames = state.divisionCourtNames || {};
+  const activeDivisions = getSortedDivisionNames(players);
+
+  const [movingPlayerId, setMovingPlayerId] = useState<string | null>(null);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
@@ -452,30 +481,14 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
               Division Settings
             </h4>
             <div className="divide-y divide-white/[0.06]">
-              {/* Courts per Division */}
+              {/* Total Courts (Derived) */}
               <div className="flex items-center justify-between gap-3 py-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">Courts / Division</span>
-                  <span className="text-xs text-muted-foreground ml-1.5">(Per division)</span>
+                  <span className="text-sm font-medium text-foreground">Total Courts</span>
+                  <span className="text-xs text-muted-foreground ml-1.5">(Derived from divisions)</span>
                 </div>
-                <div className="flex items-center bg-popover rounded-xl border border-border overflow-hidden">
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    disabled={divisionCourts <= 1}
-                    onClick={() => dispatch({ type: "UPDATE_FIELD", key: "divisionCourts", value: divisionCourts - 1 })}
-                  >
-                    −
-                  </button>
-                  <div className="w-10 text-center font-bold text-foreground">{divisionCourts}</div>
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    disabled={divisionCourts >= 10}
-                    onClick={() => dispatch({ type: "UPDATE_FIELD", key: "divisionCourts", value: divisionCourts + 1 })}
-                  >
-                    +
-                  </button>
+                <div className="text-center font-bold text-foreground px-4 py-2 bg-popover rounded-xl border border-border">
+                  {state.divisions ? state.divisions.reduce((acc: number, d: any) => acc + Math.max(1, d.courts), 0) : 2}
                 </div>
               </div>
 
@@ -562,102 +575,251 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
               Generate Schedule
             </Button>
           </GlassCard>
+        </div>
+      </div>
 
-          {/* Division Assignment */}
-          <GlassCard>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              Division Assignment
+      {/* Divisions & Assignments (Full Width) */}
+      <div className="mt-6">
+        <GlassCard>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Divisions & Assignments
             </h4>
-            {players.length === 0 ? (
-              <p className="text-xs text-muted-foreground/60 italic">
-                Add teams to assign them to divisions.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {(() => {
-                  const divColors: Record<string, { bg: string; border: string; text: string; badge: string }> = {
-                    A: { bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-400", badge: "bg-blue-500" },
-                    B: { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", badge: "bg-emerald-500" },
-                    C: { bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-400", badge: "bg-orange-500" },
-                  };
-                  const allDivisions = ["A", "B", "C"];
-                  const otherDivisions = (current: string) => allDivisions.filter(d => d !== current);
+            <button
+              type="button"
+              className="text-xs font-bold text-accent hover:text-accent-dark transition-colors px-3 py-1 bg-accent/10 rounded-lg"
+              onClick={() => {
+                const newDiv = {
+                  id: createId(),
+                  name: String.fromCharCode(65 + (state.divisions?.length || 0)),
+                  courts: 2,
+                  order: state.divisions?.length || 0
+                };
+                dispatch({
+                  type: "UPDATE_FIELD",
+                  key: "divisions",
+                  value: [...(state.divisions || []), newDiv]
+                });
+              }}
+            >
+              + Add Division
+            </button>
+          </div>
 
-                  return allDivisions.map((divName) => {
-                    const divPlayers = players
-                      .map((p, idx) => ({ ...p, originalIndex: idx }))
-                      .filter((p) => ((p as any).division || "A") === divName);
-                    const colors = divColors[divName];
+          {(() => {
+            const count = state.divisions?.length || 0;
+            let gridClasses = "grid gap-6 items-start ";
+            
+            if (count === 1) {
+              gridClasses += "grid-cols-1 max-w-2xl mx-auto";
+            } else if (count === 2 || count === 4) {
+              gridClasses += "grid-cols-1 md:grid-cols-2";
+            } else if (count === 3 || count === 6) {
+              gridClasses += "grid-cols-1 md:grid-cols-3";
+            } else {
+              gridClasses += "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+            }
 
-                    return (
-                      <div
-                        key={divName}
-                        className={`rounded-xl border ${colors.border} ${colors.bg} p-3`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-6 h-6 rounded-full ${colors.badge} text-white text-xs font-bold flex items-center justify-center`}>
-                              {divName}
-                            </span>
-                            <span className={`text-sm font-semibold ${colors.text}`}>
-                              Division {divName}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {divPlayers.length} team{divPlayers.length !== 1 ? "s" : ""}
-                          </span>
+            return (
+              <div className={gridClasses}>
+                {state.divisions?.map((division: any, index: number) => {
+                const colors = DIVISION_COLORS[index % DIVISION_COLORS.length];
+                const divPlayers = players
+                  .map((p, pIdx) => ({ ...p, originalIndex: pIdx }))
+                  .filter((p) => p.divisionId === division.id);
+                
+                return (
+                  <div key={division.id} className={`rounded-xl border ${colors.border} ${colors.bg} flex flex-col overflow-hidden`}>
+                    {/* Header: Reorder / Rename / Delete / Courts */}
+                    <div className={`${colors.headerBg} p-3 border-b ${colors.border} flex flex-wrap items-center gap-3 justify-between transition-colors`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex flex-col gap-0.5 mr-1">
+                          <button 
+                            title="Move Up"
+                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                            disabled={index === 0}
+                            onClick={() => {
+                              const divs = [...state.divisions];
+                              [divs[index - 1], divs[index]] = [divs[index], divs[index - 1]];
+                              divs.forEach((d, i) => d.order = i);
+                              dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                            }}
+                          >▲</button>
+                          <button 
+                            title="Move Down"
+                            className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                            disabled={index === (state.divisions?.length || 1) - 1}
+                            onClick={() => {
+                              const divs = [...state.divisions];
+                              [divs[index], divs[index + 1]] = [divs[index + 1], divs[index]];
+                              divs.forEach((d, i) => d.order = i);
+                              dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                            }}
+                          >▼</button>
                         </div>
-                        {divPlayers.length === 0 ? (
-                          <p className="text-xs text-muted-foreground/50 italic py-1">
-                            No teams assigned
-                          </p>
-                        ) : (
-                          <div className="space-y-1">
-                            {divPlayers.map((p) => (
-                              <div
-                                key={p.id}
-                                className="flex items-center justify-between gap-2 py-1 px-2 rounded-lg hover:bg-white/5 transition-colors"
-                              >
-                                <span className="text-sm text-foreground truncate">
+                        <input
+                          type="text"
+                          className={`font-bold text-lg bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none transition-colors max-w-[120px] ${colors.text} truncate`}
+                          value={division.name}
+                          onChange={(e) => {
+                            const divs = [...state.divisions];
+                            divs[index] = { ...divs[index], name: e.target.value };
+                            dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-2 border-border/50 pt-0">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm">
+                          <span className="text-muted-foreground font-medium">Courts:</span>
+                          <div className="flex items-center bg-background rounded-lg border border-border overflow-hidden h-8">
+                            <button
+                              type="button"
+                              className="w-8 flex items-center justify-center font-bold text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
+                              disabled={division.courts <= 1}
+                              onClick={() => {
+                                const divs = [...state.divisions];
+                                divs[index] = { ...divs[index], courts: divs[index].courts - 1 };
+                                dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                              }}
+                            >−</button>
+                            <div className="w-8 text-center font-bold">{division.courts}</div>
+                            <button
+                              type="button"
+                              className="w-8 flex items-center justify-center font-bold text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
+                              onClick={() => {
+                                const divs = [...state.divisions];
+                                divs[index] = { ...divs[index], courts: divs[index].courts + 1 };
+                                dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                              }}
+                            >+</button>
+                          </div>
+                        </div>
+
+                        <button 
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-30 border border-transparent hover:border-red-500/30"
+                          title={divPlayers.length > 0 ? "Cannot delete division with teams" : state.divisions.length <= 1 ? "Minimum 1 division required" : "Delete Division"}
+                          disabled={divPlayers.length > 0 || state.divisions.length <= 1}
+                          onClick={() => {
+                            if (confirm(`Remove division ${division.name}?`)) {
+                              const divs = state.divisions.filter((d: any) => d.id !== division.id);
+                              divs.forEach((d: any, i: number) => d.order = i);
+                              dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                            }
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Teams in this division */}
+                    <div className="p-3 bg-background/30 relative">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-muted-foreground">Assigned Teams ({divPlayers.length})</span>
+                      </div>
+                      
+                      {divPlayers.length === 0 ? (
+                        <div className="flex items-center justify-center p-4 rounded-lg border border-dashed border-border/50">
+                           <p className="text-xs text-muted-foreground/60 italic">No teams assigned yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          {divPlayers.map((p) => {
+                            const otherDivs = state.divisions.filter((d: any) => d.id !== division.id);
+                            const isMenuOpen = movingPlayerId === p.id;
+                            
+                            return (
+                              <div key={p.id} className="flex items-center justify-between gap-3 py-1.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors group relative">
+                                <span className="text-sm font-medium text-foreground truncate flex-1 min-w-0">
                                   {p.name}
                                 </span>
-                                <div className="flex gap-1 flex-shrink-0">
-                                  {otherDivisions(divName).map((targetDiv) => (
-                                    <button
-                                      key={targetDiv}
-                                      type="button"
-                                      className={`min-w-[56px] px-2.5 py-1 text-[11px] font-black rounded-lg border transition-colors ${
-                                        divColors[targetDiv].border
-                                      } ${divColors[targetDiv].text} bg-background/80 hover:bg-background shadow-sm`}
-                                      title={`Move to Division ${targetDiv}`}
-                                      onClick={() => {
-                                        const newPlayers = [...players];
-                                        newPlayers[p.originalIndex] = {
-                                          ...newPlayers[p.originalIndex],
-                                          division: targetDiv,
-                                        } as any;
-                                        dispatch({
-                                          type: "SET_STATE",
-                                          payload: { players: newPlayers },
-                                        });
-                                      }}
-                                    >
-                                      → {targetDiv}
-                                    </button>
-                                  ))}
+                                
+                                <div className="flex gap-1 flex-shrink-0 items-center">
+                                  {otherDivs.length <= 3 ? (
+                                    /* Traditional Buttons for few divisions */
+                                    otherDivs.map((targetDiv: any) => {
+                                      const targetIndex = state.divisions.findIndex((dd: any) => dd.id === targetDiv.id);
+                                      const tc = DIVISION_COLORS[targetIndex % DIVISION_COLORS.length];
+                                      return (
+                                        <button
+                                          key={targetDiv.id}
+                                          type="button"
+                                          className={`px-2 py-1 text-[10px] font-bold rounded border ${tc.border} ${tc.text} ${tc.bg} hover:bg-background transition-colors`}
+                                          title={`Move to ${targetDiv.name}`}
+                                          onClick={() => {
+                                            const newPlayers = [...players];
+                                            newPlayers[p.originalIndex] = { ...newPlayers[p.originalIndex], divisionId: targetDiv.id } as any;
+                                            dispatch({ type: "SET_STATE", payload: { players: newPlayers } });
+                                          }}
+                                        >
+                                          → {targetDiv.name}
+                                        </button>
+                                      );
+                                    })
+                                  ) : (
+                                    /* Compact Menu for many divisions */
+                                    <div className="relative">
+                                      <button
+                                        type="button"
+                                        className={`w-7 h-7 flex items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors ${isMenuOpen ? 'bg-accent/20 border-accent text-accent' : ''}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMovingPlayerId(isMenuOpen ? null : p.id);
+                                        }}
+                                        title="Move to division..."
+                                      >
+                                        →
+                                      </button>
+                                      
+                                      {isMenuOpen && (
+                                        <>
+                                          <div 
+                                            className="fixed inset-0 z-[60]" 
+                                            onClick={() => setMovingPlayerId(null)}
+                                          />
+                                          <div className="absolute right-0 top-full mt-1 z-[70] p-2 rounded-xl bg-white dark:bg-black border border-border shadow-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100">
+                                            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-muted-foreground/60 mb-2 px-1">Move {p.name} to:</p>
+                                            <div className="grid grid-cols-2 gap-1.5">
+                                              {otherDivs.map((targetDiv: any) => {
+                                                const targetIndex = state.divisions.findIndex((dd: any) => dd.id === targetDiv.id);
+                                                const tc = DIVISION_COLORS[targetIndex % DIVISION_COLORS.length];
+                                                return (
+                                                  <button
+                                                    key={targetDiv.id}
+                                                    type="button"
+                                                    className={`px-3 py-2 text-[10px] font-bold rounded-lg border ${tc.border} ${tc.bg} ${tc.text} hover:opacity-80 transition-opacity text-center whitespace-nowrap`}
+                                                    onClick={() => {
+                                                      const newPlayers = [...players];
+                                                      newPlayers[p.originalIndex] = { ...newPlayers[p.originalIndex], divisionId: targetDiv.id } as any;
+                                                      dispatch({ type: "SET_STATE", payload: { players: newPlayers } });
+                                                      setMovingPlayerId(null);
+                                                    }}
+                                                  >
+                                                    {targetDiv.name}
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  });
-                })()}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
               </div>
-            )}
-          </GlassCard>
-        </div>
+            );
+          })()}
+        </GlassCard>
       </div>
     </div>
   );

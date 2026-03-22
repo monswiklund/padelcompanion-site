@@ -13,6 +13,175 @@ import {
   formatEstimatedRoundStart,
   getEstimatedRoundStartRelativeLabel,
 } from "./scheduleTiming";
+import { getCourtDisplayName } from "../courtNames";
+import { getDivisionColor, DIVISION_COLORS } from "../../core/constants";
+const getDivisionStyles = (division: string, divisions: any[]) => {
+  const colors = getDivisionColor(divisions, division);
+  return `${colors.bg} ${colors.text} ${colors.border}`;
+};
+
+const NextRoundPreviewCard: React.FC<{
+  nextRoundPreview: Round;
+  getCourtName: (courtNum: number, division?: string | null) => string;
+  className?: string;
+}> = ({
+  nextRoundPreview,
+  getCourtName,
+  className = "",
+}) => {
+  const { state } = useTournament();
+
+  if (!nextRoundPreview.matches.length) return null;
+
+  return (
+    <div className={`rounded-2xl border border-accent/20 bg-accent/5 p-4 ${className}`}>
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div>
+          <h4 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
+            Nästa Runda
+          </h4>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+            <p className="text-sm text-muted-foreground">
+              Lag som väntar på Runda {nextRoundPreview.number}.
+            </p>
+            <span className="text-sm font-bold text-foreground">
+              Est. start: {formatEstimatedRoundStart(state, nextRoundPreview.number - 1)}
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-background/70 border border-accent/15 text-[10px] font-black uppercase tracking-wider text-accent">
+              {getEstimatedRoundStartRelativeLabel(state, nextRoundPreview.number - 1)}
+            </span>
+          </div>
+        </div>
+        <span className="px-3 py-1 rounded-full bg-accent text-white text-[10px] font-black uppercase tracking-wider">
+          Runda {nextRoundPreview.number}
+        </span>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+        {nextRoundPreview.matches.map((match, idx) => {
+          const matchDivision =
+            state.format === "division"
+              ? (match.team1[0] as any)?.division || "A"
+              : null;
+
+          return (
+            <div
+              key={`${nextRoundPreview.number}-${idx}`}
+              className="rounded-2xl border border-border bg-card/80 px-4 py-3"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {getCourtName(match.court, matchDivision)}
+                </div>
+                {matchDivision && (
+                  <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getDivisionStyles(matchDivision, state.divisions || [])}`}>
+                    Division {matchDivision}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <div className="flex-1 font-semibold text-foreground truncate">
+                  {match.team1.map((player) => player.name).join(" / ")}
+                </div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+                  vs
+                </div>
+                <div className="flex-1 text-right font-semibold text-foreground truncate">
+                  {match.team2.map((player) => player.name).join(" / ")}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const UpcomingRoundsSidebar: React.FC<{
+  rounds: Round[];
+  getCourtName: (courtNum: number, division?: string | null) => string;
+}> = ({ rounds, getCourtName }) => {
+  const { state } = useTournament();
+
+  if (!rounds.length) return null;
+
+  return (
+    <div className="rounded-3xl border border-accent/15 bg-card/95 p-4 shadow-xl">
+      <div className="mb-4">
+        <h3 className="text-xs font-black uppercase tracking-[0.22em] text-accent">
+          Kommande Matcher
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Alla återstående rundor i schemat.
+        </p>
+      </div>
+
+      <div className="h-[70vh] overflow-hidden rounded-2xl border border-border/70 bg-background/50">
+        <div className="h-full space-y-4 overflow-y-auto p-3 pr-2 custom-scrollbar">
+        {rounds.map((round) => (
+          <section
+            key={`${round.number}-${round.name || "round"}`}
+            className="rounded-2xl border border-border bg-background/70 p-3"
+          >
+            <div className="mb-3 flex items-start justify-between gap-2">
+              <div>
+                <div className="text-sm font-black text-foreground">
+                  {round.name || `Runda ${round.number}`}
+                </div>
+                <div className="mt-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Start: {formatEstimatedRoundStart(state, round.number - 1)}
+                </div>
+              </div>
+              <span className="rounded-full border border-accent/15 bg-accent/8 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-accent">
+                {getEstimatedRoundStartRelativeLabel(state, round.number - 1)}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {round.matches.map((match, idx) => {
+                const matchDivision =
+                  state.format === "division"
+                    ? (match.team1[0] as any)?.division || "A"
+                    : null;
+
+                return (
+                  <div
+                    key={`${round.number}-${idx}`}
+                    className="rounded-xl border border-border bg-card/80 px-3 py-2"
+                  >
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {getCourtName(match.court, matchDivision)}
+                      </span>
+                      {matchDivision && (
+                        <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getDivisionStyles(matchDivision, state.divisions || [])}`}>
+                          {matchDivision}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
+                      <div className="truncate font-semibold text-foreground">
+                        {match.team1.map((player) => player.name).join(" / ")}
+                      </div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+                        vs
+                      </div>
+                      <div className="truncate text-right font-semibold text-foreground">
+                        {match.team2.map((player) => player.name).join(" / ")}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const RoundCard: React.FC<{
   round: Round;
@@ -35,16 +204,6 @@ const RoundCard: React.FC<{
 }) => {
   const { state, dispatch } = useTournament();
   const [isCollapsed, setIsCollapsed] = useState(round.completed && !isLast);
-
-  const getDivisionStyles = (division: string) => {
-    switch (division.toUpperCase()) {
-      case "A": return "bg-pool-a/10 text-pool-a border-pool-a/20";
-      case "B": return "bg-pool-b/10 text-pool-b border-pool-b/20";
-      case "C": return "bg-pool-c/10 text-pool-c border-pool-c/20";
-      case "D": return "bg-pool-d/10 text-pool-d border-pool-d/20";
-      default: return "bg-accent/10 text-accent border-accent/20";
-    }
-  };
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -89,14 +248,8 @@ const RoundCard: React.FC<{
     return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const getCourtName = (courtNum: number) => {
-    if (
-      state.courtFormat === "custom" &&
-      state.customCourtNames[courtNum - 1]
-    ) {
-      return state.customCourtNames[courtNum - 1];
-    }
-    return `Court ${courtNum}`;
+  const getCourtName = (courtNum: number, division?: string | null) => {
+    return getCourtDisplayName(state, courtNum, division);
   };
 
   const getConstraintLabel = (constraint?: string) => {
@@ -118,7 +271,11 @@ const RoundCard: React.FC<{
       if (hasScores) {
         completedCount++;
       } else {
-        missing.push(getCourtName(m.court));
+        const matchDivision =
+          state.format === "division"
+            ? (m.team1[0] as any)?.division || "A"
+            : null;
+        missing.push(getCourtName(m.court, matchDivision));
       }
     });
 
@@ -181,7 +338,7 @@ const RoundCard: React.FC<{
           {!round.completed && !state.roundStartedAt ? (
             /* Timer not started yet — show Start button */
             <button
-              className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold bg-success hover:bg-success/80 text-white rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 text-sm font-semibold bg-success hover:bg-success/80 text-primary-foreground rounded-lg transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch({ type: "UPDATE_FIELD", key: "roundStartedAt", value: Date.now() });
@@ -190,7 +347,7 @@ const RoundCard: React.FC<{
               ▶ Start
             </button>
           ) : (
-            <span className="text-sm font-mono bg-black/20 px-2 py-0.5 rounded border border-white/5 text-muted-foreground">
+            <span className="text-sm font-mono bg-surface-hover px-2 py-0.5 rounded border border-border text-muted-foreground">
               {round.completed 
                 ? formatDuration(round.durationSeconds || 0) 
                 : formatDuration(elapsed)}
@@ -243,12 +400,8 @@ const RoundCard: React.FC<{
               const matchDivision = state.format === "division"
                 ? (match.team1[0] as any)?.division || "A"
                 : null;
-              const divColors: Record<string, { border: string; badge: string; glow: string }> = {
-                A: { border: "border-blue-500/50", badge: "bg-blue-500", glow: "shadow-blue-500/20" },
-                B: { border: "border-emerald-500/50", badge: "bg-emerald-500", glow: "shadow-emerald-500/20" },
-                C: { border: "border-orange-500/50", badge: "bg-orange-500", glow: "shadow-orange-500/20" },
-              };
-              const divStyle = matchDivision ? divColors[matchDivision] || divColors.A : null;
+              const divColorEntry = matchDivision ? getDivisionColor(state.divisions || [], matchDivision) : null;
+              const divStyle = divColorEntry ? { border: divColorEntry.border, badge: divColorEntry.badge, glow: divColorEntry.glow } : null;
 
               return (
               <div
@@ -278,7 +431,7 @@ const RoundCard: React.FC<{
                         </span>
                       )}
                       <span className="text-sm font-bold text-white drop-shadow-md">
-                        {getCourtName(match.court)}
+                        {getCourtName(match.court, matchDivision)}
                       </span>
                     </div>
                     <span className="text-xs text-white/80 font-medium">
@@ -344,11 +497,11 @@ const RoundCard: React.FC<{
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
+                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/40 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
                               (match.score1 ?? 0) > (match.score2 ?? 0) ? "text-green-400" : (match.score1 ?? 0) < (match.score2 ?? 0) ? "text-red-400" : (match.score1 !== 0 || match.score2 !== 0) ? "text-orange-400" : "text-white"
                             }`}
                             placeholder="0"
-                            value={match.score1 != null && match.score1 !== 0 ? match.score1 : ""}
+                            value={match.score1 != null ? match.score1 : ""}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const val = e.target.value === "" ? 0 : parseInt(e.target.value);
@@ -362,11 +515,11 @@ const RoundCard: React.FC<{
                             type="text"
                             inputMode="numeric"
                             pattern="[0-9]*"
-                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/30 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
+                            className={`w-16 h-12 text-center text-2xl font-black bg-black/50 border border-white/20 rounded-lg placeholder:text-white/40 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all shadow-inner [appearance:textfield] ${
                               (match.score2 ?? 0) > (match.score1 ?? 0) ? "text-green-400" : (match.score2 ?? 0) < (match.score1 ?? 0) ? "text-red-400" : (match.score2 !== 0 || match.score1 !== 0) ? "text-orange-400" : "text-white"
                             }`}
                             placeholder="0"
-                            value={match.score2 != null && match.score2 !== 0 ? match.score2 : ""}
+                            value={match.score2 != null ? match.score2 : ""}
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => {
                               const val = e.target.value === "" ? 0 : parseInt(e.target.value);
@@ -390,7 +543,7 @@ const RoundCard: React.FC<{
                             </span>
                           </div>
                           <button
-                            className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/5 transition-all"
+                            className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white bg-surface-hover hover:bg-white/10 rounded-full border border-border transition-all"
                             onClick={() => onEdit(mIdx)}
                           >
                             Edit Result
@@ -423,68 +576,12 @@ const RoundCard: React.FC<{
             </div>
           )}
 
-          {nextRoundPreview && nextRoundPreview.matches.length > 0 && (
-            <div className="mt-6 rounded-2xl border border-accent/20 bg-accent/5 p-4">
-              <div className="flex items-center justify-between gap-3 mb-4">
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
-                    Nästa Runda (Förhandsvisning)
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                    <p className="text-sm text-muted-foreground">
-                      Lag som väntar på Runda {nextRoundPreview.number}.
-                    </p>
-                    <span className="text-sm font-bold text-foreground">
-                      Est. start: {formatEstimatedRoundStart(state, nextRoundPreview.number - 1)}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-background/70 border border-accent/15 text-[10px] font-black uppercase tracking-wider text-accent">
-                      {getEstimatedRoundStartRelativeLabel(state, nextRoundPreview.number - 1)}
-                    </span>
-                  </div>
-                </div>
-                <span className="px-3 py-1 rounded-full bg-accent text-white text-[10px] font-black uppercase tracking-wider">
-                  Runda {nextRoundPreview.number}
-                </span>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                {nextRoundPreview.matches.map((match, idx) => {
-                  const matchDivision =
-                    state.format === "division"
-                      ? (match.team1[0] as any)?.division || "A"
-                      : null;
-
-                  return (
-                  <div
-                    key={`${nextRoundPreview.number}-${idx}`}
-                    className="rounded-2xl border border-border bg-card/80 px-4 py-3"
-                  >
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        {getCourtName(match.court)}
-                      </div>
-                      {matchDivision && (
-                        <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getDivisionStyles(matchDivision)}`}>
-                          Division {matchDivision}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between gap-3 text-sm">
-                      <div className="flex-1 font-semibold text-foreground truncate">
-                        {match.team1.map((player) => player.name).join(" / ")}
-                      </div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
-                        vs
-                      </div>
-                      <div className="flex-1 text-right font-semibold text-foreground truncate">
-                        {match.team2.map((player) => player.name).join(" / ")}
-                      </div>
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            </div>
+          {nextRoundPreview && (
+            <NextRoundPreviewCard
+              nextRoundPreview={nextRoundPreview}
+              getCourtName={getCourtName}
+              className="mt-6 xl:hidden"
+            />
           )}
 
           {/* Bye Selector & Complete Button */}
@@ -526,7 +623,7 @@ const RoundCard: React.FC<{
               <button
                 className={`w-full py-3 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95 ${
                   status === "complete"
-                    ? "bg-success hover:bg-success/80 text-white shadow-success/20"
+                    ? "bg-success hover:bg-success/80 text-primary-foreground shadow-success/20"
                     : "bg-popover hover:bg-card border border-border text-muted-foreground"
                 }`}
                 onClick={handleCompleteClick}
@@ -561,14 +658,8 @@ const Schedule: React.FC = () => {
     }
   }, [schedule.length]);
 
-  const getCourtName = (courtNum: number) => {
-    if (
-      state.courtFormat === "custom" &&
-      state.customCourtNames[courtNum - 1]
-    ) {
-      return state.customCourtNames[courtNum - 1];
-    }
-    return `Court ${courtNum}`;
+  const getCourtName = (courtNum: number, division?: string | null) => {
+    return getCourtDisplayName(state, courtNum, division);
   };
 
   const nextRoundPreview =
@@ -577,6 +668,11 @@ const Schedule: React.FC = () => {
     schedule.length < state.allRounds.length
       ? state.allRounds[schedule.length]
       : null;
+
+  const mergedRounds = (state.allRounds || []).map((round, index) =>
+    schedule[index] ? schedule[index] : round
+  );
+  const upcomingRounds = mergedRounds.slice(schedule.length);
 
   const [isFullScheduleOpen, setIsFullScheduleOpen] = useState(false);
 
@@ -639,29 +735,44 @@ const Schedule: React.FC = () => {
     return `Finished · ${Math.round(round.durationSeconds / 60)} min`;
   };
 
+  const hasDesktopPreview = upcomingRounds.some((round) => round.matches.length > 0);
+
   return (
     <div>
-      {schedule.map((round, idx) => (
-        <div key={idx} id={`round-${idx}`} className="relative">
-          <div className="absolute -top-4 left-6 z-10">
-            <span className="px-3 py-1 rounded-full bg-background border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground shadow-sm">
-              {getRoundMetaLabel(round, idx)}
-            </span>
-          </div>
-          <RoundCard
-            round={round}
-            roundIndex={idx}
-            isLast={idx === schedule.length - 1}
-            onComplete={() => handleCompleteRound(idx)}
-            onEdit={(matchIndex) => handleEditRound(idx, matchIndex)}
-            onScoreChange={(mIdx, team, val) =>
-              handleScoreChange(idx, mIdx, team, val)
-            }
-            onToggleBye={handleToggleBye}
-            nextRoundPreview={idx === schedule.length - 1 ? nextRoundPreview : null}
-          />
+      <div className={`items-start gap-8 xl:grid ${hasDesktopPreview ? "xl:grid-cols-[minmax(0,1.25fr)_30rem]" : ""}`}>
+        <div className="min-w-0">
+          {schedule.map((round, idx) => (
+            <div key={idx} id={`round-${idx}`} className="relative">
+              <div className="absolute -top-4 left-6 z-10">
+                <span className="px-3 py-1 rounded-full bg-background border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground shadow-sm">
+                  {getRoundMetaLabel(round, idx)}
+                </span>
+              </div>
+              <RoundCard
+                round={round}
+                roundIndex={idx}
+                isLast={idx === schedule.length - 1}
+                onComplete={() => handleCompleteRound(idx)}
+                onEdit={(matchIndex) => handleEditRound(idx, matchIndex)}
+                onScoreChange={(mIdx, team, val) =>
+                  handleScoreChange(idx, mIdx, team, val)
+                }
+                onToggleBye={handleToggleBye}
+                nextRoundPreview={idx === schedule.length - 1 ? nextRoundPreview : null}
+              />
+            </div>
+          ))}
         </div>
-      ))}
+
+        {hasDesktopPreview && (
+          <aside className="hidden xl:block xl:sticky xl:top-24">
+            <UpcomingRoundsSidebar
+              rounds={upcomingRounds}
+              getCourtName={getCourtName}
+            />
+          </aside>
+        )}
+      </div>
 
       {/* Full Schedule Access Button */}
       {state.format === "division" && state.allRounds && state.allRounds.length > 0 && (

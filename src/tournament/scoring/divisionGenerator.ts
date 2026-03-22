@@ -30,7 +30,7 @@ interface Round {
  */
 function generateRoundRobin(teams: Player[]): [Player, Player][][] {
   const n = teams.length;
-  const rounds: [Player, Player][][] = [];
+  const logicalRounds: [Player, Player][][] = [];
 
   // If odd number of teams, add a BYE placeholder
   const teamList = [...teams];
@@ -90,81 +90,98 @@ function generateRoundRobin(teams: Player[]): [Player, Player][][] {
       roundPairings.push([home, away]);
     }
 
-    rounds.push(roundPairings);
+    logicalRounds.push(roundPairings);
 
     // Rotate: move last element to front of rotating array
     rotating.unshift(rotating.pop()!);
   }
 
-  return rounds;
+  return logicalRounds;
 }
+
+import { DivisionConfig } from "../core/state";
 
 export interface DivisionScheduleConfig {
   players: Player[];
-  courtsPerDivision: number;
+  divisions: DivisionConfig[];
 }
 
 /**
  * Generate a complete division schedule.
- * Groups players by division, generates round-robin within each division,
+ * Groups players by divisionId, generates round-robin within each division,
  * and merges rounds across divisions so they can run in parallel.
+ * Courts are assigned sequentially across divisions based on division order.
  */
 export function generateDivisionSchedule(
   config: DivisionScheduleConfig
 ): Round[] {
-  const { players, courtsPerDivision } = config;
+  const { players, divisions } = config;
 
-  // Group players by division
-  const divisions = new Map<string, Player[]>();
+  // Group players by divisionId
+  const teamsByDivId = new Map<string, Player[]>();
+  divisions.forEach(d => teamsByDivId.set(d.id, []));
+
   players.forEach((p) => {
-    const div = p.division || "A";
-    if (!divisions.has(div)) divisions.set(div, []);
-    divisions.get(div)!.push(p);
+    const divId = p.divisionId || divisions[0]?.id; // fallback to first division if empty
+    if (divId && teamsByDivId.has(divId)) {
+      teamsByDivId.get(divId)!.push(p);
+    }
   });
 
-  // Sort division names for deterministic court assignment
-  const divNames = [...divisions.keys()].sort();
+  // Sort divisions by predefined order for deterministic court assignment
+  const sortedDivisions = [...divisions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  // Generate round-robin for each division. If a round has more matches than
-  // available courts, split it into multiple scheduled sub-rounds instead of
-  // dropping the overflow matches.
-  const divisionRounds = new Map<string, [Player, Player][][]>();
-  let maxRounds = 0;
+  // Generate logical round-robin for each division. If a logical round has 
+  // more matches than available courts, it is split into multiple sub-rounds.
+  const divisionSubRounds = new Map<string, [Player, Player][][]>();
+  let maxMergedRounds = 0;
 
-  for (const divName of divNames) {
-    const teams = divisions.get(divName)!;
-    const rounds = generateRoundRobin(teams);
-    const expandedRounds: [Player, Player][][] = [];
+  for (const div of sortedDivisions) {
+    const teams = teamsByDivId.get(div.id)!;
+    if (!teams || teams.length === 0) {
+      divisionSubRounds.set(div.id, []);
+      continue;
+    }
 
-    rounds.forEach((roundPairings) => {
-      for (let idx = 0; idx < roundPairings.length; idx += courtsPerDivision) {
-        expandedRounds.push(roundPairings.slice(idx, idx + courtsPerDivision));
+    const logicalRounds = generateRoundRobin(teams);
+    const subRounds: [Player, Player][][] = [];
+    const courtsForThisDivision = Math.max(1, div.courts); // Ensure at least 1 court per division
+
+    logicalRounds.forEach((roundPairings) => {
+      for (let idx = 0; idx < roundPairings.length; idx += courtsForThisDivision) {
+        subRounds.push(roundPairings.slice(idx, idx + courtsForThisDivision));
       }
     });
 
-    divisionRounds.set(divName, expandedRounds);
-    maxRounds = Math.max(maxRounds, expandedRounds.length);
+    divisionSubRounds.set(div.id, subRounds);
+    maxMergedRounds = Math.max(maxMergedRounds, subRounds.length);
   }
 
-  // Merge rounds: for each round number, combine matches from all divisions
-  const schedule: Round[] = [];
+  // Merge process: combine sub-rounds from all divisions into global Merged Rounds
+  const mergedSchedule: Round[] = [];
 
-  for (let r = 0; r < maxRounds; r++) {
+  for (let r = 0; r < maxMergedRounds; r++) {
     const matches: Match[] = [];
     const byes: Player[] = [];
 
-    for (let dIdx = 0; dIdx < divNames.length; dIdx++) {
-      const divName = divNames[dIdx];
-      const divRounds = divisionRounds.get(divName)!;
-      const divTeams = divisions.get(divName)!;
-      const courtOffset = dIdx * courtsPerDivision;
+    let currentCourtOffset = 0;
 
-      if (r < divRounds.length) {
-        const roundPairings = divRounds[r];
+    for (const div of sortedDivisions) {
+      const subRounds = divisionSubRounds.get(div.id)!;
+      const divTeams = teamsByDivId.get(div.id)!;
+      const courtsForThisDivision = Math.max(1, div.courts);
+
+      if (divTeams.length === 0) {
+        currentCourtOffset += courtsForThisDivision;
+        continue;
+      }
+
+      if (r < subRounds.length) {
+        const roundPairings = subRounds[r];
 
         roundPairings.forEach((pair, mIdx) => {
           matches.push({
-            court: courtOffset + mIdx + 1,
+            court: currentCourtOffset + mIdx + 1,
             team1: [pair[0]],
             team2: [pair[1]],
           });
@@ -173,14 +190,16 @@ export function generateDivisionSchedule(
         // This division has no more rounds; all its teams are idle
         byes.push(...divTeams);
       }
+
+      currentCourtOffset += courtsForThisDivision;
     }
 
-    schedule.push({
+    mergedSchedule.push({
       number: r + 1,
       matches,
       byes,
     });
   }
 
-  return schedule;
+  return mergedSchedule;
 }

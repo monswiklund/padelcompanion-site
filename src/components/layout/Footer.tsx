@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-muted border-t border-white/[0.08] pt-16 pb-8 mt-auto">
+    <footer className="bg-muted border-t border-border pt-16 pb-8 mt-auto">
       <div className="container max-w-[1200px] mx-auto px-6">
         <div className="flex flex-col items-center text-center gap-12 mb-12">
           <div className="max-w-[500px] mx-auto">
@@ -104,7 +104,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/[0.08] text-center text-muted-foreground text-sm">
+        <div className="pt-8 border-t border-border text-center text-muted-foreground text-sm">
           <p>&copy; {year} Padel Companion. All rights reserved.</p>
         </div>
       </div>

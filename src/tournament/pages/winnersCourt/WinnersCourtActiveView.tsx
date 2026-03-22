@@ -157,8 +157,8 @@ export const WinnersCourtActiveView: React.FC = () => {
                 </h4>
                 <div className="flex flex-col gap-3">
                   {[...sides[side].history].reverse().map((roundData: any) => (
-                    <details key={roundData.round} className="group open:bg-black/10 bg-black/5 rounded-xl border border-white/5 overflow-hidden transition-all duration-300">
-                      <summary className="flex items-center justify-between p-3 cursor-pointer select-none hover:bg-white/5 transition-colors">
+                    <details key={roundData.round} className="group open:bg-surface-hover bg-muted/20 rounded-xl border border-border overflow-hidden transition-all duration-300">
+                      <summary className="flex items-center justify-between p-3 cursor-pointer select-none hover:bg-surface-hover transition-colors">
                         <span className="text-sm font-semibold text-muted-foreground group-open:text-foreground">
                           Round {roundData.round}
                         </span>
@@ -197,7 +197,7 @@ export const WinnersCourtActiveView: React.FC = () => {
 
       {/* Enhanced Sticky Bottom Toolbar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pointer-events-none">
-        <div className="bg-card/90 backdrop-blur-xl border border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] rounded-3xl p-2 max-w-5xl mx-auto pointer-events-auto transition-all duration-300">
+        <div className="bg-glass-background backdrop-blur-xl border border-glass-border shadow-2xl rounded-3xl p-2 max-w-5xl mx-auto pointer-events-auto transition-all duration-300">
           <div className="flex items-center justify-between gap-2">
             
             {/* Left Actions */}
@@ -231,7 +231,7 @@ export const WinnersCourtActiveView: React.FC = () => {
                   className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
                     showSettings 
                       ? "bg-accent text-white border-accent shadow-glow" 
-                      : "bg-popover hover:bg-white/5 text-muted-foreground border-border"
+                      : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
                   }`}
                   title="View Settings"
                 >
@@ -270,7 +270,7 @@ export const WinnersCourtActiveView: React.FC = () => {
                 )}
               </div>
 
-              <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
+              <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
               <button
                 className="w-10 h-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center border border-transparent hover:border-destructive/20"

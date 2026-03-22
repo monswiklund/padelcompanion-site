@@ -9,9 +9,9 @@ interface GlassCardProps extends HTMLMotionProps<"div"> {
 }
 
 const variants = {
-  default: "bg-background/80 backdrop-blur-md border border-white/20 shadow-lg",
+  default: "bg-glass-background backdrop-blur-md border border-glass-border shadow-lg",
   hover:
-    "bg-background/80 backdrop-blur-md border border-white/20 shadow-lg hover:bg-background hover:border-white/30 hover:shadow-xl transition-all duration-300",
+    "bg-glass-background backdrop-blur-md border border-glass-border shadow-lg hover:border-accent/30 hover:shadow-xl transition-all duration-300",
   active:
     "bg-accent/20 backdrop-blur-md border border-accent/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]",
 };

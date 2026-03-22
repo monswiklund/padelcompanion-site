@@ -96,7 +96,7 @@ const Leaderboard: React.FC = () => {
                   key={tab.id}
                   className={`flex-1 sm:flex-initial px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     rankingCriteria === tab.id
-                      ? "bg-accent text-white"
+                      ? "bg-accent text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setCriteria(tab.id as any)}
@@ -115,7 +115,7 @@ const Leaderboard: React.FC = () => {
                     className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                       leaderboardColumns === num ||
                       (num === 1 && !leaderboardColumns)
-                        ? "bg-accent text-white"
+                        ? "bg-accent text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                     onClick={() => setLeaderboardColumns(num)}
@@ -131,7 +131,7 @@ const Leaderboard: React.FC = () => {
                 <button
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     !hideLeaderboard
-                      ? "bg-accent text-white"
+                      ? "bg-accent text-primary-foreground"
                       : "bg-popover text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={toggleVisibility}
@@ -142,7 +142,7 @@ const Leaderboard: React.FC = () => {
                 <button
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                     showPositionChanges
-                      ? "bg-accent text-white"
+                      ? "bg-accent text-primary-foreground"
                       : "bg-popover text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={toggleRanks}
@@ -452,7 +452,7 @@ const Leaderboard: React.FC = () => {
           >
             Share Results
           </button>
-          <button className="px-3 py-1.5 text-xs font-medium bg-accent hover:bg-accent-dark text-white rounded-lg transition-colors">
+          <button className="px-3 py-1.5 text-xs font-medium bg-accent hover:bg-accent-dark text-primary-foreground rounded-lg transition-colors">
             Print
           </button>
         </div>

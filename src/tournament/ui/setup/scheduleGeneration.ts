@@ -51,10 +51,11 @@ export function generateSchedule(): Promise<any> {
   const playersNeededPerCourt =
     state.format === "team" || state.format === "teamMexicano" || state.format === "division" ? 2 : 4;
 
-  // For division format, calculate total courts from divisions × courtsPerDivision
+  let effectiveCourts = state.courts;
   if (state.format === "division") {
-    const divisions = new Set(state.players.map((p: any) => p.division || "A"));
-    state.courts = divisions.size * (state.divisionCourts || 2);
+    effectiveCourts = state.divisions
+      ? state.divisions.reduce((sum: number, div: any) => sum + Math.max(1, div.courts ?? 0), 0)
+      : 2;
   }
 
   const maxPossibleCourts = Math.floor(
@@ -89,7 +90,7 @@ export function generateSchedule(): Promise<any> {
     } else if (state.format === "division") {
       state.allRounds = generateDivisionSchedule({
         players: state.players,
-        courtsPerDivision: state.divisionCourts || 2,
+        divisions: state.divisions || [],
       });
       state.schedule = [state.allRounds[0]];
     } else if (state.format === "teamMexicano") {
@@ -114,7 +115,7 @@ export function generateSchedule(): Promise<any> {
     showToast(`🎾 Tournament started! Round 1 ready`);
   };
 
-  if (state.courts > maxPossibleCourts) {
+  if (effectiveCourts > maxPossibleCourts) {
     if (maxPossibleCourts === 0) {
       showAlertModal(
         "Not Enough Players",
@@ -123,9 +124,13 @@ export function generateSchedule(): Promise<any> {
       return Promise.resolve();
     }
 
-    const oldCourts = state.courts;
-    state.courts = maxPossibleCourts;
-    showToast(`Adjusted courts: ${oldCourts} → ${maxPossibleCourts}`);
+    if (state.format !== "division") {
+      const oldCourts = state.courts;
+      state.courts = maxPossibleCourts;
+      showToast(`Adjusted courts: ${oldCourts} → ${maxPossibleCourts}`);
+    } else {
+      showToast(`Warning: Limited teams means some courts may be empty!`, "warning");
+    }
   }
 
   return showCountdown().then(() => {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Dialog } from "@/components/ui/Dialog";
-import { useTournament, Match } from "@/context/TournamentContext";
+import { useTournament } from "@/context/TournamentContext";
+import { getCourtDisplayName } from "../courtNames";
 
 interface PlayerMatchHistoryProps {
   playerId: string;
@@ -69,6 +70,10 @@ const PlayerMatchHistory: React.FC<PlayerMatchHistoryProps> = ({
             const opponent = isTeam1 ? match.team2 : match.team1;
             const playerScore = isTeam1 ? match.score1 : match.score2;
             const opponentScore = isTeam1 ? match.score2 : match.score1;
+            const matchDivision =
+              state.format === "division"
+                ? (match.team1[0] as any)?.division || "A"
+                : null;
             
             const resultColors = {
               win: "bg-success/20 border-success/30 text-success",
@@ -87,11 +92,11 @@ const PlayerMatchHistory: React.FC<PlayerMatchHistoryProps> = ({
             return (
               <div 
                 key={i}
-                className={`flex flex-col p-4 rounded-xl border bg-white/5 transition-all hover:bg-white/10`}
+                className={`flex flex-col p-4 rounded-xl border bg-muted/10 border-border transition-all hover:bg-surface-hover`}
               >
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    {match.roundName} · Court {match.court}
+                    {match.roundName} · {getCourtDisplayName(state, match.court, matchDivision)}
                   </span>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${resultColors[result]}`}>
                     {resultLabels[result]}

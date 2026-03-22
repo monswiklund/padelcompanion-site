@@ -13,6 +13,7 @@ function createState(overrides: Partial<TournamentState> = {}): TournamentState 
     rankingCriteria: "points",
     courtFormat: "court",
     customCourtNames: [],
+    divisionCourtNames: {},
     maxRepeats: 99,
     pairingStrategy: "optimal",
     strictStrategy: false,

@@ -72,7 +72,7 @@ const PlayoffStandings: React.FC = () => {
               className={`relative overflow-hidden border-2 ${divColors[div] || "border-border"}`}
               padding="none"
             >
-              <div className="p-4 border-b border-white/10 bg-accent/10 flex justify-between items-center">
+              <div className="p-4 border-b border-border bg-accent/10 flex justify-between items-center">
                 <span className="font-black text-sm uppercase tracking-widest text-foreground">Division {div}</span>
                 {divFinal?.completed && <span className="text-xs bg-success/20 text-success px-2 py-0.5 rounded-full font-bold uppercase">Finished</span>}
               </div>

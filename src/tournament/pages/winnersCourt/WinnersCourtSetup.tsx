@@ -263,7 +263,7 @@ export const WinnersCourtSetup: React.FC = () => {
         className={`text-xs font-semibold px-2 py-0.5 rounded cursor-pointer mr-2 transition-colors border ${
           p.poolId === "A" ? "bg-accent/20 text-accent border-accent" :
           p.poolId === "B" ? "bg-warning/20 text-warning border-warning" :
-          "bg-white/10 text-muted-foreground border-white/20"
+          "bg-muted text-muted-foreground border-border"
         }`}
       >
         Pool {p.poolId}
@@ -414,8 +414,8 @@ export const WinnersCourtSetup: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setUseSkillLevels(!useSkillLevels)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    useSkillLevels ? "bg-accent" : "bg-white/20"
+                  className={`relative w-12 h-6 rounded-full transition-colors border border-border ${
+                    useSkillLevels ? "bg-accent border-accent" : "bg-muted/30"
                   }`}
                 >
                   <span
@@ -439,8 +439,8 @@ export const WinnersCourtSetup: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsTwist(!isTwist)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    isTwist ? "bg-accent" : "bg-white/20"
+                  className={`relative w-12 h-6 rounded-full transition-colors border border-border ${
+                    isTwist ? "bg-accent border-accent" : "bg-muted/30"
                   }`}
                 >
                   <span
@@ -462,7 +462,7 @@ export const WinnersCourtSetup: React.FC = () => {
                   Pools
                 </label>
                 <select
-                  className="bg-black/20 text-xs px-2 py-1 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
+                  className="bg-muted px-2 py-1 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
                   value={poolCount}
                   onChange={(e) => setPoolCount(parseInt(e.target.value))}
                 >
@@ -494,7 +494,7 @@ export const WinnersCourtSetup: React.FC = () => {
                       type="button"
                       className={`flex-1 text-center text-xs py-2 rounded transition-colors ${
                         assignStrategy === opt.value
-                          ? "bg-accent text-white"
+                          ? "bg-accent text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                       onClick={() =>

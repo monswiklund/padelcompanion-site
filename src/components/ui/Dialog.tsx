@@ -55,13 +55,13 @@ export const Dialog: React.FC<DialogProps> = ({
               <GlassCard padding="none" className="overflow-hidden shadow-2xl">
                 {/* Header */}
                 {title && (
-                  <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                  <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-surface-hover">
                     <div className="text-xl font-bold text-foreground">
                       {title}
                     </div>
                     <button
                       onClick={onClose}
-                      className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-white/10"
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-surface-hover"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +86,7 @@ export const Dialog: React.FC<DialogProps> = ({
 
                 {/* Footer */}
                 {footer && (
-                  <div className="px-6 py-4 border-t border-white/10 bg-black/20 flex justify-end gap-3 rounded-b-xl">
+                  <div className="px-6 py-4 border-t border-border bg-muted/40 flex justify-end gap-3 rounded-b-xl">
                     {footer}
                   </div>
                 )}

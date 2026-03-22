@@ -26,6 +26,7 @@ import {
   clearSide,
 } from "@/tournament/winnersCourt/winnersCourtCore";
 import { updateMatchResult } from "@/tournament/bracket/bracketCore";
+import { normalizeTournamentState } from "@/tournament/core/normalization";
 
 // --- Types ---
 export interface Player {
@@ -69,6 +70,7 @@ export interface TournamentState {
   rankingCriteria: "points" | "wins" | "winRatio" | "pointRatio";
   courtFormat: "number" | "court" | "custom";
   customCourtNames: string[];
+  divisionCourtNames: Record<string, string[]>;
   maxRepeats: number;
   pairingStrategy: "optimal" | "oneTwo" | "oneThree" | "oneFour";
   strictStrategy: boolean;
@@ -141,6 +143,7 @@ const DEFAULT_STATE: TournamentState = {
   rankingCriteria: "points",
   courtFormat: "court",
   customCourtNames: [],
+  divisionCourtNames: {},
   maxRepeats: 99,
   pairingStrategy: "optimal",
   strictStrategy: false,
@@ -298,7 +301,19 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const saved = StorageService.getItem(STORAGE_KEY);
     if (saved) {
-      setState((prev) => ({ ...prev, ...saved }));
+      setState((prev) => {
+        const merged = {
+          ...prev,
+          ...saved,
+          divisionCourtNames:
+            saved.divisionCourtNames &&
+            typeof saved.divisionCourtNames === "object" &&
+            !Array.isArray(saved.divisionCourtNames)
+              ? saved.divisionCourtNames
+              : prev.divisionCourtNames,
+        };
+        return normalizeTournamentState(merged as any);
+      });
     }
     setIsLoaded(true);
   }, []);

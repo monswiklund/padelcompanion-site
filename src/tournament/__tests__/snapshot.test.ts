@@ -24,6 +24,7 @@ function createState(overrides: Partial<TournamentState> = {}): TournamentState 
     rankingCriteria: "points",
     courtFormat: "court",
     customCourtNames: [],
+    divisionCourtNames: {},
     maxRepeats: 99,
     pairingStrategy: "optimal",
     strictStrategy: false,
@@ -126,6 +127,29 @@ describe("Tournament snapshot", () => {
     expect(restored.schedule).toEqual(original.schedule);
     expect(restored.winnersCourt).toEqual(original.winnersCourt);
     expect(restored).not.toHaveProperty("ui");
+  });
+
+  it("preserves division-specific court names in snapshots", () => {
+    const snapshot = createTournamentSnapshot(
+      createState({
+        format: "division",
+        players: [
+          { id: "t1", name: "Lag 1", division: "A" },
+          { id: "t2", name: "Lag 2", division: "A" },
+          { id: "t3", name: "Lag 3", division: "B" },
+          { id: "t4", name: "Lag 4", division: "B" },
+        ],
+        divisionCourtNames: {
+          A: ["Center", "Glas"],
+          B: ["Balkong", "Ute"],
+        },
+      }),
+    );
+
+    expect(snapshot.state.divisionCourtNames).toEqual({
+      A: ["Center", "Glas"],
+      B: ["Balkong", "Ute"],
+    });
   });
 
   it("marks empty tournaments as drafts", () => {

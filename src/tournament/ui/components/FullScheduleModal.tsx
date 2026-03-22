@@ -1,7 +1,9 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { useTournament } from "@/context/TournamentContext";
 import { formatEstimatedRoundStart } from "./scheduleTiming";
+import { getCourtDisplayName } from "../courtNames";
+import { getDivisionColor } from "../../core/constants";
 
 interface FullScheduleModalProps {
   isOpen: boolean;
@@ -13,46 +15,48 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
   onClose,
 }) => {
   const { state } = useTournament();
-  const { schedule, allRounds } = state;
+  const { schedule, allRounds, roundStartedAt } = state;
   const containerRef = useRef<HTMLDivElement>(null);
   const liveRowRef = useRef<HTMLDivElement>(null);
+  const activeRoundIndex = schedule.length > 0 ? schedule.length - 1 : -1;
+
+  const fullSchedule = useMemo(() => {
+    const mergedRounds = schedule.map((round) => ({ ...round }));
+
+    if (!allRounds) return mergedRounds;
+
+    allRounds.forEach((round, index) => {
+      if (!mergedRounds[index]) {
+        mergedRounds[index] = { ...round };
+      }
+    });
+
+    return mergedRounds;
+  }, [allRounds, schedule]);
 
   useEffect(() => {
-    if (isOpen) {
-      // Small timeout to ensure the modal content is rendered and measurements are accurate
-      const timer = setTimeout(() => {
-        if (liveRowRef.current && containerRef.current) {
-          liveRowRef.current.scrollIntoView({ 
-            behavior: "smooth", 
-            block: "center" 
-          });
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
 
-  // Merge played rounds with future rounds for the full overview
-  const fullSchedule = allRounds || [];
+    // Wait briefly for the new round row to render before scrolling it into view.
+    const timer = setTimeout(() => {
+      if (liveRowRef.current && containerRef.current) {
+        liveRowRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }, 100);
 
-  const getCourtName = (courtNum: number) => {
-    if (
-      state.courtFormat === "custom" &&
-      state.customCourtNames[courtNum - 1]
-    ) {
-      return state.customCourtNames[courtNum - 1];
-    }
-    return `Court ${courtNum}`;
+    return () => clearTimeout(timer);
+  }, [activeRoundIndex, isOpen, roundStartedAt]);
+
+  const getCourtName = (courtNum: number, division?: string | null) => {
+    return getCourtDisplayName(state, courtNum, division);
   };
 
   const getDivisionStyles = (division: string) => {
-    switch (division.toUpperCase()) {
-      case "A": return "bg-pool-a/10 text-pool-a border-pool-a/20";
-      case "B": return "bg-pool-b/10 text-pool-b border-pool-b/20";
-      case "C": return "bg-pool-c/10 text-pool-c border-pool-c/20";
-      case "D": return "bg-pool-d/10 text-pool-d border-pool-d/20";
-      default: return "bg-accent/10 text-accent border-accent/20";
-    }
+    const colors = getDivisionColor(state.divisions || [], division);
+    return `${colors.bg} ${colors.text} ${colors.border}`;
   };
 
   return (
@@ -60,7 +64,8 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Full Tournament Schedule"
-      width="xl"
+      width="full"
+      className="max-w-[min(96vw,88rem)]"
     >
       <div 
         ref={containerRef}
@@ -68,7 +73,11 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
       >
         {fullSchedule.map((round, rIdx) => {
           const isPlayed = rIdx < schedule.length;
-          const isCurrent = rIdx === schedule.length - 1 && !schedule[rIdx].completed;
+          const currentScheduleRound = schedule[rIdx];
+          const isCurrent =
+            !!currentScheduleRound &&
+            rIdx === schedule.length - 1 &&
+            !currentScheduleRound.completed;
           const activeRound = isPlayed ? schedule[rIdx] : null;
 
           return (
@@ -77,10 +86,10 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
               ref={isCurrent ? liveRowRef : null}
               className={`rounded-2xl border transition-all ${
                 isCurrent 
-                  ? "border-accent bg-accent/6 ring-1 ring-accent/20 shadow-sm" 
+                  ? "border-accent bg-accent/10 ring-1 ring-accent/20 shadow-sm" 
                   : isPlayed 
-                    ? "border-border bg-card/70" 
-                    : "border-border/80 bg-muted/30"
+                    ? "border-glass-border bg-glass-background" 
+                    : "border-border bg-muted/50"
               } p-5`}
             >
               <div className="flex items-center justify-between mb-4">
@@ -97,7 +106,7 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   {isCurrent ? (
-                    <span className="px-2 py-0.5 text-[10px] font-black bg-accent text-white rounded-full animate-pulse uppercase tracking-wider">
+                    <span className="px-2 py-0.5 text-[10px] font-black bg-accent text-primary-foreground rounded-full animate-pulse uppercase tracking-wider">
                       Live
                     </span>
                   ) : isPlayed ? (
@@ -117,7 +126,7 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
                 )}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 xl:grid-cols-2">
                 {round.matches.map((match, mIdx) => {
                   const playedMatch = activeRound?.matches[mIdx];
                   const hasScores = playedMatch?.score1 != null && playedMatch?.score2 != null;
@@ -126,11 +135,11 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
                   return (
                     <div 
                       key={mIdx}
-                      className="rounded-xl border border-border bg-background/70 p-3 shadow-sm"
+                      className="rounded-xl border border-border bg-glass-background p-3 shadow-sm"
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                          {getCourtName(match.court)}
+                          {getCourtName(match.court, matchDivision)}
                         </span>
                         <span className={`px-1.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${getDivisionStyles(matchDivision)}`}>
                           Div {matchDivision}

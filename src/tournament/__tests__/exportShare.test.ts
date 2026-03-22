@@ -18,6 +18,7 @@ function createState(overrides: Partial<TournamentState> = {}): TournamentState 
     rankingCriteria: "points",
     courtFormat: "court",
     customCourtNames: [],
+    divisionCourtNames: {},
     maxRepeats: 99,
     pairingStrategy: "optimal",
     strictStrategy: false,
@@ -88,5 +89,23 @@ describe("exportTournamentData", () => {
     expect(snapshot.metadata.name).toBe("History Row Export");
     expect(snapshot.state.players).toHaveLength(1);
     expect(snapshot.state.players[0].name).toBe("Lag 9");
+  });
+
+  it("includes division-specific court names in exports", () => {
+    const exported = exportTournamentData(
+      createState({
+        divisionCourtNames: {
+          A: ["Center", "Glas"],
+          B: ["Bana 5", "Bana 6"],
+        },
+      }),
+    );
+
+    const snapshot = parseTournamentSnapshot(exported);
+
+    expect(snapshot.state.divisionCourtNames).toEqual({
+      A: ["Center", "Glas"],
+      B: ["Bana 5", "Bana 6"],
+    });
   });
 });
