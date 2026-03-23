@@ -136,4 +136,42 @@ describe("normalizeTournamentState", () => {
     expect(normalized.divisions![2].id).toBe("d3");
     expect(normalized.divisions![2].order).toBe(2);
   });
+
+  it("should synchronize player.division string if it drifts from the configuration name", () => {
+    const state = createBaseState();
+    const divId = "stable-id-123";
+    state.divisions = [{ id: divId, name: "Elite", courts: 2, order: 0 }];
+    state.players = [
+      { id: "p1", name: "Player 1", divisionId: divId, division: "Old Name" }
+    ] as any;
+
+    const normalized = normalizeTournamentState(state);
+    expect(normalized.players[0].divisionId).toBe(divId);
+    expect(normalized.players[0].division).toBe("Elite"); // Should be fixed from "Old Name"
+  });
+
+  it("should cleanup 'Division ' prefix from legacy player labels", () => {
+    const state = createBaseState();
+    state.players = [{ id: "p1", name: "Player 1", division: "Division A" }] as any;
+    
+    const normalized = normalizeTournamentState(state);
+    expect(normalized.divisions![0].name).toBe("A");
+    expect(normalized.players[0].division).toBe("A");
+  });
+
+  it("bra-att-ha: should sync player.division cache when divisionId is updated (move scenario)", () => {
+    const state = createBaseState();
+    const divA = { id: "div-a", name: "A", courts: 2, order: 0 };
+    const divB = { id: "div-b", name: "B", courts: 2, order: 1 };
+    state.divisions = [divA, divB];
+    
+    // Player is recorded as in Div A by name, but assigned to Div B by ID
+    state.players = [
+      { id: "p1", name: "Player 1", divisionId: "div-b", division: "A" }
+    ] as any;
+
+    const normalized = normalizeTournamentState(state);
+    // Truth of ID (B) must override stale label (A)
+    expect(normalized.players[0].division).toBe("B");
+  });
 });

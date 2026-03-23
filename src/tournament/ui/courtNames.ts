@@ -1,4 +1,5 @@
 import type { TournamentState } from "@/context/TournamentContext";
+import { getSortedDivisions, findDivision, getDivisionCourtOffset } from "../core/selectors";
 
 type DivisionCourtNames = Record<string, string[]>;
 
@@ -6,26 +7,26 @@ function getDivisionFallbackName(division: string, localCourtNumber: number) {
   return `${division}${localCourtNumber}`;
 }
 
-export function getSortedDivisionNames(
-  players: TournamentState["players"],
-): string[] {
-  return Array.from(
-    new Map(players.map((player) => [player.division || "A", true])).keys(),
-  ).sort();
-}
+/**
+ * Legend:
+ * divisionId: stable ID of the division (new logic)
+ * division: name / label of the division (legacy compatibility)
+ */
 
 export function syncDivisionCourtNames(
-  players: TournamentState["players"],
-  divisionCourts: number,
+  divisions: TournamentState["divisions"],
   divisionCourtNames: DivisionCourtNames = {},
 ): DivisionCourtNames {
-  const normalizedCourtCount = Math.max(1, divisionCourts || 1);
+  if (!divisions) return {};
+
+  // Always iterate in stable order (division.order)
+  const sorted = [...divisions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return Object.fromEntries(
-    getSortedDivisionNames(players).map((division) => [
-      division,
-      Array.from({ length: normalizedCourtCount }, (_, index) => {
-        const value = divisionCourtNames[division]?.[index];
+    sorted.map((div) => [
+      div.name,
+      Array.from({ length: Math.max(1, div.courts || 1) }, (_, index) => {
+        const value = divisionCourtNames[div.name]?.[index];
         return typeof value === "string" ? value : "";
       }),
     ]),
@@ -33,17 +34,17 @@ export function syncDivisionCourtNames(
 }
 
 function getLocalDivisionCourtNumber(
-  state: Pick<TournamentState, "players" | "divisionCourts">,
+  state: Pick<TournamentState, "divisions">,
   courtNum: number,
-  division: string,
+  divisionIdOrName: string,
 ): number | null {
-  const divisionNames = getSortedDivisionNames(state.players);
-  const divisionIndex = divisionNames.indexOf(division);
-  const courtsPerDivision = Math.max(1, state.divisionCourts || 1);
+  const div = findDivision(state, divisionIdOrName);
+  if (!div) return null;
 
-  if (divisionIndex === -1) return null;
+  const offset = getDivisionCourtOffset(state, div.id);
+  const courtsPerDivision = Math.max(1, div.courts || 1);
 
-  const localCourtNumber = courtNum - divisionIndex * courtsPerDivision;
+  const localCourtNumber = courtNum - offset;
   if (localCourtNumber < 1 || localCourtNumber > courtsPerDivision) {
     return null;
   }
@@ -60,22 +61,26 @@ export function getCourtDisplayName(
     | "customCourtNames"
     | "divisionCourts"
     | "divisionCourtNames"
+    | "divisions"
   >,
   courtNum: number,
-  division?: string | null,
+  divisionIdOrName?: string | null,
 ): string {
-  if (state.format === "division" && division) {
+  if (state.format === "division" && divisionIdOrName) {
     const localCourtNumber = getLocalDivisionCourtNumber(
       state,
       courtNum,
-      division,
+      divisionIdOrName,
     );
 
     if (localCourtNumber) {
+      const div = findDivision(state, divisionIdOrName);
+      const divName = div ? div.name : (divisionIdOrName || "A");
+      
       const customName =
-        state.divisionCourtNames?.[division]?.[localCourtNumber - 1];
+        state.divisionCourtNames?.[divName]?.[localCourtNumber - 1];
       if (customName) return customName;
-      return getDivisionFallbackName(division, localCourtNumber);
+      return getDivisionFallbackName(divName, localCourtNumber);
     }
   }
 

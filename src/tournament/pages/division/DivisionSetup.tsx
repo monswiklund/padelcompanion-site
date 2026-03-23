@@ -10,7 +10,6 @@ import { state as legacyState } from "../../core/state";
 import { DIVISION_COLORS } from "../../core/constants";
 import {
   getCourtDisplayName,
-  getSortedDivisionNames,
   syncDivisionCourtNames,
 } from "../../ui/courtNames";
 
@@ -56,9 +55,8 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
 
   useEffect(() => {
     const syncedNames = syncDivisionCourtNames(
-      players,
-      state.divisionCourts || 2,
-      state.divisionCourtNames || {},
+      state.divisions || [],
+      state.divisionCourtNames
     );
 
     if (
@@ -71,7 +69,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
         value: syncedNames,
       });
     }
-  }, [dispatch, players, state.divisionCourtNames, state.divisionCourts]);
+  }, [dispatch, players, state.divisionCourtNames, state.divisions]);
 
   const buildTeamMembers = (name: string) =>
     name
@@ -301,7 +299,8 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   const divisionCourts = state.divisionCourts || 2;
   const tiebreaker = state.tiebreaker || "difference";
   const divisionCourtNames = state.divisionCourtNames || {};
-  const activeDivisions = getSortedDivisionNames(players);
+  // Use stable selectors for display order
+  const activeDivisions = (state.divisions || []).sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)).map((d: any) => d.name);
 
   const [movingPlayerId, setMovingPlayerId] = useState<string | null>(null);
 
@@ -606,6 +605,15 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
             </button>
           </div>
 
+          {state.isLocked && (
+            <div className="mb-6">
+              <NoticeBar 
+                message="Tournament is active. Division order and court counts are locked to ensure schedule consistency." 
+                type={state.format === "division" ? "info" : "warning"}
+              />
+            </div>
+          )}
+
           {(() => {
             const count = state.divisions?.length || 0;
             let gridClasses = "grid gap-6 items-start ";
@@ -635,10 +643,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="flex flex-col gap-0.5 mr-1">
                           <button 
-                            title="Move Up"
+                            title={state.isLocked ? "Cannot reorder during active tournament" : "Move Up"}
                             className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                            disabled={index === 0}
+                            disabled={index === 0 || state.isLocked}
                             onClick={() => {
+                              if (state.isLocked) return;
                               const divs = [...state.divisions];
                               [divs[index - 1], divs[index]] = [divs[index], divs[index - 1]];
                               divs.forEach((d, i) => d.order = i);
@@ -646,10 +655,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                             }}
                           >▲</button>
                           <button 
-                            title="Move Down"
+                            title={state.isLocked ? "Cannot reorder during active tournament" : "Move Down"}
                             className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                            disabled={index === (state.divisions?.length || 1) - 1}
+                            disabled={index === (state.divisions?.length || 1) - 1 || state.isLocked}
                             onClick={() => {
+                              if (state.isLocked) return;
                               const divs = [...state.divisions];
                               [divs[index], divs[index + 1]] = [divs[index + 1], divs[index]];
                               divs.forEach((d, i) => d.order = i);
@@ -662,9 +672,31 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                           className={`font-bold text-lg bg-transparent border-b border-transparent hover:border-border focus:border-accent focus:outline-none transition-colors max-w-[120px] ${colors.text} truncate`}
                           value={division.name}
                           onChange={(e) => {
+                            if (state.isLocked) return; // Handler-level guard
+                            
+                            const newName = e.target.value;
+                            const oldName = state.divisions[index].name;
                             const divs = [...state.divisions];
-                            divs[index] = { ...divs[index], name: e.target.value };
-                            dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                            const oldId = divs[index].id;
+                            divs[index] = { ...divs[index], name: newName };
+                            
+                            // 1. Sync custom court names key
+                            const newCourtNames = { ...state.divisionCourtNames };
+                            if (newCourtNames[oldName]) {
+                              newCourtNames[newName] = newCourtNames[oldName];
+                              delete newCourtNames[oldName];
+                            }
+                            
+                            // 2. Sync player display labels
+                            const newPlayers = state.players.map((p: any) => 
+                              p.divisionId === oldId ? { ...p, division: newName } : p
+                            );
+                            
+                            dispatch({ type: "SET_STATE", payload: { 
+                              divisions: divs,
+                              players: newPlayers,
+                              divisionCourtNames: newCourtNames
+                            }});
                           }}
                         />
                       </div>
@@ -675,9 +707,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                           <div className="flex items-center bg-background rounded-lg border border-border overflow-hidden h-8">
                             <button
                               type="button"
+                              title={state.isLocked ? "Locked during tournament" : "Decrease Courts"}
                               className="w-8 flex items-center justify-center font-bold text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
-                              disabled={division.courts <= 1}
+                              disabled={division.courts <= 1 || state.isLocked}
                               onClick={() => {
+                                if (state.isLocked) return;
                                 const divs = [...state.divisions];
                                 divs[index] = { ...divs[index], courts: divs[index].courts - 1 };
                                 dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
@@ -686,8 +720,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                             <div className="w-8 text-center font-bold">{division.courts}</div>
                             <button
                               type="button"
+                              title={state.isLocked ? "Locked during tournament" : "Increase Courts"}
                               className="w-8 flex items-center justify-center font-bold text-accent hover:bg-accent/10 disabled:opacity-30 transition-colors"
+                              disabled={state.isLocked}
                               onClick={() => {
+                                if (state.isLocked) return;
                                 const divs = [...state.divisions];
                                 divs[index] = { ...divs[index], courts: divs[index].courts + 1 };
                                 dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
@@ -698,13 +735,29 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
 
                         <button 
                           className="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-30 border border-transparent hover:border-red-500/30"
-                          title={divPlayers.length > 0 ? "Cannot delete division with teams" : state.divisions.length <= 1 ? "Minimum 1 division required" : "Delete Division"}
-                          disabled={divPlayers.length > 0 || state.divisions.length <= 1}
+                          title={state.isLocked ? "Cannot delete division during active tournament" : divPlayers.length > 0 ? "Cannot delete division with teams" : state.divisions.length <= 1 ? "Minimum 1 division required" : "Delete Division"}
+                          disabled={divPlayers.length > 0 || state.divisions.length <= 1 || state.isLocked}
                           onClick={() => {
+                            if (state.isLocked) return;
+                            if (divPlayers.length > 0) return;
+                            if (state.divisions.length <= 1) return;
+
                             if (confirm(`Remove division ${division.name}?`)) {
+                              const oldName = division.name;
                               const divs = state.divisions.filter((d: any) => d.id !== division.id);
                               divs.forEach((d: any, i: number) => d.order = i);
-                              dispatch({ type: "UPDATE_FIELD", key: "divisions", value: divs });
+                              
+                              // Cleanup custom names
+                              const newCourtNames = { ...state.divisionCourtNames };
+                              delete newCourtNames[oldName];
+                              
+                              dispatch({
+                                type: "SET_STATE",
+                                payload: { 
+                                  divisions: divs,
+                                  divisionCourtNames: newCourtNames
+                                },
+                              });
                             }
                           }}
                         >
@@ -749,7 +802,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                                           title={`Move to ${targetDiv.name}`}
                                           onClick={() => {
                                             const newPlayers = [...players];
-                                            newPlayers[p.originalIndex] = { ...newPlayers[p.originalIndex], divisionId: targetDiv.id } as any;
+                                            newPlayers[p.originalIndex] = { 
+                                              ...newPlayers[p.originalIndex], 
+                                              divisionId: targetDiv.id,
+                                              division: targetDiv.name // Sync display cache
+                                            } as any;
                                             dispatch({ type: "SET_STATE", payload: { players: newPlayers } });
                                           }}
                                         >
@@ -791,7 +848,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                                                     className={`px-3 py-2 text-[10px] font-bold rounded-lg border ${tc.border} ${tc.bg} ${tc.text} hover:opacity-80 transition-opacity text-center whitespace-nowrap`}
                                                     onClick={() => {
                                                       const newPlayers = [...players];
-                                                      newPlayers[p.originalIndex] = { ...newPlayers[p.originalIndex], divisionId: targetDiv.id } as any;
+                                                      newPlayers[p.originalIndex] = { 
+                                                        ...newPlayers[p.originalIndex], 
+                                                        divisionId: targetDiv.id,
+                                                        division: targetDiv.name // Sync display cache
+                                                      } as any;
                                                       dispatch({ type: "SET_STATE", payload: { players: newPlayers } });
                                                       setMovingPlayerId(null);
                                                     }}

@@ -130,7 +130,13 @@ const FullScheduleModal: React.FC<FullScheduleModalProps> = ({
                 {round.matches.map((match, mIdx) => {
                   const playedMatch = activeRound?.matches[mIdx];
                   const hasScores = playedMatch?.score1 != null && playedMatch?.score2 != null;
-                  const matchDivision = (match.team1[0] as any)?.division || "A";
+                  // Determine division from players in this match
+                  const matchDivisionId = state.format === "division"
+                    ? (match.team1[0] as any)?.divisionId
+                    : null;
+                  
+                  const divColorEntry = matchDivisionId ? getDivisionColor(state.divisions || [], matchDivisionId) : null;
+                  const matchDivision = (match.team1[0] as any)?.division || "A"; // Keep for getCourtName if needed, or adjust getCourtName to use ID
 
                   return (
                     <div 

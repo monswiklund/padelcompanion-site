@@ -64,6 +64,9 @@ export function normalizeTournamentState(state: TournamentState): TournamentStat
     state.players.forEach(p => {
       // If player already has a valid divisionId, they are normalized
       if (p.divisionId && knownDivisionIds.has(p.divisionId)) {
+        // Even if ID is valid, ensure the display string is in sync with the config name
+        const div = state.divisions.find(d => d.id === p.divisionId);
+        if (div) p.division = div.name;
         return;
       }
 
@@ -81,6 +84,7 @@ export function normalizeTournamentState(state: TournamentState): TournamentStat
       }
 
       p.divisionId = targetDivision.id;
+      p.division = targetDivision.name; // Keep display cache in sync
     });
   }
 

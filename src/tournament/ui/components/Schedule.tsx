@@ -398,9 +398,13 @@ const RoundCard: React.FC<{
               const isSelectedMatch = state.ui.selectedMatchId === matchCardId;
               // Determine division from players in this match
               const matchDivision = state.format === "division"
-                ? (match.team1[0] as any)?.division || "A"
+                ? (match.team1[0] as any)?.division
                 : null;
-              const divColorEntry = matchDivision ? getDivisionColor(state.divisions || [], matchDivision) : null;
+              const matchDivisionId = state.format === "division"
+                ? (match.team1[0] as any)?.divisionId
+                : null;
+              
+              const divColorEntry = matchDivisionId ? getDivisionColor(state.divisions || [], matchDivisionId) : null;
               const divStyle = divColorEntry ? { border: divColorEntry.border, badge: divColorEntry.badge, glow: divColorEntry.glow } : null;
 
               return (
