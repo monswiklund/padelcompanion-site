@@ -61,7 +61,11 @@ const NextRoundPreviewCard: React.FC<{
         {nextRoundPreview.matches.map((match, idx) => {
           const matchDivision =
             state.format === "division"
-              ? (match.team1[0] as any)?.division || "A"
+              ? (match.team1[0] as any)?.division ||
+                (match.team1[0] as any)?.divisionId ||
+                (match.team2[0] as any)?.division ||
+                (match.team2[0] as any)?.divisionId ||
+                "A"
               : null;
 
           return (
@@ -142,7 +146,11 @@ const UpcomingRoundsSidebar: React.FC<{
               {round.matches.map((match, idx) => {
                 const matchDivision =
                   state.format === "division"
-                    ? (match.team1[0] as any)?.division || "A"
+                    ? (match.team1[0] as any)?.divisionId ||
+                      (match.team1[0] as any)?.division ||
+                      (match.team2[0] as any)?.divisionId ||
+                      (match.team2[0] as any)?.division ||
+                      "A"
                     : null;
 
                 return (
@@ -231,7 +239,7 @@ const RoundCard: React.FC<{
 
   // Live timer for active round
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (!round.completed && state.roundStartedAt) {
       interval = setInterval(() => {
         setElapsed(Math.floor((Date.now() - state.roundStartedAt!) / 1000));
@@ -273,7 +281,11 @@ const RoundCard: React.FC<{
       } else {
         const matchDivision =
           state.format === "division"
-            ? (m.team1[0] as any)?.division || "A"
+            ? (m.team1[0] as any)?.division ||
+              (m.team1[0] as any)?.divisionId ||
+              (m.team2[0] as any)?.division ||
+              (m.team2[0] as any)?.divisionId ||
+              "A"
             : null;
         missing.push(getCourtName(m.court, matchDivision));
       }
@@ -398,11 +410,14 @@ const RoundCard: React.FC<{
               const isSelectedMatch = state.ui.selectedMatchId === matchCardId;
               // Determine division from players in this match
               const matchDivision = state.format === "division"
-                ? (match.team1[0] as any)?.division
+                ? (match.team1[0] as any)?.division ||
+                  (match.team1[0] as any)?.divisionId ||
+                  (match.team2[0] as any)?.division ||
+                  (match.team2[0] as any)?.divisionId ||
+                  "A"
                 : null;
-              const matchDivisionId = state.format === "division"
-                ? (match.team1[0] as any)?.divisionId
-                : null;
+              const matchDivisionId =
+                state.format === "division" ? matchDivision : null;
               
               const divColorEntry = matchDivisionId ? getDivisionColor(state.divisions || [], matchDivisionId) : null;
               const divStyle = divColorEntry ? { border: divColorEntry.border, badge: divColorEntry.badge, glow: divColorEntry.glow } : null;
