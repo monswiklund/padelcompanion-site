@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { cn } from "@/shared/utils";
 import { initTheme, toggleTheme } from "@/shared/theme";
 import {
   getLastTournamentRoute,
@@ -48,52 +49,51 @@ const Header: React.FC = () => {
     setIsNavOpen(false);
   };
 
-  const NavLink = ({
+  const CustomNavLink = ({
     to,
     children,
+    end = false,
   }: {
     to: string;
     children: React.ReactNode;
+    end?: boolean;
   }) => {
-    const isHome = to === "/";
-    const isHistory = to === "/tournament/history";
-    const isTournament = to === "/tournament/generator";
-
-    let active = false;
-    if (isHome && location.pathname === "/") active = true;
-    else if (isHistory && location.pathname === "/tournament/history")
-      active = true;
-    else if (
-      isTournament &&
-      location.pathname.startsWith("/tournament") &&
-      !location.pathname.startsWith("/tournament/history")
-    )
-      active = true;
-    else if (to === "/support" && location.pathname.startsWith("/support"))
-      active = true;
-
     return (
-      <Link
+      <NavLink
         to={to}
+        end={end}
         onClick={closeNav}
-        className={`text-sm font-medium transition-colors ${
-          active
-            ? "text-accent font-semibold"
-            : "text-muted-foreground hover:text-foreground"
-        }`}
+        className={({ isActive }) => {
+          // Special case for Tournament tab to remain active on all tournament sub-pages except history
+          const isTournamentTab = to === tournamentLink;
+          const isTournamentActive = 
+            isTournamentTab && 
+            location.pathname.startsWith("/tournament") && 
+            !location.pathname.startsWith("/tournament/history");
+
+          const active = isActive || isTournamentActive;
+
+          return cn(
+            "text-sm font-medium transition-colors",
+            active
+              ? "text-accent font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          );
+        }}
       >
         {children}
-      </Link>
+      </NavLink>
     );
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-[500] transition-all duration-300 ${
+      className={cn(
+        "fixed top-0 left-0 right-0 z-[500] transition-all duration-300",
         scrolled
           ? "bg-background/95 backdrop-blur-md border-b border-border py-3"
           : "bg-transparent py-5"
-      }`}
+      )}
     >
       <div className="container max-w-[1200px] mx-auto px-6 h-full flex items-center justify-between">
         {/* LOGO */}
@@ -105,6 +105,8 @@ const Header: React.FC = () => {
           <img
             src="/assets/app-icon.jpeg"
             alt="Padel Companion Logo"
+            width={36}
+            height={36}
             className="w-9 h-9 rounded-lg"
           />
           <span>Padel Companion</span>
@@ -112,10 +114,10 @@ const Header: React.FC = () => {
 
         {/* DESKTOP NAVIGATION */}
         <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/tournament/history">History</NavLink>
-          <NavLink to={tournamentLink}>Tournament</NavLink>
-          <NavLink to="/support">Support</NavLink>
+          <CustomNavLink to="/" end>Home</CustomNavLink>
+          <CustomNavLink to="/tournament/history">History</CustomNavLink>
+          <CustomNavLink to={tournamentLink}>Tournament</CustomNavLink>
+          <CustomNavLink to="/support">Support</CustomNavLink>
         </nav>
 
         {/* ACTIONS & MOBILE TOGGLE */}
@@ -137,19 +139,22 @@ const Header: React.FC = () => {
             aria-controls="mobile-navigation"
           >
             <span
-              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
-                isNavOpen ? "rotate-45 translate-y-2" : ""
-              }`}
+              className={cn(
+                "block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300",
+                isNavOpen && "rotate-45 translate-y-2"
+              )}
             ></span>
             <span
-              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
-                isNavOpen ? "opacity-0" : ""
-              }`}
+              className={cn(
+                "block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300",
+                isNavOpen && "opacity-0"
+              )}
             ></span>
             <span
-              className={`block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300 ${
-                isNavOpen ? "-rotate-45 -translate-y-2" : ""
-              }`}
+              className={cn(
+                "block h-0.5 w-6 rounded-full bg-foreground transition-all duration-300",
+                isNavOpen && "-rotate-45 -translate-y-2"
+              )}
             ></span>
           </button>
         </div>
@@ -158,9 +163,10 @@ const Header: React.FC = () => {
       {/* MOBILE NAVIGATION OVERLAY */}
       <div
         id="mobile-navigation"
-        className={`fixed inset-0 bg-background z-[400] flex flex-col items-center justify-center gap-8 transition-transform duration-300 md:hidden ${
+        className={cn(
+          "fixed inset-0 bg-background z-[400] flex flex-col items-center justify-center gap-8 transition-transform duration-300 md:hidden",
           isNavOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        )}
       >
         <button
           type="button"
@@ -170,34 +176,38 @@ const Header: React.FC = () => {
         >
           <span className="text-2xl leading-none">&times;</span>
         </button>
-        <Link
+        <NavLink
           to="/"
-          className="text-2xl font-medium text-foreground"
+          end
+          className={({ isActive }) => cn("text-2xl font-medium transition-colors", isActive ? "text-accent font-bold" : "text-foreground")}
           onClick={closeNav}
         >
           Home
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           to="/tournament/history"
-          className="text-2xl font-medium text-foreground"
+          className={({ isActive }) => cn("text-2xl font-medium transition-colors", isActive ? "text-accent font-bold" : "text-foreground")}
           onClick={closeNav}
         >
           History
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           to={tournamentLink}
-          className="text-2xl font-medium text-foreground"
+          className={() => {
+            const isTournamentActive = location.pathname.startsWith("/tournament") && !location.pathname.startsWith("/tournament/history");
+            return cn("text-2xl font-medium transition-colors", isTournamentActive ? "text-accent font-bold" : "text-foreground");
+          }}
           onClick={closeNav}
         >
           Tournament
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           to="/support"
-          className="text-2xl font-medium text-foreground"
+          className={({ isActive }) => cn("text-2xl font-medium transition-colors", isActive ? "text-accent font-bold" : "text-foreground")}
           onClick={closeNav}
         >
           Support
-        </Link>
+        </NavLink>
       </div>
     </header>
   );

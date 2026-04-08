@@ -221,6 +221,17 @@ body {
     color 0.3s ease;
 }
 
+/* Accessibility Focus States */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 /* ============================================
    UTILITY CLASSES (Custom additions)
    ============================================ */

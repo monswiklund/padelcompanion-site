@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/shared/utils";
 
 interface CardProps {
   children: React.ReactNode;
@@ -24,7 +25,7 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   return (
     <div
-      className={`bg-card border border-border rounded-2xl ${paddingClasses[padding]} ${className}`}
+      className={cn("bg-card border border-border rounded-2xl", paddingClasses[padding], className)}
       style={style}
     >
       {children}

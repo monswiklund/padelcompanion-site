@@ -14,14 +14,16 @@ const LandingPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 400], [0.3, 0]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
 
     if (!email) {
       setError("Please enter your email address");
@@ -35,17 +37,27 @@ const LandingPage: React.FC = () => {
     }
 
     setLoading(true);
-    const subject = encodeURIComponent("Android Testing Signup");
-    const body = encodeURIComponent(
-      `Hi Team,\n\nI'm interested in testing Padel Companion on Android.\n\nMy email is: ${email}\n\nLooking forward to trying it out!`,
-    );
 
-    window.location.href = `mailto:wiklund.labs@gmail.com?subject=${subject}&body=${body}`;
+    try {
+      const response = await fetch('/api/beta-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
 
-    setTimeout(() => {
-      setLoading(false);
+      if (!response.ok) {
+        throw new Error('Something went wrong. Please try again.');
+      }
+
+      setSuccess(true);
       setEmail("");
-    }, 2000);
+    } catch (err: any) {
+      setError(err.message || "Failed to sign up.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,11 +70,11 @@ const LandingPage: React.FC = () => {
         {/* Animated Background Elements */}
         <motion.div
           style={{ y: y1, opacity }}
-          className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none -z-10"
+          className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full pointer-events-none -z-10"
         />
         <motion.div
           style={{ y: useTransform(scrollY, [0, 500], [0, -100]), opacity }}
-          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-orange-600/10 blur-[100px] rounded-full pointer-events-none -z-10"
+          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-warning/10 blur-[100px] rounded-full pointer-events-none -z-10"
         />
 
         <div className="container max-w-[1200px] mx-auto px-6">
@@ -75,10 +87,10 @@ const LandingPage: React.FC = () => {
             >
               <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight tracking-tight flex flex-col gap-2">
                 <span>Track Scores.</span>
-                <span className="text-orange-400 drop-shadow-[0_0_30px_rgba(249,115,22,0.3)]">
+                <span className="text-warning">
                   Run Tournaments.
                 </span>
-                <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                <span className="bg-gradient-to-r from-accent-light to-accent-dark bg-clip-text text-transparent">
                   Win More.
                 </span>
               </h1>
@@ -94,18 +106,18 @@ const LandingPage: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-12 max-w-lg mx-auto md:mx-0">
-                <span className="text-sm font-semibold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-foreground/80">Americano</span>
-                <span className="text-sm font-semibold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-foreground/80">Mexicano</span>
-                <span className="text-sm font-semibold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-foreground/80">Winner's Court</span>
-                <span className="text-sm font-semibold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-foreground/80">Brackets</span>
-                <span className="text-sm font-semibold bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-foreground/80">Divisions</span>
+                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Americano</span>
+                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Mexicano</span>
+                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Winner's Court</span>
+                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Brackets</span>
+                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Divisions</span>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-4">
                 <Link
                   to="/tournament/generator"
                   onClick={() => window.scrollTo(0, 0)}
-                  className="inline-flex items-center justify-center bg-orange-400 hover:bg-orange-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-[0_0_30px_rgba(249,115,22,0.3)] hover:shadow-[0_0_40px_rgba(249,115,22,0.5)] transform hover:-translate-y-1"
+                  className="inline-flex items-center justify-center bg-warning hover:bg-warning/80 text-warning-foreground px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg transform hover:-translate-y-1"
                 >
                   Start a Free Tournament
                 </Link>
@@ -115,7 +127,7 @@ const LandingPage: React.FC = () => {
                     e.preventDefault();
                     document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transform hover:-translate-y-1"
+                  className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg transform hover:-translate-y-1"
                 >
                   Download the App
                 </a>
@@ -133,28 +145,28 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Tournament Engine Showcase Section */}
-      <section className="py-24 relative overflow-hidden bg-orange-900/5">
+      <section className="py-24 relative overflow-hidden bg-warning/5">
         <div className="container max-w-[1200px] mx-auto px-6 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-              Powerful <span className="text-orange-400 drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]">Web Tournaments</span>
+              Powerful <span className="text-warning">Web Tournaments</span>
             </h2>
             <p className="text-muted-foreground text-lg md:text-xl font-medium">
               Run entirely from your browser. Free, no sign-up required, instantly syncs to all players.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <GlassCard className="p-8 border-orange-500/20 shadow-xl hover:border-orange-500/40 transition-colors">
+            <GlassCard className="p-8 border-warning/20 shadow-xl hover:border-warning/40 transition-colors">
               <div className="text-4xl mb-4">🏆</div>
               <h3 className="text-2xl font-bold mb-3">Mexicano</h3>
               <p className="text-muted-foreground">The most popular format. Players are matched dynamically based on current standings for perfectly balanced games.</p>
             </GlassCard>
-            <GlassCard className="p-8 border-blue-500/20 shadow-xl hover:border-blue-500/40 transition-colors">
+            <GlassCard className="p-8 border-primary/20 shadow-xl hover:border-primary/40 transition-colors">
               <div className="text-4xl mb-4">👑</div>
               <h3 className="text-2xl font-bold mb-3">Winner's Court</h3>
               <p className="text-muted-foreground">King of the hill format. Win and move up, lose and move down. Frantic and incredibly fun for larger groups.</p>
             </GlassCard>
-            <GlassCard className="p-8 border-green-500/20 shadow-xl hover:border-green-500/40 transition-colors">
+            <GlassCard className="p-8 border-success/20 shadow-xl hover:border-success/40 transition-colors">
               <div className="text-4xl mb-4">🤝</div>
               <h3 className="text-2xl font-bold mb-3">Americano</h3>
               <p className="text-muted-foreground">The classic format. Play with and against everyone exactly once. Pure individual performance tracking.</p>
@@ -174,7 +186,7 @@ const LandingPage: React.FC = () => {
           >
             <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">
               Built for the <br />
-              <span className="text-blue-400 drop-shadow-[0_0_20px_rgba(96,165,250,0.3)]">
+              <span className="text-accent-light">
                 Smart Court
               </span>
             </h2>
@@ -234,8 +246,8 @@ const LandingPage: React.FC = () => {
       {/* Stats Section */}
       <section className="py-24">
         <div className="container max-w-[1200px] mx-auto px-6">
-          <GlassCard className="bg-blue-600/[0.03] border-white/5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5">
+          <GlassCard className="bg-primary/5 border-foreground/5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-foreground/5">
               <StatItem
                 title="Free"
                 description="Core tracking features"
@@ -264,12 +276,12 @@ const LandingPage: React.FC = () => {
       {/* Download Section */}
       <section className="py-24 relative overflow-hidden" id="download">
         {/* Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
         
         <div className="container max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-              Get the <span className="text-blue-400 drop-shadow-[0_0_20px_rgba(96,165,250,0.3)]">App</span>
+              Get the <span className="text-accent-light">App</span>
             </h2>
             <p className="text-muted-foreground text-lg md:text-xl font-medium">
               Track your regular matches, analyze personal stats, and get smartwatch support.
@@ -277,9 +289,9 @@ const LandingPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {/* iOS Card */}
-            <GlassCard className="p-8 border-white/5 shadow-2xl flex flex-col justify-between h-full group hover:border-blue-500/30 transition-colors">
+            <GlassCard className="p-8 border-foreground/5 shadow-2xl flex flex-col justify-between h-full group hover:border-primary/30 transition-colors">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-blue-300 font-bold mb-4">
+                <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
                   iPhone & iPad & WatchOS
                 </p>
                 <h3 className="text-3xl font-black text-foreground mb-4">
@@ -295,16 +307,16 @@ const LandingPage: React.FC = () => {
                 href="https://apps.apple.com/se/app/padel-companion/id6755152442"
                 target="_blank"
                 rel="noreferrer"
-                className="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg shadow-blue-600/20"
+                className="w-full inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg"
               >
                 Download on App Store
               </motion.a>
             </GlassCard>
 
             {/* Android Card */}
-            <GlassCard className="p-8 border-white/5 shadow-2xl flex flex-col justify-between h-full group hover:border-blue-500/30 transition-colors">
+            <GlassCard className="p-8 border-foreground/5 shadow-2xl flex flex-col justify-between h-full group hover:border-primary/30 transition-colors">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-blue-300 font-bold mb-4">
+                <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
                   Android & Wear OS
                 </p>
                 <h3 className="text-3xl font-black text-foreground mb-4">
@@ -318,24 +330,32 @@ const LandingPage: React.FC = () => {
                 className="flex flex-col gap-3"
                 onSubmit={handleSubmit}
               >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="w-full bg-white/5 rounded-xl px-5 py-4 text-foreground outline-none border border-transparent focus:border-blue-500/50 transition-all placeholder:text-muted-foreground/50"
-                  required
-                />
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-white/10 hover:bg-white/15 text-white px-8 py-4 rounded-xl text-lg font-bold transition-colors"
-                  disabled={loading}
-                  type="submit"
-                >
-                  {loading ? "Sending..." : "Become a Tester"}
-                </motion.button>
-                {error && <p className="text-red-400 text-sm mt-2 text-center">{error}</p>}
+                {success ? (
+                  <div className="bg-success/10 text-success border border-success/30 px-5 py-4 rounded-xl text-center font-medium">
+                    Thank you! We'll be in touch soon.
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="w-full bg-foreground/5 rounded-xl px-5 py-4 text-foreground outline-none border border-transparent focus:border-primary/50 transition-all placeholder:text-muted-foreground/50"
+                      required
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full bg-foreground/10 hover:bg-foreground/15 text-foreground px-8 py-4 rounded-xl text-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={loading}
+                      type="submit"
+                    >
+                      {loading ? "Sending..." : "Become a Tester"}
+                    </motion.button>
+                  </>
+                )}
+                {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
               </form>
             </GlassCard>
           </div>
@@ -346,7 +366,7 @@ const LandingPage: React.FC = () => {
       <section className="py-24" id="partners">
         <div className="container max-w-[1200px] mx-auto px-6">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <p className="text-sm uppercase tracking-[0.2em] text-blue-300 font-bold mb-3">
+            <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-3">
               Sponsors
             </p>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
@@ -389,7 +409,7 @@ const CookieBanner: React.FC = () => {
           exit={{ opacity: 0, y: 50, scale: 0.9 }}
           className="fixed bottom-4 left-4 right-4 md:bottom-8 md:right-8 md:left-auto md:w-[400px] z-[900]"
         >
-          <GlassCard className="shadow-2xl border-blue-500/20">
+          <GlassCard className="shadow-2xl border-primary/20">
             <h4 className="text-lg font-bold mb-2">🍪 Cookies & Privacy</h4>
             <p className="text-muted-foreground text-sm mb-6 font-medium">
               We use local storage for your preferences and privacy-friendly
@@ -397,7 +417,7 @@ const CookieBanner: React.FC = () => {
             </p>
             <div className="flex justify-end">
               <button
-                className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-sm font-bold transition-colors"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl text-sm font-bold transition-colors"
                 onClick={() => {
                   localStorage.setItem("padelcompanion-cookies", "accepted");
                   setShow(false);

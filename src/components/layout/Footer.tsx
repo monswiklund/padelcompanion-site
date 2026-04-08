@@ -98,6 +98,8 @@ const Footer: React.FC = () => {
                 src="/assets/buymeacoffee.png"
                 alt="Buy Me A Coffee"
                 loading="lazy"
+                width={145}
+                height={40}
                 style={{ height: "40px", width: "145px" }}
               />
             </a>

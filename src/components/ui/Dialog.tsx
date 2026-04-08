@@ -42,17 +42,19 @@ export const Dialog: React.FC<DialogProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-4"
           >
             {/* Modal Content */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              role="dialog"
+              aria-modal="true"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()} // Prevent closing when clicking content
-              className={cn("w-full", widths[width], className)}
+              className={cn("w-full max-h-[90vh] flex flex-col", widths[width], className)}
             >
-              <GlassCard padding="none" className="overflow-hidden shadow-2xl">
+              <GlassCard padding="none" className="flex flex-col overflow-hidden shadow-2xl rounded-t-3xl rounded-b-none md:rounded-2xl border-b-0 md:border-b border-glass-border">
                 {/* Header */}
                 {title && (
                   <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-surface-hover">
