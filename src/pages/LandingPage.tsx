@@ -18,25 +18,26 @@ const ScrollNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the most visible section
-        const intersecting = entries.filter(e => e.isIntersecting);
-        if (intersecting.length > 0) {
-          // Sort by intersection ratio to get the most visible one
-          intersecting.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-          setActiveSection(intersecting[0].target.id);
+    const handleScroll = () => {
+      // 1/3 of the screen height down
+      const scrollPosition = window.scrollY + window.innerHeight / 3;
+      let currentSection = SECTIONS[0].id;
+      
+      for (const { id } of SECTIONS) {
+        const element = document.getElementById(id);
+        if (element && element.offsetTop <= scrollPosition) {
+          currentSection = id;
         }
-      },
-      { rootMargin: "-10% 0px -40% 0px", threshold: [0, 0.2, 0.5, 0.8, 1] }
-    );
+      }
+      
+      setActiveSection(currentSection);
+    };
 
-    SECTIONS.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
+    // Initial check
+    handleScroll();
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
