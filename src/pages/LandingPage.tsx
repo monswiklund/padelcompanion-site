@@ -18,24 +18,32 @@ const ScrollNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      // Find the section that occupies the middle of the viewport
-      const viewportMiddle = window.innerHeight / 2;
-      let currentSection = SECTIONS[0].id;
-      
-      for (const { id } of SECTIONS) {
-        const element = document.getElementById(id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          // If the top of the section has reached the upper half of the viewport
-          // we mark it as the current active section.
-          if (rect.top <= viewportMiddle) {
-            currentSection = id;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const viewportCenter = window.innerHeight / 2;
+          let currentSection = SECTIONS[0].id;
+          let minDistance = Infinity;
+
+          for (const { id } of SECTIONS) {
+            const element = document.getElementById(id);
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              const sectionCenter = rect.top + rect.height / 2;
+              const distance = Math.abs(viewportCenter - sectionCenter);
+              
+              if (distance < minDistance) {
+                minDistance = distance;
+                currentSection = id;
+              }
+            }
           }
-        }
+          setActiveSection(currentSection);
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      setActiveSection(currentSection);
     };
 
     // Initial check
