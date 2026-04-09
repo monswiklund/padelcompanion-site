@@ -3,12 +3,71 @@ import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { WatchMockup } from "@/components/landing/WatchMockup";
-import {
-  FeatureCard,
-  StatItem,
-  SponsorSlot,
-} from "@/components/landing/LandingSections";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { SponsorSlot } from "@/components/landing/LandingSections";
+
+// Live Leaderboard micro-interaction component for the Bento Box
+const LiveLeaderboardDemo = () => {
+  const [players, setPlayers] = useState([
+    { name: "John & Jane", pts: 24, trend: "up" },
+    { name: "Alice & Bob", pts: 21, trend: "same" },
+    { name: "Charlie & Dave", pts: 18, trend: "down" },
+  ]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlayers(prev => {
+        const newPlayers = prev.map(p => ({ 
+          ...p, 
+          pts: p.pts + Math.floor(Math.random() * 4),
+        }));
+        return newPlayers.sort((a, b) => b.pts - a.pts).map((p, i, arr) => {
+           const oldIdx = prev.findIndex(op => op.name === p.name);
+           return { ...p, trend: oldIdx > i ? "up" : oldIdx < i ? "down" : "same" };
+        });
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-background/90 backdrop-blur-md border border-white/5 rounded-2xl p-5 shadow-2xl w-full max-w-sm mx-auto relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-warning to-success" />
+      <div className="flex justify-between items-center mb-5 border-b border-white/5 pb-3">
+         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Standings
+         </span>
+         <span className="text-[10px] font-bold text-muted-foreground/50">Round 4/6</span>
+      </div>
+      <div className="space-y-3 relative h-[140px]">
+         <AnimatePresence>
+            {players.map((p, i) => (
+              <motion.div 
+                layout 
+                key={p.name} 
+                initial={{opacity: 0, y: 10}} 
+                animate={{opacity: 1, y: 0}} 
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="flex justify-between items-center bg-white/[0.02] p-2.5 rounded-xl border border-white/5 absolute w-full"
+                style={{ top: i * 48 }}
+              >
+                 <div className="flex items-center gap-3">
+                    <span className="text-xs font-black text-muted-foreground/50 w-3">{i + 1}</span>
+                    <span className="text-sm font-bold text-foreground">{p.name}</span>
+                 </div>
+                 <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold opacity-60">
+                       {p.trend === "up" ? <span className="text-success">▲</span> : p.trend === "down" ? <span className="text-error">▼</span> : <span className="text-muted-foreground">-</span>}
+                    </span>
+                    <span className="text-sm font-black text-accent">{p.pts}</span>
+                 </div>
+              </motion.div>
+            ))}
+         </AnimatePresence>
+      </div>
+    </div>
+  );
+};
 
 const LandingPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -16,9 +75,10 @@ const LandingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 400], [0.3, 0]);
+  const { scrollYProgress } = useScroll();
+  const rotateX = useTransform(scrollYProgress, [0, 0.2], [15, 0]);
+  const phoneY = useTransform(scrollYProgress, [0, 0.2], [0, -50]);
+  const watchY = useTransform(scrollYProgress, [0, 0.2], [50, -20]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,243 +121,207 @@ const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-background overflow-x-hidden selection:bg-accent selection:text-white">
+      {/* Massive Centered Hero Section */}
       <section
-        className="min-h-screen flex items-center relative overflow-hidden px-4 py-20"
+        className="min-h-screen flex flex-col items-center justify-start relative overflow-hidden px-6 pt-32 md:pt-40 pb-20"
         id="hero"
       >
-        {/* Animated Background Elements */}
-        <motion.div
-          style={{ y: y1, opacity }}
-          className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full pointer-events-none -z-10"
-        />
-        <motion.div
-          style={{ y: useTransform(scrollY, [0, 500], [0, -100]), opacity }}
-          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-warning/10 blur-[100px] rounded-full pointer-events-none -z-10"
-        />
+        {/* Subtle background noise/gradient */}
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-background to-background" />
+        <div className="absolute top-1/4 left-0 w-full h-[500px] bg-gradient-to-b from-transparent via-primary/5 to-transparent -rotate-12 blur-3xl -z-10 pointer-events-none" />
 
-        <div className="container max-w-[1200px] mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-center relative z-10 text-center md:text-left">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              className="max-w-xl mx-auto md:mx-0"
-            >
-              <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight tracking-tight flex flex-col gap-2">
-                <span>Track Scores.</span>
-                <span className="text-warning">
-                  Run Tournaments.
-                </span>
-                <span className="bg-gradient-to-r from-accent-light to-accent-dark bg-clip-text text-transparent">
-                  Win More.
-                </span>
-              </h1>
-              <div className="flex flex-col gap-5 text-lg md:text-xl text-muted-foreground mb-6 max-w-lg mx-auto md:mx-0 font-medium text-left">
-                <p className="flex items-start gap-4">
-                  <span className="text-2xl leading-tight">📱</span>
-                  <span className="leading-snug"><strong>The Padel App:</strong> Track your daily matches, analyze personal stats, and score from your Apple Watch.</span>
-                </p>
-                <p className="flex items-start gap-4">
-                  <span className="text-2xl leading-tight">💻</span>
-                  <span className="leading-snug"><strong>The Tournament Engine:</strong> Organize instant tournaments directly on the web. Free and no signup required.</span>
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-12 max-w-lg mx-auto md:mx-0">
-                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Americano</span>
-                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Mexicano</span>
-                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Winner's Court</span>
-                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Brackets</span>
-                <span className="text-sm font-semibold bg-foreground/5 border border-foreground/10 px-3 py-1.5 rounded-full text-foreground/80">Divisions</span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center md:justify-start gap-4">
-                <Link
-                  to="/tournament/generator"
-                  onClick={() => window.scrollTo(0, 0)}
-                  className="inline-flex items-center justify-center bg-warning hover:bg-warning/80 text-warning-foreground px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg transform hover:-translate-y-1"
-                >
-                  Start a Free Tournament
-                </Link>
-                <a
-                  href="#download"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-lg transform hover:-translate-y-1"
-                >
-                  Download the App
-                </a>
-              </div>
-            </motion.div>
-
-            <motion.div className="flex flex-col md:flex-row justify-center items-center gap-8 relative">
-              <PhoneMockup />
-              <div className="hidden lg:block absolute -right-20 top-1/2 -translate-y-1/2">
-                <WatchMockup />
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Tournament Engine Showcase Section */}
-      <section className="py-24 relative overflow-hidden bg-warning/5">
-        <div className="container max-w-[1200px] mx-auto px-6 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-              Powerful <span className="text-warning">Web Tournaments</span>
-            </h2>
-            <p className="text-muted-foreground text-lg md:text-xl font-medium">
-              Run entirely from your browser. Free, no sign-up required, instantly syncs to all players.
+        <div className="container max-w-[1200px] mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="max-w-4xl mx-auto"
+          >
+            <span className="inline-block py-1 px-3 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-8">
+              Padel Companion 2.0
+            </span>
+            <h1 className="text-6xl md:text-[8rem] font-black leading-[0.9] tracking-tighter mb-8">
+              The ultimate <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-dark">
+                padel engine.
+              </span>
+            </h1>
+            <p className="text-xl md:text-2xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed mb-12">
+              Organize perfect tournaments in your browser. Track your daily matches on your wrist. Build your legacy.
             </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <GlassCard className="p-8 border-warning/20 shadow-xl hover:border-warning/40 transition-colors">
-              <div className="text-4xl mb-4">🏆</div>
-              <h3 className="text-2xl font-bold mb-3">Mexicano</h3>
-              <p className="text-muted-foreground">The most popular format. Players are matched dynamically based on current standings for perfectly balanced games.</p>
-            </GlassCard>
-            <GlassCard className="p-8 border-primary/20 shadow-xl hover:border-primary/40 transition-colors">
-              <div className="text-4xl mb-4">👑</div>
-              <h3 className="text-2xl font-bold mb-3">Winner's Court</h3>
-              <p className="text-muted-foreground">King of the hill format. Win and move up, lose and move down. Frantic and incredibly fun for larger groups.</p>
-            </GlassCard>
-            <GlassCard className="p-8 border-success/20 shadow-xl hover:border-success/40 transition-colors">
-              <div className="text-4xl mb-4">🤝</div>
-              <h3 className="text-2xl font-bold mb-3">Americano</h3>
-              <p className="text-muted-foreground">The classic format. Play with and against everyone exactly once. Pure individual performance tracking.</p>
-            </GlassCard>
-          </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                to="/tournament/generator"
+                onClick={() => window.scrollTo(0, 0)}
+                className="inline-flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-transform shadow-lg hover:scale-105 active:scale-95"
+              >
+                Start Free Tournament
+              </Link>
+              <a
+                href="#download"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center justify-center bg-transparent border border-border hover:bg-white/5 text-foreground px-8 py-4 rounded-full text-lg font-bold transition-transform hover:scale-105 active:scale-95"
+              >
+                Get the App
+              </a>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className="relative w-full max-w-5xl mx-auto mt-24 md:mt-32 flex justify-center items-start h-[400px] md:h-[600px]"
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+            style={{ perspective: 1200 }}
+          >
+            <motion.div
+              style={{ rotateX: rotateX, y: phoneY }}
+              className="absolute z-20 drop-shadow-[0_30px_60px_rgba(0,0,0,0.5)]"
+            >
+               <PhoneMockup />
+            </motion.div>
+            <motion.div
+               style={{ rotateX: rotateX, y: watchY, x: 220 }}
+               className="absolute z-30 hidden md:block drop-shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
+            >
+               <WatchMockup />
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-32 relative" id="features">
-        <div className="container max-w-[1200px] mx-auto px-6">
+      {/* Bento Box Features */}
+      <section className="py-32 px-6 relative" id="features">
+        <div className="container max-w-[1200px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center max-w-3xl mx-auto mb-24"
+            className="text-center max-w-3xl mx-auto mb-20"
           >
-            <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">
-              Built for the <br />
-              <span className="text-accent-light">
-                Smart Court
-              </span>
+            <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.1]">
+              Everything you need.<br />
+              <span className="text-muted-foreground">Nothing you don't.</span>
             </h2>
-            <p className="text-muted-foreground text-lg md:text-xl font-medium">
-              Everything you need to improve your game and stay connected with
-              your padel community.
-            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon="🏆"
-              title="Tournament Engine"
-              description="Run Americano, Mexicano, and Brackets with ease. Automatic rotation and live tables."
-              delay={3}
-            />
-            <FeatureCard
-              icon="🎯"
-              title="Easy Score Tracking"
-              description="Intuitive scoring designed for the pace of play. Digital scoreboards on your wrist or phone."
-              delay={1}
-            />
-            <FeatureCard
-              icon="📊"
-              title="Advanced Analytics"
-              description="Understand your strengths and weaknesses. Track win ratios, partner performance and form."
-              delay={2}
-            />
-            <FeatureCard
-              icon="🏆"
-              title="Tournament Engine"
-              description="Run Americano, Mexicano, and Brackets with ease. Automatic rotation and live tables."
-              delay={3}
-            />
-            <FeatureCard
-              icon="⌚"
-              title="Smartwatch First"
-              description="The best standalone watch app for Padel. Score points without ever touching your phone."
-              delay={4}
-            />
-            <FeatureCard
-              icon="👥"
-              title="Social Network"
-              description="Follow friends, share highlights, and find new opponents at your skill level."
-              delay={5}
-            />
-            <FeatureCard
-              icon="🌐"
-              title="Instant Cloud Sync"
-              description="Real-time synchronization across all devices. Your match history is always safe."
-              delay={6}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
+             {/* Bento 1: Large */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               className="md:col-span-2 md:row-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col justify-between overflow-hidden relative group"
+             >
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-10 mb-12 max-w-md">
+                   <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center text-2xl mb-6 text-accent">🏆</div>
+                   <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">The Ultimate Engine</h3>
+                   <p className="text-muted-foreground leading-relaxed text-lg">Run Americano, Mexicano, and Winner's Court effortlessly. Algorithms handle the perfectly balanced rotation, you just focus on the game.</p>
+                </div>
+                <div className="relative z-10 w-full mt-auto">
+                   <LiveLeaderboardDemo />
+                </div>
+             </motion.div>
+
+             {/* Bento 2: Small */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.1 }}
+               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group"
+             >
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                   <div className="text-8xl">⌚</div>
+                </div>
+                <div className="mt-auto relative z-10">
+                   <h3 className="text-2xl font-black mb-3 tracking-tight">Watch First</h3>
+                   <p className="text-sm text-muted-foreground leading-relaxed">Standalone Apple Watch support. Leave your phone in the bag and score instantly from your wrist.</p>
+                </div>
+             </motion.div>
+
+             {/* Bento 3: Small */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.2 }}
+               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group"
+             >
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:-rotate-12 duration-500 text-primary">
+                   <div className="text-8xl">🌐</div>
+                </div>
+                <div className="mt-auto relative z-10">
+                   <h3 className="text-2xl font-black mb-3 tracking-tight">Cloud Sync</h3>
+                   <p className="text-sm text-muted-foreground leading-relaxed">Real-time sync. Your history, analytics, and active tournaments are always up to date across all devices.</p>
+                </div>
+             </motion.div>
+
+             {/* Bento 4: Large Horizontal */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.3 }}
+               className="md:col-span-3 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group"
+             >
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-20 flex-1">
+                   <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center text-2xl mb-6 text-primary">📊</div>
+                   <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Deep Analytics</h3>
+                   <p className="text-muted-foreground leading-relaxed text-lg">Understand your game. Track win ratios, analyze your form over time, and see who your best partner really is. Data doesn't lie.</p>
+                </div>
+                <div className="relative z-10 flex-1 w-full h-full min-h-[200px] flex items-end justify-center gap-3">
+                   {/* Fake chart/graph using divs */}
+                   {[40,70,45,90,65,100,85].map((h,i) => (
+                      <motion.div 
+                        key={i} 
+                        initial={{ height: 0 }}
+                        whileInView={{ height: `${h}%` }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1, delay: i * 0.1 }}
+                        className="w-12 bg-gradient-to-t from-primary/20 to-primary/80 rounded-t-lg" 
+                      />
+                   ))}
+                </div>
+             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-24">
-        <div className="container max-w-[1200px] mx-auto px-6">
-          <GlassCard className="bg-primary/5 border-foreground/5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-foreground/5">
-              <StatItem
-                title="Free"
-                description="Core tracking features"
-                delay={1}
-              />
-              <StatItem
-                title="Insights"
-                description="Deep game analysis"
-                delay={2}
-              />
-              <StatItem
-                title="Privacy"
-                description="Secured data sync"
-                delay={3}
-              />
-              <StatItem
-                title="Global"
-                description="Available world-wide"
-                delay={4}
-              />
-            </div>
-          </GlassCard>
-        </div>
-      </section>
-
-      {/* Download Section */}
-      <section className="py-24 relative overflow-hidden" id="download">
+      {/* Download Section (Beta Signup) */}
+      <section className="py-32 relative overflow-hidden" id="download">
         {/* Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
         
         <div className="container max-w-[1200px] mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-              Get the <span className="text-accent-light">App</span>
+          <div className="text-center max-w-3xl mx-auto mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.1]">
+              Get the App
             </h2>
-            <p className="text-muted-foreground text-lg md:text-xl font-medium">
-              Track your regular matches, analyze personal stats, and get smartwatch support.
+            <p className="text-muted-foreground text-xl font-medium">
+              Join the future of padel tracking today.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* iOS Card */}
-            <GlassCard className="p-8 border-foreground/5 shadow-2xl flex flex-col justify-between h-full group hover:border-primary/30 transition-colors">
+            <div className="bg-card/40 backdrop-blur-md p-10 border border-white/5 rounded-[2.5rem] shadow-2xl flex flex-col justify-between h-full group hover:border-primary/20 transition-colors">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
-                  iPhone & iPad & WatchOS
+                <div className="text-4xl mb-6">🍎</div>
+                <p className="text-xs uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
+                  iPhone, iPad & WatchOS
                 </p>
-                <h3 className="text-3xl font-black text-foreground mb-4">
-                  Now live on the App Store
+                <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight">
+                  Available Now
                 </h3>
-                <p className="text-muted-foreground mb-8 text-lg">
+                <p className="text-muted-foreground mb-10 text-lg leading-relaxed">
                   Beautiful score tracking, deep match analytics, and the best standalone Apple Watch padel app on the market.
                 </p>
               </div>
@@ -307,22 +331,23 @@ const LandingPage: React.FC = () => {
                 href="https://apps.apple.com/se/app/padel-companion/id6755152442"
                 target="_blank"
                 rel="noreferrer"
-                className="w-full inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-xl text-lg font-bold transition-colors shadow-lg"
+                className="w-full inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-full text-lg font-bold transition-colors shadow-lg"
               >
                 Download on App Store
               </motion.a>
-            </GlassCard>
+            </div>
 
             {/* Android Card */}
-            <GlassCard className="p-8 border-foreground/5 shadow-2xl flex flex-col justify-between h-full group hover:border-primary/30 transition-colors">
+            <div className="bg-card/40 backdrop-blur-md p-10 border border-white/5 rounded-[2.5rem] shadow-2xl flex flex-col justify-between h-full group hover:border-primary/20 transition-colors">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
+                <div className="text-4xl mb-6">🤖</div>
+                <p className="text-xs uppercase tracking-[0.2em] text-accent-light font-bold mb-4">
                   Android & Wear OS
                 </p>
-                <h3 className="text-3xl font-black text-foreground mb-4">
-                  Test the Android Beta
+                <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight">
+                  Private Beta
                 </h3>
-                <p className="text-muted-foreground mb-8 text-lg">
+                <p className="text-muted-foreground mb-10 text-lg leading-relaxed">
                   We're actively developing the Android and Wear OS versions. Leave your email to get early access and shape the app.
                 </p>
               </div>
@@ -331,9 +356,13 @@ const LandingPage: React.FC = () => {
                 onSubmit={handleSubmit}
               >
                 {success ? (
-                  <div className="bg-success/10 text-success border border-success/30 px-5 py-4 rounded-xl text-center font-medium">
-                    Thank you! We'll be in touch soon.
-                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-success/10 text-success border border-success/20 px-6 py-4 rounded-2xl text-center font-bold"
+                  >
+                    You're on the list! Keep an eye on your inbox.
+                  </motion.div>
                 ) : (
                   <>
                     <input
@@ -341,13 +370,13 @@ const LandingPage: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email address"
-                      className="w-full bg-foreground/5 rounded-xl px-5 py-4 text-foreground outline-none border border-transparent focus:border-primary/50 transition-all placeholder:text-muted-foreground/50"
+                      className="w-full bg-white/[0.03] rounded-2xl px-6 py-4 text-foreground outline-none border border-white/5 focus:border-primary/50 transition-all placeholder:text-muted-foreground/50"
                       required
                     />
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="w-full bg-foreground/10 hover:bg-foreground/15 text-foreground px-8 py-4 rounded-xl text-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                       disabled={loading}
                       type="submit"
                     >
@@ -355,29 +384,29 @@ const LandingPage: React.FC = () => {
                     </motion.button>
                   </>
                 )}
-                {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
+                {error && <p className="text-error text-sm mt-2 text-center font-medium">{error}</p>}
               </form>
-            </GlassCard>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Partners Section */}
-      <section className="py-24" id="partners">
+      <section className="py-24 border-t border-white/5" id="partners">
         <div className="container max-w-[1200px] mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <p className="text-sm uppercase tracking-[0.2em] text-accent-light font-bold mb-3">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-bold mb-3">
               Sponsors
             </p>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-3">
-              Built with room for great partners
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">
+              Partner with us
             </h2>
             <p className="text-muted-foreground">
               Reach committed padel players and clubs as Padel Companion grows
               across iOS and Android.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 opacity-60 hover:opacity-100 transition-opacity duration-500">
             <SponsorSlot />
             <SponsorSlot />
             <SponsorSlot />
@@ -407,26 +436,26 @@ const CookieBanner: React.FC = () => {
           initial={{ opacity: 0, y: 50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.9 }}
-          className="fixed bottom-4 left-4 right-4 md:bottom-8 md:right-8 md:left-auto md:w-[400px] z-[900]"
+          className="fixed bottom-6 left-6 right-6 md:left-auto md:w-[420px] z-[900]"
         >
-          <GlassCard className="shadow-2xl border-primary/20">
-            <h4 className="text-lg font-bold mb-2">🍪 Cookies & Privacy</h4>
-            <p className="text-muted-foreground text-sm mb-6 font-medium">
+          <div className="bg-background/80 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 shadow-2xl">
+            <h4 className="text-lg font-black mb-2 tracking-tight">🍪 Cookies & Privacy</h4>
+            <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
               We use local storage for your preferences and privacy-friendly
               analytics. No cross-site tracking.
             </p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
               <button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl text-sm font-bold transition-colors"
+                className="bg-foreground text-background hover:bg-foreground/90 px-6 py-2.5 rounded-full text-sm font-bold transition-colors"
                 onClick={() => {
                   localStorage.setItem("padelcompanion-cookies", "accepted");
                   setShow(false);
                 }}
               >
-                Accept
+                Got it
               </button>
             </div>
-          </GlassCard>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
