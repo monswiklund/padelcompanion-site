@@ -18,38 +18,29 @@ const ScrollNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
-    let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const viewportCenter = window.innerHeight / 2;
-          let currentSection = SECTIONS[0].id;
-          let minDistance = Infinity;
+      // The "active" line is 40% down the screen
+      const triggerLine = window.innerHeight * 0.4;
+      let newActive = SECTIONS[0].id;
 
-          for (const { id } of SECTIONS) {
-            const element = document.getElementById(id);
-            if (element) {
-              const rect = element.getBoundingClientRect();
-              const sectionCenter = rect.top + rect.height / 2;
-              const distance = Math.abs(viewportCenter - sectionCenter);
-              
-              if (distance < minDistance) {
-                minDistance = distance;
-                currentSection = id;
-              }
-            }
+      // Iterate backwards: the lowest section that has its top edge 
+      // above the trigger line is the winner.
+      for (let i = SECTIONS.length - 1; i >= 0; i--) {
+        const el = document.getElementById(SECTIONS[i].id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= triggerLine) {
+            newActive = SECTIONS[i].id;
+            break;
           }
-          setActiveSection(currentSection);
-          ticking = false;
-        });
-        ticking = true;
+        }
       }
+      setActiveSection(newActive);
     };
 
-    // Initial check
-    handleScroll();
-    
     window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
