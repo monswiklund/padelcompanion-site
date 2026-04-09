@@ -5,6 +5,72 @@ import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { WatchMockup } from "@/components/landing/WatchMockup";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SponsorSlot } from "@/components/landing/LandingSections";
+import { cn } from "@/shared/utils";
+
+const SECTIONS = [
+  { id: "hero", label: "Start", icon: "🏠" },
+  { id: "engine", label: "Web Engine", icon: "🏆" },
+  { id: "app", label: "The App", icon: "📱" },
+  { id: "download", label: "Get Access", icon: "🚀" },
+];
+
+const ScrollNav: React.FC = () => {
+  const [activeSection, setActiveSection] = useState("hero");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the most visible section
+        const intersecting = entries.filter(e => e.isIntersecting);
+        if (intersecting.length > 0) {
+          // Sort by intersection ratio to get the most visible one
+          intersecting.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+          setActiveSection(intersecting[0].target.id);
+        }
+      },
+      { rootMargin: "-10% 0px -40% 0px", threshold: [0, 0.2, 0.5, 0.8, 1] }
+    );
+
+    SECTIONS.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div 
+      initial={{ y: 50, opacity: 0, x: "-50%" }}
+      animate={{ y: 0, opacity: 1, x: "-50%" }}
+      transition={{ delay: 0.5, duration: 0.8 }}
+      className="fixed bottom-8 left-1/2 z-[600] hidden md:flex items-center p-1.5 bg-background/80 backdrop-blur-xl border border-white/10 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+    >
+      {SECTIONS.map((sec) => (
+        <button
+          key={sec.id}
+          onClick={() => {
+            document.getElementById(sec.id)?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className={cn(
+            "relative px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 select-none",
+            activeSection === sec.id ? "text-background" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+          )}
+        >
+          {activeSection === sec.id && (
+            <motion.div
+              layoutId="nav-pill"
+              className="absolute inset-0 bg-foreground rounded-full -z-10"
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10">{sec.icon}</span>
+          <span className="relative z-10">{sec.label}</span>
+        </button>
+      ))}
+    </motion.div>
+  );
+};
 
 // Live Leaderboard micro-interaction component for the Bento Box
 const LiveLeaderboardDemo = () => {
@@ -505,6 +571,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      <ScrollNav />
       <CookieBanner />
     </div>
   );
