@@ -19,14 +19,19 @@ const ScrollNav: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // 1/3 of the screen height down
-      const scrollPosition = window.scrollY + window.innerHeight / 3;
+      // Find the section that occupies the middle of the viewport
+      const viewportMiddle = window.innerHeight / 2;
       let currentSection = SECTIONS[0].id;
       
       for (const { id } of SECTIONS) {
         const element = document.getElementById(id);
-        if (element && element.offsetTop <= scrollPosition) {
-          currentSection = id;
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // If the top of the section has reached the upper half of the viewport
+          // we mark it as the current active section.
+          if (rect.top <= viewportMiddle) {
+            currentSection = id;
+          }
         }
       }
       
