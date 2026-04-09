@@ -82,6 +82,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -92,6 +93,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -99,10 +101,12 @@
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -250,6 +254,7 @@ textarea:focus-visible {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
 [data-theme="light"] .glass {
   background: rgba(255, 255, 255, 0.7);
 }
@@ -260,6 +265,7 @@ textarea:focus-visible {
     box-shadow 0.3s ease,
     transform 0.3s ease;
 }
+
 .hover-glow:hover {
   box-shadow: var(--shadow-glow);
   transform: translateY(-2px);
@@ -269,15 +275,19 @@ textarea:focus-visible {
 .animation-delay-100 {
   animation-delay: 100ms;
 }
+
 .animation-delay-200 {
   animation-delay: 200ms;
 }
+
 .animation-delay-300 {
   animation-delay: 300ms;
 }
+
 .animation-delay-400 {
   animation-delay: 400ms;
 }
+
 .animation-delay-500 {
   animation-delay: 500ms;
 }
@@ -323,10 +333,12 @@ textarea:focus-visible {
   border-left: 4px solid var(--toast-color);
   box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
 }
+
 .toast-icon {
   font-size: 1.25rem;
   line-height: 1;
 }
+
 .toast.success .toast-icon {
   color: var(--toast-color);
 }
@@ -337,6 +349,7 @@ textarea:focus-visible {
   border-left: 4px solid var(--toast-color);
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
 }
+
 .toast.error .toast-icon {
   color: var(--toast-color);
 }
@@ -347,6 +360,7 @@ textarea:focus-visible {
   border-left: 4px solid var(--toast-color);
   box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
 }
+
 .toast.warning .toast-icon {
   color: var(--toast-color);
 }
@@ -357,6 +371,7 @@ textarea:focus-visible {
   border-left: 4px solid var(--toast-color);
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
 }
+
 .toast.info .toast-icon {
   color: var(--toast-color);
 }
@@ -378,6 +393,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: center;
 }
+
 .toast-close:hover {
   opacity: 1;
   background: rgba(255, 255, 255, 0.1);
@@ -388,6 +404,7 @@ textarea:focus-visible {
   from {
     transform: scaleX(1);
   }
+
   to {
     transform: scaleX(0);
   }

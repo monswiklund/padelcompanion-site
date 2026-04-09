@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { generateMexicanoNextRound } from "../scoring/index.js";
 import { generateDivisionSchedule } from "../scoring/divisionGenerator";
+import { generateSemifinals } from "../scoring/playoffGenerator";
 import { state } from "../core/state.js";
 
 describe("Mexicano Scoring Logic", () => {
@@ -16,8 +17,17 @@ describe("Mexicano Scoring Logic", () => {
     state.preferredPartners = [];
   });
 
-  const createPlayers = (count) =>
-    Array.from({ length: count }, (_, i) => ({
+  type TestPlayer = {
+    id: number;
+    name: string;
+    points: number;
+    playedWith: number[];
+    played: number;
+    byeCount: number;
+  };
+
+  const createPlayers = (count: number): TestPlayer[] =>
+    Array.from({ length: count }, (_, i: number) => ({
       id: i + 1,
       name: `P${i + 1}`,
       points: 10 + i, // Different points to establish ranking 1..N
@@ -34,8 +44,8 @@ describe("Mexicano Scoring Logic", () => {
     const players = createPlayers(8);
 
     // Setup history: P8 and P6 played together
-    const p8Input = players.find((p) => p.id === 8);
-    const p6Input = players.find((p) => p.id === 6);
+    const p8Input = players.find((p) => p.id === 8)!;
+    const p6Input = players.find((p) => p.id === 6)!;
     p8Input.playedWith = [6];
     p6Input.playedWith = [8];
 
@@ -43,10 +53,10 @@ describe("Mexicano Scoring Logic", () => {
       {
         completed: true,
         matches: [
-          { team1: [{ id: 8 }, { id: 6 }], team2: [{ id: 1 }, { id: 2 }] },
+          { team1: [{ id: 8, name: "P8" }, { id: 6, name: "P6" }], team2: [{ id: 1, name: "P1" }, { id: 2, name: "P2" }] },
         ],
       },
-    ];
+    ] as any;
 
     state.pairingStrategy = "oneThree";
     state.strictStrategy = false; // SMART
@@ -66,15 +76,13 @@ describe("Mexicano Scoring Logic", () => {
     // Should NOT pair 8 & 6.
     const matchWith8 = round.matches.find(
       (m) => m.team1.some((p) => p.id === 8) || m.team2.some((p) => p.id === 8)
-    );
+    )!;
 
     // Find partner of 8
-    let partner;
-    if (matchWith8.team1.some((p) => p.id === 8)) {
-      partner = matchWith8.team1.find((p) => p.id !== 8);
-    } else {
-      partner = matchWith8.team2.find((p) => p.id !== 8);
-    }
+    const partner =
+      matchWith8.team1.some((p) => p.id === 8)
+        ? matchWith8.team1.find((p) => p.id !== 8)!
+        : matchWith8.team2.find((p) => p.id !== 8)!;
 
     // In OneThree: Partner is 3rd best (P6).
     // Since we blocked 8&6, it should mismatch.
@@ -84,8 +92,8 @@ describe("Mexicano Scoring Logic", () => {
   it("STRICT Mode: Should ENFORCE OneThree strategy even if it causes consecutive repeat", () => {
     const players = createPlayers(8);
 
-    const p8Input = players.find((p) => p.id === 8);
-    const p6Input = players.find((p) => p.id === 6);
+    const p8Input = players.find((p) => p.id === 8)!;
+    const p6Input = players.find((p) => p.id === 6)!;
     p8Input.playedWith = [6];
     p6Input.playedWith = [8];
 
@@ -93,10 +101,10 @@ describe("Mexicano Scoring Logic", () => {
       {
         completed: true,
         matches: [
-          { team1: [{ id: 8 }, { id: 6 }], team2: [{ id: 1 }, { id: 2 }] },
+          { team1: [{ id: 8, name: "P8" }, { id: 6, name: "P6" }], team2: [{ id: 1, name: "P1" }, { id: 2, name: "P2" }] },
         ],
       },
-    ];
+    ] as any;
 
     state.pairingStrategy = "oneThree";
     state.strictStrategy = true; // STRICT
@@ -115,14 +123,12 @@ describe("Mexicano Scoring Logic", () => {
     // Should pair 8 & 6 because we forced it.
     const matchWith8 = round.matches.find(
       (m) => m.team1.some((p) => p.id === 8) || m.team2.some((p) => p.id === 8)
-    );
+    )!;
 
-    let partner;
-    if (matchWith8.team1.some((p) => p.id === 8)) {
-      partner = matchWith8.team1.find((p) => p.id !== 8);
-    } else {
-      partner = matchWith8.team2.find((p) => p.id !== 8);
-    }
+    const partner =
+      matchWith8.team1.some((p) => p.id === 8)
+        ? matchWith8.team1.find((p) => p.id !== 8)!
+        : matchWith8.team2.find((p) => p.id !== 8)!;
 
     expect(partner.id).toBe(6);
   });
@@ -130,7 +136,7 @@ describe("Mexicano Scoring Logic", () => {
 
 describe("Division Scheduling", () => {
   it("splits oversized division rounds into sub-rounds so all teams play evenly", () => {
-    const players = Array.from({ length: 8 }, (_, i) => ({
+    const players: Array<{ id: number; name: string; divisionId: string }> = Array.from({ length: 8 }, (_, i: number) => ({
       id: i + 1,
       name: `Lag ${i + 1}`,
       divisionId: "div_A",
@@ -159,13 +165,42 @@ describe("Division Scheduling", () => {
     });
   });
 
+  it("tracks byes when a division has an odd number of teams", () => {
+    const players: Array<{ id: number; name: string; divisionId: string }> = Array.from({ length: 3 }, (_, i: number) => ({
+      id: i + 1,
+      name: `Lag ${i + 1}`,
+      divisionId: "div_A",
+    }));
+
+    const schedule = generateDivisionSchedule({
+      players,
+      divisions: [{ id: "div_A", name: "A", courts: 1, order: 0 }],
+    });
+
+    expect(schedule).toHaveLength(3);
+    expect(schedule.every((round) => round.byes.length === 1)).toBe(true);
+    expect(schedule.every((round) => round.matches.length === 1)).toBe(true);
+
+    const byeCounts = new Map<number, number>();
+    schedule.forEach((round) => {
+      round.byes.forEach((player) => {
+        const playerId = player.id as number;
+        byeCounts.set(playerId, (byeCounts.get(playerId) || 0) + 1);
+      });
+    });
+
+    players.forEach((player) => {
+      expect(byeCounts.get(player.id)).toBe(1);
+    });
+  });
+
   it("handles asymmetrical courts gracefully (e.g. 4 vs 2)", () => {
     // 8 players in A (4 courts) -> 4 matches per round -> 7 rounds total
     // 8 players in B (2 courts) -> 2 matches per sub-round -> 14 rounds total
-    const playersA = Array.from({ length: 8 }, (_, i) => ({
+    const playersA: Array<{ id: string; name: string; divisionId: string }> = Array.from({ length: 8 }, (_, i: number) => ({
       id: `A${i + 1}`, name: `Lag A${i + 1}`, divisionId: "div_A",
     }));
-    const playersB = Array.from({ length: 8 }, (_, i) => ({
+    const playersB: Array<{ id: string; name: string; divisionId: string }> = Array.from({ length: 8 }, (_, i: number) => ({
       id: `B${i + 1}`, name: `Lag B${i + 1}`, divisionId: "div_B",
     }));
 
@@ -186,5 +221,43 @@ describe("Division Scheduling", () => {
     expect(schedule[7].matches).toHaveLength(2);
     // and all 8 teams from A should be in byes
     expect(schedule[7].byes.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("uses divisionId when generating division semifinals", () => {
+    const players = [
+      { id: "a1", name: "A1", division: "Legacy", divisionId: "div-a" },
+      { id: "a2", name: "A2", division: "Legacy", divisionId: "div-a" },
+      { id: "a3", name: "A3", division: "Legacy", divisionId: "div-a" },
+      { id: "a4", name: "A4", division: "Legacy", divisionId: "div-a" },
+      { id: "b1", name: "B1", division: "Legacy", divisionId: "div-b" },
+      { id: "b2", name: "B2", division: "Legacy", divisionId: "div-b" },
+      { id: "b3", name: "B3", division: "Legacy", divisionId: "div-b" },
+      { id: "b4", name: "B4", division: "Legacy", divisionId: "div-b" },
+    ];
+
+    const state = {
+      players,
+      leaderboard: [
+        { id: "a1", name: "A1", matchPoints: 12, points: 24, pointsLost: 8 },
+        { id: "a2", name: "A2", matchPoints: 9, points: 18, pointsLost: 10 },
+        { id: "a3", name: "A3", matchPoints: 6, points: 14, pointsLost: 12 },
+        { id: "a4", name: "A4", matchPoints: 3, points: 10, pointsLost: 16 },
+        { id: "b1", name: "B1", matchPoints: 11, points: 22, pointsLost: 7 },
+        { id: "b2", name: "B2", matchPoints: 8, points: 17, pointsLost: 11 },
+        { id: "b3", name: "B3", matchPoints: 5, points: 13, pointsLost: 13 },
+        { id: "b4", name: "B4", matchPoints: 2, points: 8, pointsLost: 18 },
+      ],
+      rankingCriteria: "points",
+      tiebreaker: "difference",
+    } as any;
+
+    const semifinals = generateSemifinals(state);
+
+    expect(semifinals.name).toBe("Semifinal");
+    expect(semifinals.matches).toHaveLength(4);
+    expect(semifinals.matches[0].team1[0].id).toBe("a1");
+    expect(semifinals.matches[0].team2[0].id).toBe("a4");
+    expect(semifinals.matches[2].team1[0].id).toBe("b1");
+    expect(semifinals.matches[2].team2[0].id).toBe("b4");
   });
 });

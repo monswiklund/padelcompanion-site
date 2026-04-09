@@ -12,6 +12,7 @@ import { showConfirmModal } from "@/tournament/core/modals";
 import { Dialog } from "@/components/ui/Dialog";
 import { CloudService } from "@/tournament/sync/cloud";
 import { getTournamentRoute } from "@/tournament/navigation";
+import { TrophyIcon, SaveIcon } from "@/components/ui/Icons";
 
 interface HistoryItem {
   id: string;
@@ -227,8 +228,8 @@ export const HistorySection: React.FC = () => {
                     {item.summary.format}
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <span className="text-accent-light font-medium">
-                      🏆 {item.summary.winner}
+                    <span className="text-accent-light font-medium flex items-center gap-1.5">
+                      <TrophyIcon size={16} className="shrink-0" /> {item.summary.winner}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground hidden lg:table-cell">
@@ -255,7 +256,7 @@ export const HistorySection: React.FC = () => {
                         }
                         title="Download"
                       >
-                        📥
+                        <SaveIcon size={16} />
                       </Button>
                       <Button
                         variant="ghost"

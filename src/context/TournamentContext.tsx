@@ -34,12 +34,27 @@ export interface Player {
   name: string;
   lockedCourt?: number | null;
   division?: string;
+  divisionId?: string;
 }
 
 export interface PreferredPartner {
   id: string;
   player1Id: string;
   player2Id: string;
+}
+
+export interface WinnersCourtSetupDraft {
+  players: {
+    id: string;
+    name: string;
+    skill: number;
+    poolId: string;
+  }[];
+  poolCount: number;
+  isTwist: boolean;
+  useSkillLevels: boolean;
+  courtCountInput: number | null;
+  assignStrategy: "random" | "manual";
 }
 
 export interface Match {
@@ -64,6 +79,13 @@ export interface TournamentState {
   version: number;
   players: Player[];
   format: "americano" | "mexicano" | "team" | "teamMexicano" | "division";
+  divisions?: Array<{
+    id: string;
+    name: string;
+    courts: number;
+    order: number;
+    color?: string;
+  }>;
   courts: number;
   scoringMode: "total" | "race" | "time";
   pointsPerMatch: number;
@@ -100,6 +122,7 @@ export interface TournamentState {
     status: "idle" | "running" | "paused" | "completed";
   };
   winnersCourt: any | null;
+  winnersCourtSetup?: WinnersCourtSetupDraft | null;
   bracket: {
     format: string;
     teams: any[];
@@ -116,8 +139,8 @@ export interface TournamentState {
     teamsA?: any[];
     teamsB?: any[];
   } | null;
-  plannedStartTime: string;
-  matchDuration: number;
+  plannedStartTime?: string;
+  matchDuration?: number;
   bracketConfig?: {
     scoreType: string;
     mode: "teams" | "players";
@@ -137,6 +160,7 @@ const DEFAULT_STATE: TournamentState = {
   version: 1,
   players: [],
   format: "americano",
+  divisions: [],
   courts: 2,
   scoringMode: "total",
   pointsPerMatch: 24,
@@ -173,6 +197,7 @@ const DEFAULT_STATE: TournamentState = {
     status: "idle",
   },
   winnersCourt: null,
+  winnersCourtSetup: null,
   bracket: null,
   tiebreaker: "difference",
   divisionCourts: 2,
@@ -269,6 +294,8 @@ type StateAction =
   | { type: "UPDATE_TIMER"; payload: Partial<TournamentState["timer"]> }
   // WinnersCourt Actions
   | { type: "SET_WINNERS_COURT"; winnersCourtState: WinnersCourtState | null }
+  | { type: "SET_WINNERS_COURT_SETUP"; winnersCourtSetup: WinnersCourtSetupDraft | null }
+  | { type: "CLEAR_WINNERS_COURT_SETUP" }
   | {
       type: "UPDATE_WC_RESULT";
       side: string;
@@ -312,7 +339,7 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
               ? saved.divisionCourtNames
               : prev.divisionCourtNames,
         };
-        return normalizeTournamentState(merged as any);
+        return normalizeTournamentState(merged as any) as unknown as TournamentState;
       });
     }
     setIsLoaded(true);
@@ -398,6 +425,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
         // WinnersCourt handlers
         case "SET_WINNERS_COURT":
           return { ...prev, winnersCourt: action.winnersCourtState };
+        case "SET_WINNERS_COURT_SETUP":
+          return { ...prev, winnersCourtSetup: action.winnersCourtSetup };
+        case "CLEAR_WINNERS_COURT_SETUP":
+          return { ...prev, winnersCourtSetup: null };
         case "UPDATE_WC_RESULT": {
           if (!prev.winnersCourt) return prev;
           const updated = recordCourtResult(
@@ -436,9 +467,19 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           return { ...prev, players: [...prev.players, action.player] };
         case "ADD_LATE_PLAYER": {
           const newPlayer = action.player;
+          const defaultDivisionId =
+            prev.format === "division"
+              ? prev.players[0]?.divisionId || prev.players[0]?.division || (prev as any).divisions?.[0]?.id || "A"
+              : undefined;
+          const defaultDivisionName =
+            prev.format === "division"
+              ? prev.players[0]?.division || (prev as any).divisions?.find?.((div: any) => div.id === defaultDivisionId)?.name || "A"
+              : undefined;
           const leaderboardEntry = {
             id: newPlayer.id,
             name: newPlayer.name,
+            division: defaultDivisionName,
+            divisionId: defaultDivisionId,
             points: 0,
             wins: 0,
             played: 0,
@@ -448,7 +489,16 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           };
           return {
             ...prev,
-            players: [...prev.players, newPlayer],
+            players: [
+              ...prev.players,
+              prev.format === "division"
+                ? {
+                    ...newPlayer,
+                    divisionId: defaultDivisionId,
+                    division: defaultDivisionName,
+                  }
+                : newPlayer,
+            ],
             leaderboard: [...prev.leaderboard, leaderboardEntry],
           };
         }
@@ -467,6 +517,10 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
             leaderboard: [],
             isLocked: false,
             hideLeaderboard: true,
+            winnersCourt: null,
+            winnersCourtSetup: null,
+            roundStartedAt: null,
+            sessionStartedAt: null,
           };
         case "COMPLETE_ROUND": {
           const currentRoundIdx = prev.schedule.length - 1;

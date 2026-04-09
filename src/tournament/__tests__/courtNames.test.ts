@@ -29,8 +29,8 @@ function createState(overrides: Partial<TournamentState> = {}): TournamentState 
     courtFormat: "court",
     customCourtNames: [],
     divisionCourtNames: {
-      A: ["Center", "Glas"],
-      B: ["Bana 5", "Bana 6"],
+      "div-a": ["Center", "Glas"],
+      "div-b": ["Bana 5", "Bana 6"],
     },
     maxRepeats: 99,
     pairingStrategy: "optimal",
@@ -90,8 +90,8 @@ describe("court name helpers", () => {
   it("falls back to division-local labels when names are missing", () => {
     const state = createState({
       divisionCourtNames: {
-        A: ["", ""],
-        B: [""],
+        "div-a": ["", ""],
+        "div-b": [""],
       },
     });
 
@@ -171,15 +171,15 @@ describe("court name helpers", () => {
     const names = syncDivisionCourtNames(
       state.divisions,
       {
-        A: ["Center"],
-        B: ["Bana 5", "Bana 6", "Bana 7", "Ignored"],
-        C: ["Unused"],
+        "div-a": ["Center"],
+        "div-b": ["Bana 5", "Bana 6", "Bana 7", "Ignored"],
+        "div-c": ["Unused"],
       },
     );
 
     expect(names).toEqual({
-      A: ["Center", ""],
-      B: ["Bana 5", "Bana 6"],
+      "div-a": ["Center", ""],
+      "div-b": ["Bana 5", "Bana 6"],
     });
   });
 
@@ -189,7 +189,7 @@ describe("court name helpers", () => {
         { id: "uuid-1", name: "Modern Division", courts: 2, order: 0 }
       ],
       divisionCourtNames: {
-        "Modern Division": ["Center"]
+        "uuid-1": ["Center"]
       }
     });
 
@@ -203,33 +203,26 @@ describe("court name helpers", () => {
         { id: "div-a", name: "OldName", courts: 2, order: 0 }
       ],
       divisionCourtNames: {
-        "OldName": ["Center", "Glas"]
+        "div-a": ["Center", "Glas"]
       }
     });
 
-    // Simulate the rename handler logic implemented in DivisionSetup.tsx
+    // Simulate a rename while keeping the stable division ID
     const newName = "NewName";
-    const oldName = "OldName";
-    const divs = [...stateBefore.divisions];
+    const divs = [...(stateBefore.divisions || [])];
     divs[0] = { ...divs[0], name: newName };
-
-    const newCourtNames = { ...stateBefore.divisionCourtNames };
-    if (newCourtNames[oldName]) {
-      newCourtNames[newName] = newCourtNames[oldName];
-      delete newCourtNames[oldName];
-    }
 
     const stateAfter = {
       ...stateBefore,
       divisions: divs,
-      divisionCourtNames: newCourtNames
+      divisionCourtNames: stateBefore.divisionCourtNames,
     };
 
     // Verify display name lookup still works via ID
     expect(getCourtDisplayName(stateAfter, 1, "div-a")).toBe("Center");
-    // Verify mapping was moved to the new name key
-    expect(stateAfter.divisionCourtNames[newName]).toEqual(["Center", "Glas"]);
-    expect(stateAfter.divisionCourtNames[oldName]).toBeUndefined();
+    // Verify mapping stays attached to the stable ID, not the renamed label
+    expect(stateAfter.divisionCourtNames["div-a"]).toEqual(["Center", "Glas"]);
+    expect(stateAfter.divisionCourtNames[newName]).toBeUndefined();
   });
 
   it("delete division logic is blocked when locked", () => {
@@ -245,7 +238,7 @@ describe("court name helpers", () => {
     };
 
     const result = performDelete(state);
-    expect(result.divisions.length).toBe(1);
+    expect((result.divisions || []).length).toBe(1);
     expect(result.isLocked).toBe(true);
   });
 });

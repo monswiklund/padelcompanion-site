@@ -243,261 +243,120 @@ const TournamentActiveView: React.FC = () => {
 
       {/* Toolbar (Under Schedule) */}
       <div className="mb-16 flex justify-center w-full relative z-10">
-        <div className={`bg-glass-background backdrop-blur-xl border border-glass-border shadow-xl rounded-3xl p-3 w-full mx-auto ${
-          isDivision ? "max-w-6xl" : "max-w-5xl"
-        }`}>
-          {isDivision ? (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <button
-                  className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center border ${
-                    canUndo
-                      ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border-border hover:border-accent/30 shadow-sm"
-                      : "opacity-30 cursor-not-allowed bg-popover/50 text-muted-foreground border-transparent"
-                  }`}
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  title="Undo last action"
-                >
-                  <span className="text-lg">↩</span>
-                </button>
+        <div className="relative bg-glass-background backdrop-blur-xl border border-glass-border shadow-xl rounded-3xl p-3 w-full mx-auto max-w-5xl">
+          <div className="flex items-center justify-between gap-1 sm:gap-4 overflow-x-auto hide-scrollbar-mobile">
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                className={`w-10 h-10 md:w-11 md:h-11 rounded-2xl transition-all flex items-center justify-center border ${
+                  canUndo
+                    ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border-border hover:border-accent/30 shadow-sm"
+                    : "opacity-30 cursor-not-allowed bg-popover/50 text-muted-foreground border-transparent"
+                }`}
+                onClick={handleUndo}
+                disabled={!canUndo}
+                title="Undo last action"
+              >
+                <span className="text-lg">↩</span>
+              </button>
 
-                <button
-                  className="h-11 px-4 bg-popover hover:bg-accent/10 text-foreground rounded-2xl font-black border border-border transition-all flex items-center gap-2"
-                  onClick={handleAddLatePlayer}
-                >
-                  <span className="text-lg">+</span>
-                  <span className="text-xs uppercase tracking-widest">Add Team</span>
-                </button>
-              </div>
-
-              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-3">
-                <div className="flex-shrink-0">
-                  <MatchTimer />
-                </div>
-
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <span className="px-3 py-2 rounded-2xl bg-accent text-white text-[10px] font-black uppercase tracking-[0.18em]">
-                    {currentRoundLabel}
-                  </span>
-                  <span className={`px-3 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.18em] border ${
-                    currentRoundStatus === "Ongoing"
-                      ? "bg-accent/12 text-accent border-accent/20"
-                      : currentRoundStatus === "Ready"
-                        ? "bg-warning/12 text-warning border-warning/20"
-                        : "bg-success/12 text-success border-success/20"
-                  }`}>
-                    {currentRoundStatus}
-                  </span>
-                  <span className="px-3 py-2 rounded-2xl bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-[0.18em] border border-border">
-                    {reportedMatches}/{totalMatches} reported
-                  </span>
-                  {(nextStartLabel || upcomingRound) && (
-                    <span className="px-3 py-2 rounded-2xl bg-popover border border-border text-xs font-bold text-foreground">
-                      {nextStartLabel
-                        ? `Next start: ${nextStartLabel}`
-                        : `Next: ${upcomingLabel}`}
-                    </span>
-                  )}
-                  {nextStartRelative && (
-                    <span className="px-3 py-2 rounded-2xl bg-accent/10 border border-accent/20 text-[10px] font-black uppercase tracking-[0.18em] text-accent">
-                      {nextStartRelative}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={`w-11 h-11 rounded-2xl transition-all flex items-center justify-center border ${
-                      showSettings
-                        ? "bg-accent text-white border-accent shadow-glow" 
-                        : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
-                    }`}
-                    title="View Settings"
-                  >
-                    <span className="text-lg">⚙️</span>
-                  </button>
-
-                  {showSettings && (
-                    <div className="absolute right-0 bottom-full mb-4 w-56 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl p-5 animate-fade-in-up z-[60]">
-                      <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">View Settings</h4>
-                      <div className="space-y-5">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-foreground uppercase">Grid Layout</span>
-                          </div>
-                          <div className="flex gap-1">
-                            {[0, 1, 2, 3, 4].map((num) => (
-                              <button
-                                key={num}
-                                onClick={() => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: num })}
-                                className={`flex-1 h-8 rounded-lg text-[10px] font-bold transition-all border ${
-                                  state.gridColumns === num
-                                    ? "bg-accent text-white border-accent shadow-sm"
-                                    : "bg-popover text-muted-foreground border-border hover:border-accent/30 hover:text-foreground"
-                                }`}
-                              >
-                                {num === 0 ? "Auto" : num}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-foreground uppercase">Zoom Level</span>
-                            <span className="text-[10px] font-mono text-accent font-bold">{state.textSize}%</span>
-                          </div>
-                          <input
-                            type="range" min="50" max="350" step="10"
-                            className="w-full accent-accent cursor-pointer"
-                            value={state.textSize}
-                            onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  className="h-11 px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                  onClick={handleCloudSync}
-                  disabled={isSyncing}
-                  title="Save tournament to cloud and copy share code"
-                >
-                  <span className="text-base">{isSyncing ? "…" : "☁"}</span>
-                  <span className="hidden sm:inline text-xs uppercase tracking-widest">
-                    {isSyncing ? "Syncing" : "Share"}
-                  </span>
-                </button>
-
-                <button
-                  className="h-11 px-4 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center gap-2 border border-border bg-popover"
-                  onClick={handleReset}
-                  title="Reset Tournament"
-                >
-                  <span className="text-lg">🔄</span>
-                  <span className="hidden sm:inline text-xs font-black uppercase tracking-widest">Reset</span>
-                </button>
-              </div>
+              <button
+                className="h-10 md:h-11 px-3 md:px-4 bg-popover hover:bg-accent/10 text-foreground border border-border rounded-2xl font-black shadow-sm transition-all flex items-center gap-1.5 active:translate-y-0"
+                onClick={handleAddLatePlayer}
+              >
+                <span className="text-lg md:text-xl leading-none -mt-0.5">+</span>
+                <span className="hidden sm:inline text-[10px] md:text-xs uppercase tracking-widest">
+                  {format.startsWith("team") || isDivision ? "Add Team" : "Add Player"}
+                </span>
+              </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
+
+            <div className="flex-shrink-0 flex items-center justify-center px-1">
+              <MatchTimer />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 shrink-0">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`w-10 h-10 md:w-11 md:h-11 rounded-2xl transition-all flex items-center justify-center border ${
+                  showSettings 
+                    ? "bg-accent text-white border-accent shadow-glow" 
+                    : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
+                }`}
+                title="View Settings"
+              >
+                <span className="text-lg">⚙️</span>
+              </button>
+
+              <div className="w-px h-6 bg-border mx-0.5 hidden sm:block" />
+
+              <button
+                className="h-10 md:h-11 px-3 md:px-4 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                onClick={handleCloudSync}
+                disabled={isSyncing}
+                title="Save tournament to cloud and copy share code"
+              >
+                <span className="text-base leading-none">{isSyncing ? "…" : "☁"}</span>
+                <span className="hidden md:inline text-[10px] md:text-xs uppercase tracking-widest font-black">
+                  {isSyncing ? "Syncing" : "Share"}
+                </span>
+              </button>
+
+              {(!isDivision && state.schedule.some((r) => r.completed)) && (
                 <button
-                  className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl transition-all flex items-center justify-center border ${
-                    canUndo
-                      ? "bg-popover hover:bg-accent/10 text-foreground hover:text-accent border-border hover:border-accent/30 shadow-sm"
-                      : "opacity-30 cursor-not-allowed bg-popover/50 text-muted-foreground border-transparent"
-                  }`}
-                  onClick={handleUndo}
-                  disabled={!canUndo}
-                  title="Undo last action"
+                  className="h-10 md:h-11 px-3 md:px-4 bg-success text-white rounded-2xl font-black shadow-lg shadow-success/20 hover:shadow-success/40 transition-all flex items-center gap-1.5"
+                  onClick={handleEnd}
                 >
-                  <span className="text-lg md:text-xl">↩</span>
+                  <span className="leading-none text-sm -mt-0.5">🏆</span>
+                  <span className="hidden lg:inline text-[10px] md:text-xs uppercase tracking-widest font-black">Finish</span>
                 </button>
+              )}
 
-                <button
-                  className="h-10 md:h-12 px-4 md:px-6 bg-accent hover:bg-accent-dark text-white rounded-2xl font-black shadow-lg shadow-accent/20 hover:shadow-accent/40 transition-all flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
-                  onClick={handleAddLatePlayer}
-                >
-                  <span className="text-xl">+</span>
-                  <span className="hidden sm:inline text-xs uppercase tracking-tighter font-black">Add Player</span>
-                </button>
-              </div>
+              <button
+                className="w-10 h-10 md:w-11 md:h-11 text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-border bg-popover rounded-2xl transition-colors flex items-center justify-center"
+                onClick={handleReset}
+                title="Reset Tournament"
+              >
+                <span className="text-lg">🔄</span>
+              </button>
+            </div>
+          </div>
 
-              <div className="flex-shrink-0">
-                <MatchTimer />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl transition-all flex items-center justify-center border ${
-                      showSettings 
-                        ? "bg-accent text-white border-accent shadow-glow" 
-                        : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
-                    }`}
-                    title="View Settings"
-                  >
-                    <span className="text-lg md:text-xl">⚙️</span>
-                  </button>
-
-                  {showSettings && (
-                    <div className="absolute right-0 bottom-full mb-4 w-56 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl p-5 animate-fade-in-up z-[60]">
-                      <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">View Settings</h4>
-                      <div className="space-y-5">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-foreground uppercase">Grid Layout</span>
-                          </div>
-                          <div className="flex gap-1">
-                            {[0, 1, 2, 3, 4].map((num) => (
-                              <button
-                                key={num}
-                                onClick={() => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: num })}
-                                className={`flex-1 h-8 rounded-lg text-[10px] font-bold transition-all border ${
-                                  state.gridColumns === num
-                                    ? "bg-accent text-white border-accent shadow-sm"
-                                    : "bg-popover text-muted-foreground border-border hover:border-accent/30 hover:text-foreground"
-                                }`}
-                              >
-                                {num === 0 ? "Auto" : num}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black text-foreground uppercase">Zoom Level</span>
-                            <span className="text-[10px] font-mono text-accent font-bold">{state.textSize}%</span>
-                          </div>
-                          <input
-                            type="range" min="50" max="350" step="10"
-                            className="w-full accent-accent cursor-pointer"
-                            value={state.textSize}
-                            onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+          {showSettings && (
+            <div className="absolute right-4 sm:right-8 bottom-[calc(100%+8px)] w-56 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl p-5 animate-fade-in-up z-[60]">
+              <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">View Settings</h4>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-foreground uppercase">Grid Layout</span>
+                  </div>
+                  <div className="flex gap-1">
+                    {[0, 1, 2, 3, 4].map((num) => (
+                      <button
+                        key={num}
+                        onClick={() => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: num })}
+                        className={`flex-1 h-8 rounded-lg text-[10px] font-bold transition-all border ${
+                          state.gridColumns === num
+                            ? "bg-accent text-white border-accent shadow-sm"
+                            : "bg-popover text-muted-foreground border-border hover:border-accent/30 hover:text-foreground"
+                        }`}
+                      >
+                        {num === 0 ? "Auto" : num}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-
-                <div className="w-px h-8 bg-border mx-1 hidden sm:block" />
-
-                <button
-                  className="h-10 md:h-12 px-4 md:px-6 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
-                  onClick={handleCloudSync}
-                  disabled={isSyncing}
-                  title="Save tournament to cloud and copy share code"
-                >
-                  <span className="text-base">{isSyncing ? "…" : "☁"}</span>
-                  <span className="hidden md:inline text-xs uppercase tracking-tighter font-black">
-                    {isSyncing ? "Syncing" : "Share"}
-                  </span>
-                </button>
-
-                {state.schedule.some((r) => r.completed) && (
-                  <button
-                    className="h-10 md:h-12 px-4 md:px-6 bg-success text-white rounded-2xl font-black shadow-lg shadow-success/20 hover:shadow-success/40 transition-all flex items-center gap-2 hover:-translate-y-0.5 active:translate-y-0"
-                    onClick={handleEnd}
-                  >
-                    🏆 <span className="hidden md:inline text-xs uppercase tracking-tighter font-black">Finish</span>
-                  </button>
-                )}
-
-                <button
-                  className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center"
-                  onClick={handleReset}
-                  title="Reset Tournament"
-                >
-                  <span className="text-lg md:text-xl">🔄</span>
-                </button>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-foreground uppercase">Zoom Level</span>
+                    <span className="text-[10px] font-mono text-accent font-bold">{state.textSize}%</span>
+                  </div>
+                  <input
+                    type="range" min="50" max="350" step="10"
+                    className="w-full accent-accent cursor-pointer"
+                    value={state.textSize}
+                    onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
+                  />
+                </div>
               </div>
             </div>
           )}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTournament } from "@/context/TournamentContext";
 import { Button } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { LiveTournamentToolbar } from "@/tournament/ui/components/LiveTournamentToolbar";
 import { WCCourt } from "./WCCourt";
 import { showConfirmModal } from "../../core/modals";
 import { showToast, cn } from "@/shared/utils";
@@ -48,6 +49,7 @@ export const WinnersCourtActiveView: React.FC = () => {
       "Reset All",
       () => {
         activeSides.forEach(side => dispatch({ type: "CLEAR_WC_SIDE", side }));
+        dispatch({ type: "CLEAR_WINNERS_COURT_SETUP" });
         showToast("Session reset");
       }
     );
@@ -197,11 +199,10 @@ export const WinnersCourtActiveView: React.FC = () => {
 
       {/* Enhanced Sticky Bottom Toolbar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pointer-events-none">
-        <div className="bg-glass-background backdrop-blur-xl border border-glass-border shadow-2xl rounded-3xl p-2 max-w-5xl mx-auto pointer-events-auto transition-all duration-300">
-          <div className="flex items-center justify-between gap-2">
-            
-            {/* Left Actions */}
-            <div className="flex items-center gap-1.5">
+        <div className="pointer-events-auto transition-all duration-300 max-w-5xl mx-auto">
+          <LiveTournamentToolbar
+            className="mx-auto"
+            left={
               <button
                 className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
                   canUndo
@@ -214,73 +215,93 @@ export const WinnersCourtActiveView: React.FC = () => {
               >
                 <span className="text-lg">↩</span>
               </button>
-            </div>
+            }
+            center={<MatchTimer />}
+            right={
+              <>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
+                      showSettings
+                        ? "bg-accent text-white border-accent shadow-glow"
+                        : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
+                    }`}
+                    title="View Settings"
+                  >
+                    <span className="text-lg">⚙️</span>
+                  </button>
 
-            {/* Center: Timer */}
-            <div className="flex-shrink-0">
-              <MatchTimer />
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-1.5">
-              
-              {/* View Settings Popover */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center border ${
-                    showSettings 
-                      ? "bg-accent text-white border-accent shadow-glow" 
-                      : "bg-popover hover:bg-surface-hover text-muted-foreground border-border"
-                  }`}
-                  title="View Settings"
-                >
-                  <span className="text-lg">⚙️</span>
-                </button>
-
-                {showSettings && (
-                  <div className="absolute right-0 bottom-full mb-4 w-48 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-4 animate-fade-in-up z-[60]">
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase">Grid</span>
-                          <span className="text-[10px] font-mono text-accent">{state.gridColumns || 'Auto'}</span>
+                  {showSettings && (
+                    <div className="absolute right-0 bottom-full mb-4 w-48 bg-popover/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-4 animate-fade-in-up z-[60]">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-muted-foreground uppercase">
+                              Grid
+                            </span>
+                            <span className="text-[10px] font-mono text-accent">
+                              {state.gridColumns || "Auto"}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="4"
+                            step="1"
+                            className="w-full accent-accent"
+                            value={state.gridColumns}
+                            onChange={(e) =>
+                              dispatch({
+                                type: "UPDATE_FIELD",
+                                key: "gridColumns",
+                                value: parseInt(e.target.value),
+                              })
+                            }
+                          />
                         </div>
-                        <input
-                          type="range" min="0" max="4" step="1"
-                          className="w-full accent-accent"
-                          value={state.gridColumns}
-                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "gridColumns", value: parseInt(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black text-muted-foreground uppercase">Zoom</span>
-                          <span className="text-[10px] font-mono text-accent">{state.textSize}%</span>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black text-muted-foreground uppercase">
+                              Zoom
+                            </span>
+                            <span className="text-[10px] font-mono text-accent">
+                              {state.textSize}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="50"
+                            max="350"
+                            step="10"
+                            className="w-full accent-accent"
+                            value={state.textSize}
+                            onChange={(e) =>
+                              dispatch({
+                                type: "UPDATE_FIELD",
+                                key: "textSize",
+                                value: parseInt(e.target.value),
+                              })
+                            }
+                          />
                         </div>
-                        <input
-                          type="range" min="50" max="350" step="10"
-                          className="w-full accent-accent"
-                          value={state.textSize}
-                          onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "textSize", value: parseInt(e.target.value) })}
-                        />
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
-              <button
-                className="w-10 h-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center border border-transparent hover:border-destructive/20"
-                onClick={handleFullReset}
-                title="Reset Session"
-              >
-                <span>🔄</span>
-              </button>
-            </div>
-          </div>
+                <button
+                  className="w-10 h-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-colors flex items-center justify-center border border-transparent hover:border-destructive/20"
+                  onClick={handleFullReset}
+                  title="Reset Session"
+                >
+                  <span>🔄</span>
+                </button>
+              </>
+            }
+          />
         </div>
       </div>
     </div>

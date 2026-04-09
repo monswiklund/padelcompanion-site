@@ -24,9 +24,11 @@ export function syncDivisionCourtNames(
 
   return Object.fromEntries(
     sorted.map((div) => [
-      div.name,
+      div.id,
       Array.from({ length: Math.max(1, div.courts || 1) }, (_, index) => {
-        const value = divisionCourtNames[div.name]?.[index];
+        const value =
+          divisionCourtNames[div.id]?.[index] ??
+          divisionCourtNames[div.name]?.[index];
         return typeof value === "string" ? value : "";
       }),
     ]),
@@ -78,6 +80,7 @@ export function getCourtDisplayName(
       const divName = div ? div.name : (divisionIdOrName || "A");
       
       const customName =
+        (div && state.divisionCourtNames?.[div.id]?.[localCourtNumber - 1]) ||
         state.divisionCourtNames?.[divName]?.[localCourtNumber - 1];
       if (customName) return customName;
       return getDivisionFallbackName(divName, localCourtNumber);

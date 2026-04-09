@@ -6,13 +6,19 @@ import type {
 } from "@/context/TournamentContext";
 import { sortLeaderboard } from "./playerStats";
 
+function getPlayerDivisionId(player: Player): string | null {
+  return (player as any).divisionId || (player as any).division || null;
+}
+
 /**
  * Generate Semifinal round for Division mode
  * 1st vs 4th, 2nd vs 3rd within each division
  */
 export function generateSemifinals(state: TournamentState): Round {
   const { leaderboard, players, rankingCriteria, tiebreaker } = state;
-  const divisions = Array.from(new Set(players.map((p: any) => p.division || "A"))).sort();
+  const divisions = Array.from(
+    new Set(players.map((p: any) => getPlayerDivisionId(p) || "A")),
+  ).sort();
   const matches: Match[] = [];
   let courtCounter = 1;
 
@@ -20,7 +26,7 @@ export function generateSemifinals(state: TournamentState): Round {
     // Filter standings for this division
     const divPlayers = leaderboard.filter((p: any) => {
       const playerObj = players.find((pOrig) => pOrig.id === p.id);
-      return (playerObj as any)?.division === div;
+      return getPlayerDivisionId(playerObj as any) === div;
     });
 
     // 1. Sort using matchPoints (3, 1, 0)

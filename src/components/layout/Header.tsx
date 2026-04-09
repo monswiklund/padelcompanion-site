@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/shared/utils";
 import { initTheme, toggleTheme } from "@/shared/theme";
+import { MoonIcon, SunIcon } from "@/components/ui/Icons";
 import {
   getLastTournamentRoute,
   isRememberedTournamentRoute,
@@ -127,7 +128,9 @@ const Header: React.FC = () => {
             onClick={handleToggleTheme}
             title="Toggle theme"
           >
-            <span className="text-lg">{theme === "dark" ? "🌙" : "☀️"}</span>
+            <span className="flex items-center text-foreground">
+              {theme === "dark" ? <MoonIcon size={18} /> : <SunIcon size={18} />}
+            </span>
           </button>
 
           {/* Hamburger Menu (Mobile) */}

@@ -99,5 +99,21 @@ export function normalizeTournamentState(state: TournamentState): TournamentStat
     div.order = index;
   });
 
+  const existingCourtNames = state.divisionCourtNames || {};
+  state.divisionCourtNames = Object.fromEntries(
+    state.divisions.map((div) => [
+      div.id,
+      Array.from(
+        { length: Math.max(1, div.courts || 1) },
+        (_, index) => {
+          const value =
+            existingCourtNames[div.id]?.[index] ??
+            existingCourtNames[div.name]?.[index];
+          return typeof value === "string" ? value : "";
+        },
+      ),
+    ]),
+  );
+
   return state;
 }

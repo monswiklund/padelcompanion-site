@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/shared/utils";
 
+import { BallIcon, UsersIcon, TrophyIcon, HomeIcon, CalendarIcon, TrendingUpIcon } from "@/components/ui/Icons";
+
 const NavItem: React.FC<{
   active: boolean;
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
 }> = ({ active, icon, label, onClick }) => (
@@ -97,8 +99,8 @@ export const PhoneMockup: React.FC = () => {
                     Add New Match
                   </h4>
                   <div className="bg-gradient-to-br from-[#007aff] to-[#0056b3] rounded-[18px] p-3.5 flex items-center gap-3 text-white relative overflow-hidden transition-all hover:brightness-110 active:scale-95 min-h-[72px] shadow-lg">
-                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md">
-                      🎾
+                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md flex justify-center">
+                      <BallIcon className="w-6 h-6" />
                     </div>
                     <div className="flex-1 flex flex-col justify-center overflow-hidden">
                       <span className="text-base font-bold leading-[1.2] whitespace-nowrap">
@@ -111,8 +113,8 @@ export const PhoneMockup: React.FC = () => {
                     <div className="text-xl opacity-60">›</div>
                   </div>
                   <div className="bg-gradient-to-br from-[#ff9500] to-[#e08200] rounded-[18px] p-3.5 flex items-center gap-3 text-white relative overflow-hidden transition-all hover:brightness-110 active:scale-95 min-h-[72px] shadow-lg">
-                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md">
-                      👥
+                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md flex justify-center">
+                      <UsersIcon className="w-6 h-6" />
                     </div>
                     <div className="flex-1 flex flex-col justify-center overflow-hidden">
                       <span className="text-base font-bold leading-[1.2] whitespace-nowrap">
@@ -125,8 +127,8 @@ export const PhoneMockup: React.FC = () => {
                     <div className="text-xl opacity-60">›</div>
                   </div>
                   <div className="bg-gradient-to-br from-[#af52de] to-[#8e2db2] rounded-[18px] p-3.5 flex items-center gap-3 text-white relative overflow-hidden transition-all hover:brightness-110 active:scale-95 min-h-[72px] shadow-lg">
-                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md">
-                      🏆
+                    <div className="text-[1.6rem] w-8 text-center drop-shadow-md flex justify-center">
+                      <TrophyIcon className="w-6 h-6" />
                     </div>
                     <div className="flex-1 flex flex-col justify-center overflow-hidden">
                       <span className="text-base font-bold leading-[1.2] whitespace-nowrap">
@@ -271,25 +273,25 @@ export const PhoneMockup: React.FC = () => {
         <div className="h-[60px] bg-[#1c1c1e]/95 backdrop-blur-xl flex justify-around items-center border-t border-white/10 pb-1 z-10 px-2">
           <NavItem
             active={activeTab === "home"}
-            icon="🏠"
+            icon={<HomeIcon className="w-[1.1rem] h-[1.1rem]" />}
             label="Home"
             onClick={() => setActiveTab("home")}
           />
           <NavItem
             active={activeTab === "history"}
-            icon="📅"
+            icon={<CalendarIcon className="w-[1.1rem] h-[1.1rem]" />}
             label="History"
             onClick={() => setActiveTab("history")}
           />
           <NavItem
             active={activeTab === "players"}
-            icon="👥"
+            icon={<UsersIcon className="w-[1.1rem] h-[1.1rem]" />}
             label="Players"
             onClick={() => setActiveTab("players")}
           />
           <NavItem
             active={activeTab === "insights"}
-            icon="📈"
+            icon={<TrendingUpIcon className="w-[1.1rem] h-[1.1rem]" />}
             label="Insights"
             onClick={() => setActiveTab("insights")}
           />

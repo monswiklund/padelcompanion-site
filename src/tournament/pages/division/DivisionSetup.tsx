@@ -5,9 +5,8 @@ import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { PlayerList } from "@/components/tournament/PlayerList";
 import { showToast, createId } from "@/shared/utils";
 import { useTournament } from "@/context/TournamentContext";
-import { generateSchedule } from "../../ui/setup/scheduleGeneration";
-import { state as legacyState } from "../../core/state";
 import { DIVISION_COLORS } from "../../core/constants";
+import { generateDivisionSchedule } from "../../scoring/divisionGenerator";
 import {
   getCourtDisplayName,
   syncDivisionCourtNames,
@@ -50,10 +49,6 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   }, [isLoaded]);
 
   useEffect(() => {
-    Object.assign(legacyState, state);
-  }, [state]);
-
-  useEffect(() => {
     const syncedNames = syncDivisionCourtNames(
       state.divisions || [],
       state.divisionCourtNames
@@ -94,7 +89,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
     if (!trimmedName) return false;
 
     const existingTeamKeys = new Set(
-      players.map((player) => getTeamDuplicateKey(player.name)),
+      players.map((player: any) => getTeamDuplicateKey(player.name)),
     );
 
     if (existingTeamKeys.has(getTeamDuplicateKey(trimmedName))) {
@@ -140,7 +135,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
     let extraNameCount = 0;
 
     const queuedNames = new Set(
-      players.map((player) => getTeamDuplicateKey(player.name)),
+      players.map((player: any) => getTeamDuplicateKey(player.name)),
     );
 
     const queueTeam = (teamName: string) => {
@@ -236,7 +231,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   const handleGenerate = async () => {
     // Count teams per division
     const divCounts = new Map<string, number>();
-    players.forEach((p) => {
+    players.forEach((p: any) => {
       const div = (p as any).divisionId || state.divisions?.[0]?.id || "default";
       divCounts.set(div, (divCounts.get(div) || 0) + 1);
     });
@@ -255,13 +250,27 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
     }
 
     try {
-      Object.assign(legacyState, state);
-      legacyState.format = "division";
+      const generatedSchedule = generateDivisionSchedule({
+        players,
+        divisions: state.divisions || [],
+      });
 
-      const result = await generateSchedule();
-      if (!result) return;
-
-      const generatedSchedule = result.schedule || [];
+      const leaderboard = players.map((player: any, index: number) => ({
+        id: player.id,
+        name: player.name,
+        division: player.division,
+        divisionId: player.divisionId,
+        points: 0,
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        matchPoints: 0,
+        played: 0,
+        pointsLost: 0,
+        byeCount: 0,
+        playedWith: [],
+        previousRank: index + 1,
+      }));
 
       // Calculate total courts based on divisions
       // Calculate total courts based on divisions
@@ -279,10 +288,10 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
             status: "idle",
           },
           schedule: generatedSchedule.length > 0 ? [...generatedSchedule] : [],
-          leaderboard: result.leaderboard ? [...result.leaderboard] : [],
-          allRounds: result.allRounds ? [...result.allRounds] : null,
-          currentRound: result.currentRound,
-          isLocked: result.isLocked,
+          leaderboard,
+          allRounds: generatedSchedule.length > 0 ? [...generatedSchedule] : null,
+          currentRound: generatedSchedule.length > 0 ? 1 : 0,
+          isLocked: generatedSchedule.length > 0,
           roundStartedAt: null,
           sessionStartedAt: Date.now(),
         },
@@ -607,10 +616,9 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
 
           {state.isLocked && (
             <div className="mb-6">
-              <NoticeBar 
-                message="Tournament is active. Division order and court counts are locked to ensure schedule consistency." 
-                type={state.format === "division" ? "info" : "warning"}
-              />
+              <NoticeBar type={state.format === "division" ? "info" : "warning"}>
+                Tournament is active. Division order and court counts are locked to ensure schedule consistency.
+              </NoticeBar>
             </div>
           )}
 
@@ -633,8 +641,8 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                 {state.divisions?.map((division: any, index: number) => {
                 const colors = DIVISION_COLORS[index % DIVISION_COLORS.length];
                 const divPlayers = players
-                  .map((p, pIdx) => ({ ...p, originalIndex: pIdx }))
-                  .filter((p) => p.divisionId === division.id);
+                  .map((p: any, pIdx: number) => ({ ...p, originalIndex: pIdx }))
+                  .filter((p: any) => p.divisionId === division.id);
                 
                 return (
                   <div key={division.id} className={`rounded-xl border ${colors.border} ${colors.bg} flex flex-col overflow-hidden`}>
@@ -778,7 +786,7 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          {divPlayers.map((p) => {
+                          {divPlayers.map((p: any) => {
                             const otherDivs = state.divisions.filter((d: any) => d.id !== division.id);
                             const isMenuOpen = movingPlayerId === p.id;
                             

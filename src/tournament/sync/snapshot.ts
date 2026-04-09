@@ -1,6 +1,6 @@
 import type { TournamentState } from "@/context/TournamentContext";
 
-export const TOURNAMENT_SNAPSHOT_SCHEMA_VERSION = 1;
+export const TOURNAMENT_SNAPSHOT_SCHEMA_VERSION = 2;
 
 export type TournamentSessionStatus =
   | "draft"
@@ -39,8 +39,13 @@ function deepClone<T>(value: T): T {
 }
 
 function inferTournamentStatus(
-  state: Pick<TournamentState, "schedule" | "isLocked">,
+  state: Pick<TournamentState, "schedule" | "isLocked" | "winnersCourt">,
 ): TournamentSessionStatus {
+  const winnersCourtSides = state.winnersCourt?.sides
+    ? Object.keys(state.winnersCourt.sides).length
+    : 0;
+
+  if (winnersCourtSides > 0) return "active";
   if (!state.schedule.length) return "draft";
 
   const hasIncompleteRound = state.schedule.some((round) => !round.completed);

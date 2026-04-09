@@ -4,9 +4,9 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Button } from "@/components/ui/Button";
 import { HelpButton, NoticeBar } from "@/components/ui/HelpNotice";
 import { PlayerList } from "@/components/tournament/PlayerList";
-import { StorageService } from "@/shared/storage";
 import { showToast, createId } from "@/shared/utils";
-import { useTournament } from "@/context/TournamentContext";
+import { StorageService } from "@/shared/storage";
+import { useTournament, type WinnersCourtSetupDraft } from "@/context/TournamentContext";
 import { HELP_WINNERS_INTRO } from "@/tournament/content/help";
 import {
   WCPlayer,
@@ -23,8 +23,36 @@ interface SetupPlayer {
 
 type AssignStrategy = "random" | "manual";
 
+function buildSetupDraft(
+  players: SetupPlayer[],
+  poolCount: number,
+  isTwist: boolean,
+  useSkillLevels: boolean,
+  courtCountInput: number | null,
+  assignStrategy: AssignStrategy,
+): WinnersCourtSetupDraft | null {
+  const hasMeaningfulState =
+    players.length > 0 ||
+    poolCount !== 1 ||
+    isTwist ||
+    useSkillLevels ||
+    courtCountInput != null ||
+    assignStrategy !== "random";
+
+  if (!hasMeaningfulState) return null;
+
+  return {
+    players,
+    poolCount,
+    isTwist,
+    useSkillLevels,
+    courtCountInput,
+    assignStrategy,
+  };
+}
+
 export const WinnersCourtSetup: React.FC = () => {
-  const { dispatch } = useTournament();
+  const { state, dispatch, isLoaded } = useTournament();
   const navigate = useNavigate();
 
   const [players, setPlayers] = useState<SetupPlayer[]>([]);
@@ -34,40 +62,77 @@ export const WinnersCourtSetup: React.FC = () => {
   const [courtCountInput, setCourtCountInput] = useState<number | null>(null);
   const [assignStrategy, setAssignStrategy] =
     useState<AssignStrategy>("random");
-  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = StorageService.getItem("wc_setup_players");
-    if (saved && Array.isArray(saved)) {
-      // Migrate old data (side -> poolId)
-      const migrated = saved.map((p: any) => ({
-        ...p,
-        poolId: p.poolId || p.side || "A",
-        // Ensure skill is present
-        skill: p.skill || 5,
-      }));
-      setPlayers(migrated);
+    if (!isLoaded) return;
+
+    const draft = state.winnersCourtSetup;
+    if (!draft) {
+      const savedPlayers = StorageService.getItem("wc_setup_players");
+      const savedPools = StorageService.getItem("wc_pool_count", "1");
+      const savedSkill = StorageService.getItem("wc_use_skills", "false");
+      const savedTwist = StorageService.getItem("wc_twist", "false");
+
+      if (
+        !savedPlayers &&
+        savedPools === "1" &&
+        savedSkill === "false" &&
+        savedTwist === "false"
+      ) {
+        return;
+      }
+
+      const migratedPlayers = Array.isArray(savedPlayers)
+        ? savedPlayers.map((p: any) => ({
+            ...p,
+            poolId: p.poolId || p.side || "A",
+            skill: p.skill || 5,
+          }))
+        : [];
+
+      setPlayers(migratedPlayers);
+      setPoolCount(parseInt(savedPools) || 1);
+      setUseSkillLevels(savedSkill === "true");
+      setIsTwist(savedTwist === "true");
+
+      StorageService.removeItem("wc_setup_players");
+      StorageService.removeItem("wc_pool_count");
+      StorageService.removeItem("wc_use_skills");
+      StorageService.removeItem("wc_twist");
+      return;
     }
-    const savedPools = StorageService.getItem("wc_pool_count", "1");
-    const savedSkill = StorageService.getItem("wc_use_skills", "false");
-    const savedTwist = StorageService.getItem("wc_twist", "false"); // Load twist setting
-    setPoolCount(parseInt(savedPools) || 1);
-    setUseSkillLevels(savedSkill === "true");
-    setIsTwist(savedTwist === "true");
-    setIsLoaded(true);
-  }, []);
+
+    setPlayers(draft.players);
+    setPoolCount(draft.poolCount);
+    setIsTwist(draft.isTwist);
+    setUseSkillLevels(draft.useSkillLevels);
+    setCourtCountInput(draft.courtCountInput);
+    setAssignStrategy(draft.assignStrategy);
+  }, [isLoaded, state.winnersCourtSetup]);
 
   useEffect(() => {
-    if (isLoaded) {
-      StorageService.setItem("wc_setup_players", players);
-    }
-  }, [players, isLoaded]);
-
-  useEffect(() => {
-    StorageService.setItem("wc_pool_count", String(poolCount));
-    StorageService.setItem("wc_use_skills", String(useSkillLevels));
-    StorageService.setItem("wc_twist", String(isTwist));
-  }, [poolCount, useSkillLevels, isTwist]);
+    if (!isLoaded) return;
+    dispatch({
+      type: "SET_WINNERS_COURT_SETUP",
+      winnersCourtSetup: buildSetupDraft(
+        players,
+        poolCount,
+        isTwist,
+        useSkillLevels,
+        courtCountInput,
+        assignStrategy,
+      ),
+    });
+  }, [
+    assignStrategy,
+    courtCountInput,
+    dispatch,
+    isLoaded,
+    isTwist,
+    poolCount,
+    players,
+    useSkillLevels,
+  ]);
 
   const maxCourts = Math.max(1, Math.floor(players.length / 4));
   const selectedCourts = courtCountInput || maxCourts;

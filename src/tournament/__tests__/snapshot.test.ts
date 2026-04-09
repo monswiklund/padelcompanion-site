@@ -166,6 +166,22 @@ describe("Tournament snapshot", () => {
     expect(snapshot.metadata.playerCount).toBe(0);
   });
 
+  it("marks active Winners Court sessions as active even without a schedule", () => {
+    const snapshot = createTournamentSnapshot(
+      createState({
+        schedule: [],
+        winnersCourt: {
+          sides: {
+            A: { courts: [], queue: [], round: 1, history: [] },
+          },
+          twist: false,
+        },
+      }),
+    );
+
+    expect(snapshot.metadata.status).toBe("active");
+  });
+
   it("parses legacy exports into snapshot format", () => {
     const snapshot = parseTournamentSnapshot(
       JSON.stringify({

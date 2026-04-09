@@ -23,14 +23,19 @@ interface Round {
   byes: Player[];
 }
 
+interface LogicalRound {
+  pairings: [Player, Player][];
+  byes: Player[];
+}
+
 /**
  * Generate round-robin pairings for a list of teams.
  * Uses the "circle method" algorithm to ensure all teams play each other exactly once.
  * Returns an array of rounds, each containing an array of match pairings.
  */
-function generateRoundRobin(teams: Player[]): [Player, Player][][] {
+function generateRoundRobin(teams: Player[]): LogicalRound[] {
   const n = teams.length;
-  const logicalRounds: [Player, Player][][] = [];
+  const logicalRounds: LogicalRound[] = [];
 
   // If odd number of teams, add a BYE placeholder
   const teamList = [...teams];
@@ -64,9 +69,10 @@ function generateRoundRobin(teams: Player[]): [Player, Player][][] {
       [[0, 1], [2, 7], [3, 6], [4, 5]]
     ];
 
-    return customPairingsIndices.map(roundStr => 
-      roundStr.map(pair => [t[pair[0]], t[pair[1]]] as [Player, Player])
-    );
+    return customPairingsIndices.map((roundStr) => ({
+      pairings: roundStr.map((pair) => [t[pair[0]], t[pair[1]]] as [Player, Player]),
+      byes: [],
+    }));
   }
 
   const numRounds = numTeams - 1;
@@ -78,19 +84,25 @@ function generateRoundRobin(teams: Player[]): [Player, Player][][] {
 
   for (let r = 0; r < numRounds; r++) {
     const roundPairings: [Player, Player][] = [];
+    const roundByes: Player[] = [];
     const current = [fixed, ...rotating];
 
     for (let i = 0; i < half; i++) {
       const home = current[i];
       const away = current[numTeams - 1 - i];
 
-      // Skip matches involving the BYE
-      if (home.id === "__bye__" || away.id === "__bye__") continue;
+      if (home.id === "__bye__" || away.id === "__bye__") {
+        const byePlayer = home.id === "__bye__" ? away : home;
+        if (byePlayer && byePlayer.id !== "__bye__") {
+          roundByes.push(byePlayer);
+        }
+        continue;
+      }
 
       roundPairings.push([home, away]);
     }
 
-    logicalRounds.push(roundPairings);
+    logicalRounds.push({ pairings: roundPairings, byes: roundByes });
 
     // Rotate: move last element to front of rotating array
     rotating.unshift(rotating.pop()!);
@@ -133,7 +145,7 @@ export function generateDivisionSchedule(
 
   // Generate logical round-robin for each division. If a logical round has 
   // more matches than available courts, it is split into multiple sub-rounds.
-  const divisionSubRounds = new Map<string, [Player, Player][][]>();
+  const divisionSubRounds = new Map<string, LogicalRound[]>();
   let maxMergedRounds = 0;
 
   for (const div of sortedDivisions) {
@@ -144,12 +156,15 @@ export function generateDivisionSchedule(
     }
 
     const logicalRounds = generateRoundRobin(teams);
-    const subRounds: [Player, Player][][] = [];
+    const subRounds: LogicalRound[] = [];
     const courtsForThisDivision = Math.max(1, div.courts); // Ensure at least 1 court per division
 
     logicalRounds.forEach((roundPairings) => {
-      for (let idx = 0; idx < roundPairings.length; idx += courtsForThisDivision) {
-        subRounds.push(roundPairings.slice(idx, idx + courtsForThisDivision));
+      for (let idx = 0; idx < roundPairings.pairings.length; idx += courtsForThisDivision) {
+        subRounds.push({
+          pairings: roundPairings.pairings.slice(idx, idx + courtsForThisDivision),
+          byes: idx === 0 ? roundPairings.byes : [],
+        });
       }
     });
 
@@ -179,13 +194,15 @@ export function generateDivisionSchedule(
       if (r < subRounds.length) {
         const roundPairings = subRounds[r];
 
-        roundPairings.forEach((pair, mIdx) => {
+        roundPairings.pairings.forEach((pair, mIdx) => {
           matches.push({
             court: currentCourtOffset + mIdx + 1,
             team1: [pair[0]],
             team2: [pair[1]],
           });
         });
+
+        byes.push(...roundPairings.byes);
       } else {
         // This division has no more rounds; all its teams are idle
         byes.push(...divTeams);
