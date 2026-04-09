@@ -8,37 +8,31 @@ import { SponsorSlot } from "@/components/landing/LandingSections";
 
 // Live Leaderboard micro-interaction component for the Bento Box
 const LiveLeaderboardDemo = () => {
-  const [teams, setTeams] = useState([
-    { name: "John & Jane", pts: 145, trend: "same" },
-    { name: "Alice & Bob", pts: 141, trend: "same" },
-    { name: "Charlie & Dave", pts: 137, trend: "same" },
-    { name: "Emma & Tom", pts: 130, trend: "same" }
+  const [players, setPlayers] = useState([
+    { name: "John", pts: 145, trend: "same" },
+    { name: "Jane", pts: 141, trend: "same" },
+    { name: "Alice", pts: 137, trend: "same" },
+    { name: "Bob", pts: 130, trend: "same" }
   ]);
   const [round, setRound] = useState(4);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTeams(prev => {
-        // Sort teams by points to simulate Mexicano pairing (1v2, 3v4)
+      setPlayers(prev => {
+        // In Mexicano, players are sorted by points and matched 1 & 3 vs 2 & 4
+        // So Match 1 is: John & Alice vs Jane & Bob
         const sorted = [...prev].sort((a, b) => b.pts - a.pts);
         
-        // Simulate Match 1: 1st vs 2nd (24 points total)
+        // Simulate Match 1 (24 points total)
         const m1Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
-        const m1Score1 = m1Points;
-        const m1Score2 = 24 - m1Points;
-        
-        // Simulate Match 2: 3rd vs 4th (24 points total)
-        const m2Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
-        const m2Score1 = m2Points;
-        const m2Score2 = 24 - m2Points;
+        const m1ScoreTeam1 = m1Points;
+        const m1ScoreTeam2 = 24 - m1Points;
 
-        const updated = sorted.map((t, i) => {
+        const updated = sorted.map((p, i) => {
           let gained = 0;
-          if (i === 0) gained = m1Score1;
-          if (i === 1) gained = m1Score2;
-          if (i === 2) gained = m2Score1;
-          if (i === 3) gained = m2Score2;
-          return { ...t, pts: t.pts + gained };
+          if (i === 0 || i === 2) gained = m1ScoreTeam1; // Player 1 and 3
+          if (i === 1 || i === 3) gained = m1ScoreTeam2; // Player 2 and 4
+          return { ...p, pts: p.pts + gained };
         });
 
         // Re-sort and determine trend
@@ -63,7 +57,7 @@ const LiveLeaderboardDemo = () => {
       </div>
       <div className="space-y-3 relative h-[190px]">
          <AnimatePresence>
-            {teams.map((p, i) => (
+            {players.map((p, i) => (
               <motion.div 
                 layout 
                 key={p.name} 
