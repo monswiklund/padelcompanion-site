@@ -170,18 +170,6 @@ const server = createServer(async (req, res) => {
       return;
     }
 
-    if (req.method === "POST" && req.url === "/api/beta-signup") {
-      const body = await readJsonBody(req);
-      if (!body.email || typeof body.email !== 'string') {
-        sendJson(req, res, 400, { error: "Email is required" });
-        return;
-      }
-      
-      console.log(`[BETA SIGNUP] New beta tester registered: ${body.email}`);
-      sendJson(req, res, 200, { success: true });
-      return;
-    }
-
     const updateMatch = req.url.match(/^\/api\/tournament-sessions\/([^/]+)\/snapshot$/);
     if (req.method === "PUT" && updateMatch) {
       const body = await readJsonBody(req);

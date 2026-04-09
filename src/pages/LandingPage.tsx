@@ -148,55 +148,10 @@ const LiveLeaderboardDemo = () => {
 };
 
 const LandingPage: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
   const { scrollYProgress } = useScroll();
   const rotateX = useTransform(scrollYProgress, [0, 0.2], [15, 0]);
   const phoneY = useTransform(scrollYProgress, [0, 0.2], [0, -50]);
   const watchY = useTransform(scrollYProgress, [0, 0.2], [50, -20]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    if (!email) {
-      setError("Please enter your email address");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/beta-signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Something went wrong. Please try again.');
-      }
-
-      setSuccess(true);
-      setEmail("");
-    } catch (err: any) {
-      setError(err.message || "Failed to sign up.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden selection:bg-accent selection:text-white">
@@ -514,41 +469,14 @@ const LandingPage: React.FC = () => {
                   We're actively developing the Android and Wear OS versions. Leave your email to get early access and shape the app.
                 </p>
               </div>
-              <form
-                className="flex flex-col gap-3"
-                onSubmit={handleSubmit}
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                href="mailto:wiklund.labs@gmail.com?subject=Android%20Beta%20Access"
+                className="w-full inline-flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-colors shadow-lg"
               >
-                {success ? (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-success/10 text-success border border-success/20 px-6 py-4 rounded-2xl text-center font-bold"
-                  >
-                    You're on the list! Keep an eye on your inbox.
-                  </motion.div>
-                ) : (
-                  <>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      className="w-full bg-white/[0.03] rounded-2xl px-6 py-4 text-foreground outline-none border border-white/5 focus:border-primary/50 transition-all placeholder:text-muted-foreground/50"
-                      required
-                    />
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                      disabled={loading}
-                      type="submit"
-                    >
-                      {loading ? "Sending..." : "Become a Tester"}
-                    </motion.button>
-                  </>
-                )}
-                {error && <p className="text-error text-sm mt-2 text-center font-medium">{error}</p>}
-              </form>
+                Become a Tester
+              </motion.a>
             </div>
           </div>
         </div>
