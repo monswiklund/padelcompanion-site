@@ -8,25 +8,47 @@ import { SponsorSlot } from "@/components/landing/LandingSections";
 
 // Live Leaderboard micro-interaction component for the Bento Box
 const LiveLeaderboardDemo = () => {
-  const [players, setPlayers] = useState([
-    { name: "John & Jane", pts: 24, trend: "up" },
-    { name: "Alice & Bob", pts: 21, trend: "same" },
-    { name: "Charlie & Dave", pts: 18, trend: "down" },
+  const [teams, setTeams] = useState([
+    { name: "John & Jane", pts: 145, trend: "same" },
+    { name: "Alice & Bob", pts: 141, trend: "same" },
+    { name: "Charlie & Dave", pts: 137, trend: "same" },
+    { name: "Emma & Tom", pts: 130, trend: "same" }
   ]);
+  const [round, setRound] = useState(4);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setPlayers(prev => {
-        const newPlayers = prev.map(p => ({ 
-          ...p, 
-          pts: p.pts + Math.floor(Math.random() * 4),
-        }));
-        return newPlayers.sort((a, b) => b.pts - a.pts).map((p, i, arr) => {
+      setTeams(prev => {
+        // Sort teams by points to simulate Mexicano pairing (1v2, 3v4)
+        const sorted = [...prev].sort((a, b) => b.pts - a.pts);
+        
+        // Simulate Match 1: 1st vs 2nd (24 points total)
+        const m1Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
+        const m1Score1 = m1Points;
+        const m1Score2 = 24 - m1Points;
+        
+        // Simulate Match 2: 3rd vs 4th (24 points total)
+        const m2Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
+        const m2Score1 = m2Points;
+        const m2Score2 = 24 - m2Points;
+
+        const updated = sorted.map((t, i) => {
+          let gained = 0;
+          if (i === 0) gained = m1Score1;
+          if (i === 1) gained = m1Score2;
+          if (i === 2) gained = m2Score1;
+          if (i === 3) gained = m2Score2;
+          return { ...t, pts: t.pts + gained };
+        });
+
+        // Re-sort and determine trend
+        return updated.sort((a, b) => b.pts - a.pts).map((p, i) => {
            const oldIdx = prev.findIndex(op => op.name === p.name);
            return { ...p, trend: oldIdx > i ? "up" : oldIdx < i ? "down" : "same" };
         });
       });
-    }, 3000);
+      setRound(r => (r >= 6 ? 1 : r + 1));
+    }, 3500);
     return () => clearInterval(interval);
   }, []);
 
@@ -37,11 +59,11 @@ const LiveLeaderboardDemo = () => {
          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Standings
          </span>
-         <span className="text-[10px] font-bold text-muted-foreground/50">Round 4/6</span>
+         <span className="text-[10px] font-bold text-muted-foreground/50">Round {round}/6</span>
       </div>
-      <div className="space-y-3 relative h-[140px]">
+      <div className="space-y-3 relative h-[190px]">
          <AnimatePresence>
-            {players.map((p, i) => (
+            {teams.map((p, i) => (
               <motion.div 
                 layout 
                 key={p.name} 
