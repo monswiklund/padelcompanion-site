@@ -195,90 +195,137 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Bento Box Features */}
-      <section className="py-32 px-6 relative" id="features">
+      {/* The Tournament Engine Section */}
+      <section className="py-24 px-6 relative" id="engine">
         <div className="container max-w-[1200px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center max-w-3xl mx-auto mb-20"
+            className="mb-16 md:mb-24 flex flex-col md:flex-row items-start md:items-end justify-between gap-8"
           >
-            <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter leading-[1.1]">
-              Everything you need.<br />
-              <span className="text-muted-foreground">Nothing you don't.</span>
-            </h2>
+            <div className="max-w-2xl">
+              <span className="inline-block py-1 px-3 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-6">
+                For the Organizer
+              </span>
+              <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] mb-6">
+                The Web Engine
+              </h2>
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                Run Americano, Mexicano, Brackets, and Winner's Court straight from your browser. 
+                No sign-ups required. Instantly share live leaderboards with everyone at the club.
+              </p>
+            </div>
+            <Link
+              to="/tournament/generator"
+              onClick={() => window.scrollTo(0, 0)}
+              className="shrink-0 inline-flex items-center justify-center bg-transparent border border-border hover:bg-white/5 text-foreground px-6 py-3 rounded-full text-sm font-bold transition-transform hover:scale-105 active:scale-95"
+            >
+              Start Web Tournament →
+            </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
-             {/* Bento 1: Large */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             {/* Tournament Engine Main Feature */}
              <motion.div 
                initial={{ opacity: 0, y: 20 }}
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
-               className="md:col-span-2 md:row-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col justify-between overflow-hidden relative group"
+               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col overflow-hidden relative group h-full min-h-[500px]"
              >
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="relative z-10 mb-12 max-w-md">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className="relative z-10 max-w-md mb-8">
                    <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center text-2xl mb-6 text-accent">🏆</div>
-                   <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">The Ultimate Engine</h3>
-                   <p className="text-muted-foreground leading-relaxed text-lg">Run Americano, Mexicano, and Winner's Court effortlessly. Algorithms handle the perfectly balanced rotation, you just focus on the game.</p>
+                   <h3 className="text-3xl font-black mb-4 tracking-tight">Perfect Matchmaking</h3>
+                   <p className="text-muted-foreground leading-relaxed">
+                     Our algorithms handle the complex rotations to ensure perfectly balanced games, no matter the format. You just focus on playing.
+                   </p>
                 </div>
                 <div className="relative z-10 w-full mt-auto">
                    <LiveLeaderboardDemo />
                 </div>
              </motion.div>
 
-             {/* Bento 2: Small */}
-             <motion.div 
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.1 }}
-               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group"
-             >
-                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
-                   <div className="text-8xl">⌚</div>
-                </div>
-                <div className="mt-auto relative z-10">
-                   <h3 className="text-2xl font-black mb-3 tracking-tight">Watch First</h3>
-                   <p className="text-sm text-muted-foreground leading-relaxed">Standalone Apple Watch support. Leave your phone in the bag and score instantly from your wrist.</p>
-                </div>
-             </motion.div>
+             <div className="flex flex-col gap-6">
+                {/* Format 1 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="flex-1 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-center relative overflow-hidden group"
+                >
+                   <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity text-white">
+                      <div className="text-8xl">📊</div>
+                   </div>
+                   <div className="relative z-10">
+                      <h3 className="text-2xl font-black mb-2 tracking-tight">Divisions & Leagues</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Organize long-running leagues. The engine automatically tracks table standings, game difference, and generates the schedule.
+                      </p>
+                   </div>
+                </motion.div>
 
-             {/* Bento 3: Small */}
-             <motion.div 
-               initial={{ opacity: 0, y: 20 }}
-               whileInView={{ opacity: 1, y: 0 }}
-               viewport={{ once: true }}
-               transition={{ delay: 0.2 }}
-               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group"
-             >
-                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:-rotate-12 duration-500 text-primary">
-                   <div className="text-8xl">🌐</div>
-                </div>
-                <div className="mt-auto relative z-10">
-                   <h3 className="text-2xl font-black mb-3 tracking-tight">Cloud Sync</h3>
-                   <p className="text-sm text-muted-foreground leading-relaxed">Real-time sync. Your history, analytics, and active tournaments are always up to date across all devices.</p>
-                </div>
-             </motion.div>
+                {/* Format 2 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
+                  className="flex-1 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-center relative overflow-hidden group"
+                >
+                   <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity text-white">
+                      <div className="text-8xl">👑</div>
+                   </div>
+                   <div className="relative z-10">
+                      <h3 className="text-2xl font-black mb-2 tracking-tight">Winner's Court</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        The ultimate king of the hill experience. Win and move up towards the center court, lose and drop down.
+                      </p>
+                   </div>
+                </motion.div>
+             </div>
+          </div>
+        </div>
+      </section>
 
-             {/* Bento 4: Large Horizontal */}
+      {/* The App Section */}
+      <section className="py-24 px-6 relative bg-white/[0.02] border-y border-white/5" id="app">
+        <div className="container max-w-[1200px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16 md:mb-24 text-center max-w-3xl mx-auto"
+          >
+            <span className="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest uppercase mb-6">
+              For the Player
+            </span>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] mb-6">
+              The Companion App
+            </h2>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              Available on iOS and Android. Keep track of your daily matches, analyze your personal performance, and score instantly from your smartwatch.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
+             {/* App Analytics */}
              <motion.div 
                initial={{ opacity: 0, y: 20 }}
                whileInView={{ opacity: 1, y: 0 }}
                viewport={{ once: true }}
-               transition={{ delay: 0.3 }}
                className="md:col-span-3 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group"
              >
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 <div className="relative z-20 flex-1">
-                   <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center text-2xl mb-6 text-primary">📊</div>
-                   <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Deep Analytics</h3>
-                   <p className="text-muted-foreground leading-relaxed text-lg">Understand your game. Track win ratios, analyze your form over time, and see who your best partner really is. Data doesn't lie.</p>
+                   <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center text-2xl mb-6 text-primary">📈</div>
+                   <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Deep Personal Analytics</h3>
+                   <p className="text-muted-foreground leading-relaxed text-lg">
+                     Understand your game. Track win ratios, analyze your form over time, and see who your best partner really is. Find out exactly where you need to improve.
+                   </p>
                 </div>
                 <div className="relative z-10 flex-1 w-full h-full min-h-[200px] flex items-end justify-center gap-3">
-                   {/* Fake chart/graph using divs */}
                    {[40,70,45,90,65,100,85].map((h,i) => (
                       <motion.div 
                         key={i} 
@@ -286,9 +333,47 @@ const LandingPage: React.FC = () => {
                         whileInView={{ height: `${h}%` }}
                         viewport={{ once: true }}
                         transition={{ duration: 1, delay: i * 0.1 }}
-                        className="w-12 bg-gradient-to-t from-primary/20 to-primary/80 rounded-t-lg" 
+                        className="w-12 bg-gradient-to-t from-primary/20 to-primary/80 rounded-t-lg shadow-[0_0_15px_rgba(59,130,246,0.5)]" 
                       />
                    ))}
+                </div>
+             </motion.div>
+
+             {/* Smartwatch */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.1 }}
+               className="md:col-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 overflow-hidden relative group"
+             >
+                <div className="relative z-20 flex-1 max-w-sm">
+                   <h3 className="text-3xl font-black mb-4 tracking-tight">Watch First</h3>
+                   <p className="text-muted-foreground leading-relaxed text-lg">
+                     Standalone Apple Watch and Wear OS support. Leave your phone in the bag. Start matches and score points effortlessly straight from your wrist without breaking a sweat.
+                   </p>
+                </div>
+                <div className="relative z-10 flex-1 flex justify-center items-center pointer-events-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                   <WatchMockup />
+                </div>
+             </motion.div>
+
+             {/* Cloud Sync */}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true }}
+               transition={{ delay: 0.2 }}
+               className="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group"
+             >
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:-rotate-12 duration-500 text-white">
+                   <div className="text-8xl">🌐</div>
+                </div>
+                <div className="mt-auto relative z-10">
+                   <h3 className="text-2xl font-black mb-3 tracking-tight">Always in Sync</h3>
+                   <p className="text-sm text-muted-foreground leading-relaxed">
+                     Your match history, analytics, and active tournaments are backed up in the cloud and instantly synchronized across all your devices in real-time.
+                   </p>
                 </div>
              </motion.div>
           </div>
