@@ -9,40 +9,62 @@ import { SponsorSlot } from "@/components/landing/LandingSections";
 // Live Leaderboard micro-interaction component for the Bento Box
 const LiveLeaderboardDemo = () => {
   const [players, setPlayers] = useState([
-    { name: "John", pts: 145, trend: "same" },
-    { name: "Jane", pts: 141, trend: "same" },
-    { name: "Alice", pts: 137, trend: "same" },
-    { name: "Bob", pts: 130, trend: "same" }
+    { name: "John", pts: 145, trend: "same" as const },
+    { name: "Jane", pts: 141, trend: "same" as const },
+    { name: "Alice", pts: 137, trend: "same" as const },
+    { name: "Bob", pts: 130, trend: "same" as const }
   ]);
   const [round, setRound] = useState(4);
+  const [phase, setPhase] = useState<"leaderboard" | "match">("leaderboard");
+  const [currentMatch, setCurrentMatch] = useState<{t1: string[], t2: string[], s1: number, s2: number} | null>(null);
 
   useEffect(() => {
+    let tick = 0;
     const interval = setInterval(() => {
-      setPlayers(prev => {
-        // In Mexicano, players are sorted by points and matched 1 & 3 vs 2 & 4
-        // So Match 1 is: John & Alice vs Jane & Bob
-        const sorted = [...prev].sort((a, b) => b.pts - a.pts);
-        
-        // Simulate Match 1 (24 points total)
-        const m1Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
-        const m1ScoreTeam1 = m1Points;
-        const m1ScoreTeam2 = 24 - m1Points;
-
-        const updated = sorted.map((p, i) => {
-          let gained = 0;
-          if (i === 0 || i === 2) gained = m1ScoreTeam1; // Player 1 and 3
-          if (i === 1 || i === 3) gained = m1ScoreTeam2; // Player 2 and 4
-          return { ...p, pts: p.pts + gained };
+      tick++;
+      if (tick % 2 !== 0) {
+        // Phase: MATCH - Show the upcoming matches based on current standings
+        setPlayers(prev => {
+           const sorted = [...prev].sort((a, b) => b.pts - a.pts);
+           // Generate random score for the upcoming match
+           const m1Points = Math.floor(Math.random() * 9) + 8; // 8 to 16
+           setCurrentMatch({
+             t1: [sorted[0].name, sorted[2].name], // 1 & 3
+             t2: [sorted[1].name, sorted[3].name], // 2 & 4
+             s1: m1Points,
+             s2: 24 - m1Points
+           });
+           return prev;
         });
+        setPhase("match");
+      } else {
+        // Phase: LEADERBOARD - Apply points and show updated standings
+        setPlayers(prev => {
+          const sorted = [...prev].sort((a, b) => b.pts - a.pts);
+          let m1 = 12;
+          let m2 = 12;
+          
+          setCurrentMatch(match => {
+            if (match) { m1 = match.s1; m2 = match.s2; }
+            return match;
+          });
 
-        // Re-sort and determine trend
-        return updated.sort((a, b) => b.pts - a.pts).map((p, i) => {
-           const oldIdx = prev.findIndex(op => op.name === p.name);
-           return { ...p, trend: oldIdx > i ? "up" : oldIdx < i ? "down" : "same" };
+          const updated = sorted.map((p, i) => {
+            let gained = 0;
+            if (i === 0 || i === 2) gained = m1;
+            if (i === 1 || i === 3) gained = m2;
+            return { ...p, pts: p.pts + gained };
+          });
+
+          return updated.sort((a, b) => b.pts - a.pts).map((p, i) => {
+             const oldIdx = prev.findIndex(op => op.name === p.name);
+             return { ...p, trend: oldIdx > i ? "up" : oldIdx < i ? "down" : "same" };
+          });
         });
-      });
-      setRound(r => (r >= 6 ? 1 : r + 1));
-    }, 3500);
+        setPhase("leaderboard");
+        setRound(r => (r >= 6 ? 1 : r + 1));
+      }
+    }, 3000); // toggle every 3s
     return () => clearInterval(interval);
   }, []);
 
@@ -51,34 +73,74 @@ const LiveLeaderboardDemo = () => {
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-warning to-success" />
       <div className="flex justify-between items-center mb-5 border-b border-white/5 pb-3">
          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> Live Standings
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> {phase === 'leaderboard' ? 'Live Standings' : 'Live Match'}
          </span>
          <span className="text-[10px] font-bold text-muted-foreground/50">Round {round}/6</span>
       </div>
-      <div className="space-y-3 relative h-[190px]">
-         <AnimatePresence>
-            {players.map((p, i) => (
-              <motion.div 
-                layout 
-                key={p.name} 
-                initial={{opacity: 0, y: 10}} 
-                animate={{opacity: 1, y: 0}} 
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="flex justify-between items-center bg-white/[0.02] p-2.5 rounded-xl border border-white/5 absolute w-full"
-                style={{ top: i * 48 }}
-              >
-                 <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-muted-foreground/50 w-3">{i + 1}</span>
-                    <span className="text-sm font-bold text-foreground">{p.name}</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold opacity-60">
-                       {p.trend === "up" ? <span className="text-success">▲</span> : p.trend === "down" ? <span className="text-error">▼</span> : <span className="text-muted-foreground">-</span>}
-                    </span>
-                    <span className="text-sm font-black text-accent">{p.pts}</span>
-                 </div>
-              </motion.div>
-            ))}
+      <div className="relative h-[190px]">
+         <AnimatePresence mode="wait">
+            {phase === 'match' && currentMatch ? (
+               <motion.div
+                 key="match-view"
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0, scale: 0.95 }}
+                 transition={{ duration: 0.3 }}
+                 className="flex flex-col items-center justify-center h-full gap-5 pb-4"
+               >
+                  <div className="w-full bg-white/[0.02] p-4 rounded-xl border border-white/5 flex flex-col items-center shadow-inner">
+                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground/70 font-black mb-2">Mexicano Matchup</span>
+                     <div className="text-sm font-bold text-foreground text-center flex items-center gap-2">
+                       <span className="opacity-50 text-[10px]">#1</span> {currentMatch.t1[0]} <span className="opacity-50 text-[10px]">&</span> {currentMatch.t1[1]} <span className="opacity-50 text-[10px]">#3</span>
+                     </div>
+                     <div className="text-[10px] text-muted-foreground/50 font-black my-1">VS</div>
+                     <div className="text-sm font-bold text-foreground text-center flex items-center gap-2">
+                       <span className="opacity-50 text-[10px]">#2</span> {currentMatch.t2[0]} <span className="opacity-50 text-[10px]">&</span> {currentMatch.t2[1]} <span className="opacity-50 text-[10px]">#4</span>
+                     </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-3xl font-black">
+                     <div className="flex flex-col items-center">
+                       <span className="text-foreground">{currentMatch.s1}</span>
+                       <span className="text-[10px] text-success uppercase tracking-widest mt-1">+ {currentMatch.s1} pts</span>
+                     </div>
+                     <span className="text-muted-foreground/30 mb-5">-</span>
+                     <div className="flex flex-col items-center">
+                       <span className="text-foreground">{currentMatch.s2}</span>
+                       <span className="text-[10px] text-success uppercase tracking-widest mt-1">+ {currentMatch.s2} pts</span>
+                     </div>
+                  </div>
+               </motion.div>
+            ) : (
+               <motion.div 
+                 key="leaderboard-view" 
+                 className="absolute inset-0 w-full h-full"
+                 initial={{ opacity: 0 }} 
+                 animate={{ opacity: 1 }} 
+                 exit={{ opacity: 0 }}
+                 transition={{ duration: 0.3 }}
+               >
+                 {players.map((p, i) => (
+                    <motion.div 
+                      layout 
+                      key={p.name} 
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      className="flex justify-between items-center bg-white/[0.02] p-2.5 rounded-xl border border-white/5 absolute w-full"
+                      style={{ top: i * 48 }}
+                    >
+                       <div className="flex items-center gap-3">
+                          <span className="text-xs font-black text-muted-foreground/50 w-3">{i + 1}</span>
+                          <span className="text-sm font-bold text-foreground">{p.name}</span>
+                       </div>
+                       <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-bold opacity-60">
+                             {p.trend === "up" ? <span className="text-success">▲</span> : p.trend === "down" ? <span className="text-error">▼</span> : <span className="text-muted-foreground">-</span>}
+                          </span>
+                          <span className="text-sm font-black text-accent">{p.pts}</span>
+                       </div>
+                    </motion.div>
+                 ))}
+               </motion.div>
+            )}
          </AnimatePresence>
       </div>
     </div>
