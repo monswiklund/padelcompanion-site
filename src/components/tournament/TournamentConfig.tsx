@@ -8,6 +8,13 @@ import {
   HELP_SCORING,
   HELP_COURTS,
 } from "@/tournament/content/help";
+import {
+  ConfigSection,
+  ConfigRow,
+  ConfigStepper,
+  ConfigToggle,
+  ConfigSelect,
+} from "@/components/ui/ConfigElements";
 
 export interface TournamentConfigState {
   format: "americano" | "mexicano" | "team" | "teamMexicano" | "division";
@@ -160,154 +167,76 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
   return (
 
     <div className="space-y-6">
-
       {/* Format Selector */}
-
-      <Section
-
+      <ConfigSection
         title="Format"
-
         help={
-
           CONFIG_OPTIONS.format.find((o) => o.value === config.format)?.help
-
         }
-
       >
-
         <div className="grid grid-cols-2 gap-2">
-
           {["americano", "mexicano"].map((f) => {
-
             const opt = CONFIG_OPTIONS.format.find((o) => o.value === f)!;
-
             const isActive = baseFormat === f;
-
             return (
-
               <button
-
                 key={f}
-
                 type="button"
-
                 className={`py-3 px-3 rounded-xl text-left transition-all ${
-
                   isActive
-
                     ? "bg-accent text-white ring-2 ring-accent/30"
-
                     : "bg-popover border border-border text-muted-foreground hover:text-foreground hover:border-accent/50"
-
                 }`}
-
                 onClick={() => handleFormatChange(f)}
-
               >
-
                 <div className="font-semibold text-sm">{opt.label}</div>
-
                 <div
-
                   className={`text-xs ${
-
                     isActive ? "text-white/70" : "text-muted-foreground"
-
                   }`}
-
                 >
-
                   {opt.desc}
-
                 </div>
-
               </button>
-
             );
-
           })}
-
         </div>
-
-      </Section>
+      </ConfigSection>
 
 
 
       {/* Game Settings */}
-
-      <Section title="Game Settings">
-
+      <ConfigSection title="Game Settings">
         <div className="divide-y divide-border">
-
           {baseFormat === "mexicano" && (
-
             <ConfigRow label="Team Mode" hint="Fixed teams">
-
-              <Toggle enabled={isTeamMex} onChange={toggleTeamMexicano} />
-
+              <ConfigToggle enabled={isTeamMex} onChange={toggleTeamMexicano} />
             </ConfigRow>
-
           )}
 
 
 
-                    <ConfigRow label="Courts" hint="Simultaneous courts">
-
-
-
-                      <Stepper
-
-
-
-                        value={config.courts}
-
-
-
-                        min={1}
-
-
-
-                        max={effectiveMaxCourts}
-
-
-
-                        onChange={(v) =>
-
-
-
-                          handleNumberChange("courts", v, 1, effectiveMaxCourts)
-
-
-
-                        }
-
-
-
-                        disabledMax={config.courts >= effectiveMaxCourts}
-
-
-
-                      />
-
-
-
-                    </ConfigRow>
+          <ConfigRow label="Courts" hint="Simultaneous courts">
+            <ConfigStepper
+              value={config.courts}
+              min={1}
+              max={effectiveMaxCourts}
+              onChange={(v) =>
+                handleNumberChange("courts", v, 1, effectiveMaxCourts)
+              }
+              disabledMax={config.courts >= effectiveMaxCourts}
+            />
+          </ConfigRow>
 
 
 
           
-                    <ConfigRow label="Scoring" hint="Win condition">
-
-
-
-          
-            <select
-              className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+          <ConfigRow label="Scoring" hint="Win condition">
+            <ConfigSelect
               value={config.scoringMode}
               onChange={(e) => {
                 const mode = e.target.value;
                 onChange("scoringMode", mode);
-                // Set preset points based on mode
                 const presets: Record<string, number> = {
                   total: 24,
                   race: 14,
@@ -323,7 +252,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
                   {o.label}
                 </option>
               ))}
-            </select>
+            </ConfigSelect>
           </ConfigRow>
 
           <ConfigRow
@@ -332,7 +261,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
               config.scoringMode === "time" ? "Duration (min)" : "Target score"
             }
           >
-            <Stepper
+            <ConfigStepper
               value={config.pointsPerMatch}
               min={4}
               max={50}
@@ -341,15 +270,14 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
             />
           </ConfigRow>
         </div>
-      </Section>
+      </ConfigSection>
 
       {/* Mexicano Settings */}
       {isMexicano && (
-        <Section title="Advanced">
+        <ConfigSection title="Advanced">
           <div className="divide-y divide-border">
             <ConfigRow label="Partner Repeats" hint="Max same pair plays">
-              <select
-                className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+              <ConfigSelect
                 value={config.maxRepeats}
                 onChange={(e) =>
                   onChange("maxRepeats", parseInt(e.target.value))
@@ -360,12 +288,11 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </ConfigSelect>
             </ConfigRow>
 
             <ConfigRow label="Pairing Style" hint="Matchup logic">
-              <select
-                className="w-full px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+              <ConfigSelect
                 value={config.pairingStrategy}
                 onChange={(e) => onChange("pairingStrategy", e.target.value)}
               >
@@ -374,11 +301,11 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </ConfigSelect>
             </ConfigRow>
 
             <ConfigRow label="Strict Pattern" hint="Force pattern">
-              <Toggle
+              <ConfigToggle
                 enabled={config.strictStrategy}
                 disabled={config.pairingStrategy === "optimal"}
                 onChange={() => {
@@ -389,15 +316,14 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
               />
             </ConfigRow>
           </div>
-        </Section>
+        </ConfigSection>
       )}
 
       {/* Court Settings */}
-      <Section title="Display">
+      <ConfigSection title="Display">
         <div className="divide-y divide-border">
           <ConfigRow label="Court Names" hint="Label format">
-            <select
-              className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+            <ConfigSelect
               value={config.courtFormat}
               onChange={(e) => onChange("courtFormat", e.target.value)}
             >
@@ -406,7 +332,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
                   {o.label}
                 </option>
               ))}
-            </select>
+            </ConfigSelect>
           </ConfigRow>
         </div>
 
@@ -428,22 +354,22 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
             ))}
           </div>
         )}
-      </Section>
+      </ConfigSection>
 
       {/* Timing Settings */}
-      <Section title="Timing">
-        <div className="divide-y divide-white/[0.06]">
+      <ConfigSection title="Timing">
+        <div className="divide-y divide-border">
           <ConfigRow label="Start Time" hint="Expected first round">
             <input
               type="time"
-              className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
+              className="px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm w-full"
               value={config.plannedStartTime || "17:00"}
               onChange={(e) => onChange("plannedStartTime" as any, e.target.value)}
             />
           </ConfigRow>
 
           <ConfigRow label="Match Duration" hint="Minutes per round">
-            <Stepper
+            <ConfigStepper
               value={config.matchDuration || 15}
               min={5}
               max={120}
@@ -452,95 +378,7 @@ export const TournamentConfig: React.FC<TournamentConfigProps> = ({
             />
           </ConfigRow>
         </div>
-      </Section>
+      </ConfigSection>
     </div>
   );
 };
-
-// Section Component
-const Section: React.FC<{
-  title: string;
-  help?: { title: string; content: string };
-  children: React.ReactNode;
-}> = ({ title, help, children }) => (
-  <div>
-    <div className="flex items-center gap-2 mb-3">
-      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-        {title}
-      </h4>
-      {help && <HelpButton title={help.title} content={help.content} />}
-    </div>
-    {children}
-  </div>
-);
-
-// Config Row Component - inline layout
-const ConfigRow: React.FC<{
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}> = ({ label, hint, children }) => (
-  <div className="flex items-center justify-between gap-3 py-2">
-    <div className="flex-1 min-w-0">
-      <span className="text-sm font-medium text-foreground">{label}</span>
-      {hint && <span className="text-xs text-muted-foreground ml-1.5">({hint})</span>}
-    </div>
-    <div className="flex-shrink-0">{children}</div>
-  </div>
-);
-
-// Stepper Component
-const Stepper: React.FC<{
-  value: number;
-  min: number;
-  max: number;
-  step?: number;
-  onChange: (v: number) => void;
-  disabledMax?: boolean;
-}> = ({ value, min, max, step = 1, onChange, disabledMax }) => (
-  <div className="flex items-center bg-popover rounded-xl border border-border overflow-hidden">
-    <button
-      type="button"
-      className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-      disabled={value <= min}
-      onClick={() => onChange(value - step)}
-    >
-      −
-    </button>
-    <div className="w-10 text-center font-bold text-foreground">{value}</div>
-    <button
-      type="button"
-      className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-      disabled={disabledMax || value >= max}
-      onClick={() => onChange(value + step)}
-    >
-      +
-    </button>
-  </div>
-);
-
-// Toggle Component
-const Toggle: React.FC<{
-  enabled: boolean;
-  disabled?: boolean;
-  onChange: () => void;
-}> = ({ enabled, disabled, onChange }) => (
-  <button
-    type="button"
-    onClick={disabled ? undefined : onChange}
-    disabled={disabled}
-    className={`relative w-12 h-7 rounded-full transition-colors border ${
-      disabled
-        ? "opacity-40 cursor-not-allowed bg-surface-hover border-transparent"
-        : enabled
-        ? "bg-accent border-accent"
-        : "bg-muted/20 hover:bg-muted/30 border-border"
-    }`}
-  >
-    <span
-      className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-        enabled ? "translate-x-5" : ""
-      }`}
-    />
-  </button>
-);

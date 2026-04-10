@@ -12,7 +12,14 @@ import { showConfirmModal } from "@/tournament/core/modals";
 import { Dialog } from "@/components/ui/Dialog";
 import { CloudService } from "@/tournament/sync/cloud";
 import { getTournamentRoute } from "@/tournament/navigation";
-import { TrophyIcon, SaveIcon } from "@/components/ui/Icons";
+import {
+  TrophyIcon,
+  SaveIcon,
+  SearchIcon,
+  TrashIcon,
+  UploadIcon,
+  CloudIcon,
+} from "@/components/ui/Icons";
 
 interface HistoryItem {
   id: string;
@@ -145,23 +152,29 @@ export const HistorySection: React.FC = () => {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-72 group">
+          <SearchIcon
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-accent transition-colors"
+          />
           <input
             type="text"
             placeholder="Search history..."
-            className="w-full px-4 py-2 rounded-lg bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-3 mb-8">
         <Button
           variant="secondary"
           size="sm"
           onClick={() => setIsOpenByCode(true)}
+          className="rounded-xl gap-2 font-bold uppercase tracking-wider text-[11px]"
         >
+          <CloudIcon size={16} />
           Open with code
         </Button>
         <label className="inline-flex">
@@ -171,7 +184,8 @@ export const HistorySection: React.FC = () => {
             className="sr-only"
             onChange={handleImportFile}
           />
-          <span className="px-3 py-1.5 text-sm rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 bg-card hover:bg-popover border border-border text-foreground hover:border-accent/50 cursor-pointer">
+          <span className="px-4 py-2 text-[11px] rounded-xl font-bold uppercase tracking-wider transition-all duration-200 inline-flex items-center justify-center gap-2 bg-card hover:bg-popover border border-border text-foreground hover:border-accent hover:text-accent shadow-sm cursor-pointer whitespace-nowrap">
+            <UploadIcon size={16} />
             Import JSON
           </span>
         </label>
@@ -189,23 +203,23 @@ export const HistorySection: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
-                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4">
                   Date
                 </th>
-                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
+                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4">
                   Tournament
                 </th>
-                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
+                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4 hidden sm:table-cell">
                   Format
                 </th>
-                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden md:table-cell">
+                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4 hidden md:table-cell">
                   Winner
                 </th>
-                <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 hidden lg:table-cell">
-                  Players
+                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4 hidden lg:table-cell">
+                  Stats
                 </th>
-                <th className="text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
+                <th className="text-right text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] px-4 py-4">
                   Actions
                 </th>
               </tr>
@@ -262,9 +276,10 @@ export const HistorySection: React.FC = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(item.id, item.summary.name)}
-                        className="text-error hover:bg-error/10"
+                        className="text-muted-foreground hover:text-error hover:bg-error/5 rounded-lg"
+                        title="Delete"
                       >
-                        ×
+                        <TrashIcon size={16} />
                       </Button>
                     </div>
                   </td>
@@ -306,17 +321,20 @@ export const HistorySection: React.FC = () => {
           </>
         }
       >
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             Enter the share code from another device to restore the tournament here.
           </p>
-          <input
-            type="text"
-            placeholder="ABC123"
-            className="w-full px-4 py-3 rounded-xl bg-popover border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors uppercase tracking-[0.2em]"
-            value={shareCode}
-            onChange={(e) => setShareCode(e.target.value.toUpperCase())}
-          />
+          <div className="relative group">
+            <CloudIcon size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-accent" />
+            <input
+              type="text"
+              placeholder="ABC123"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-muted/30 border border-border text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all uppercase tracking-[0.25em] font-black text-lg"
+              value={shareCode}
+              onChange={(e) => setShareCode(e.target.value.toUpperCase())}
+            />
+          </div>
         </div>
       </Dialog>
     </section>

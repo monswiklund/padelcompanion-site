@@ -153,6 +153,7 @@ export interface TournamentState {
   };
   tiebreaker?: "difference" | "most_won" | "shared";
   divisionCourts?: number;
+  namingDrafts: Record<string, { name: string; notes: string }>;
   [key: string]: any;
 }
 
@@ -208,6 +209,15 @@ const DEFAULT_STATE: TournamentState = {
   },
   plannedStartTime: "17:00",
   matchDuration: 15,
+  namingDrafts: {
+    americano: { name: "", notes: "" },
+    mexicano: { name: "", notes: "" },
+    team: { name: "", notes: "" },
+    teamMexicano: { name: "", notes: "" },
+    division: { name: "", notes: "" },
+    bracket: { name: "", notes: "" },
+    winnersCourt: { name: "", notes: "" },
+  },
 };
 
 const STORAGE_KEY = "tournament-state";
@@ -292,6 +302,7 @@ type StateAction =
   | { type: "UPDATE_BRACKET_SCALE"; scale: number }
   | { type: "SET_HISTORY"; history: any[] }
   | { type: "UPDATE_TIMER"; payload: Partial<TournamentState["timer"]> }
+  | { type: "UPDATE_NAMING_DRAFT"; format: string; key: "name" | "notes"; value: string }
   // WinnersCourt Actions
   | { type: "SET_WINNERS_COURT"; winnersCourtState: WinnersCourtState | null }
   | { type: "SET_WINNERS_COURT_SETUP"; winnersCourtSetup: WinnersCourtSetupDraft | null }
@@ -420,6 +431,17 @@ export const TournamentProvider: React.FC<{ children: React.ReactNode }> = ({
           return { ...prev, bracketScale: action.scale };
         case "SET_HISTORY":
           return { ...prev, historyData: action.history };
+        case "UPDATE_NAMING_DRAFT": {
+          const { format, key, value } = action;
+          const currentDraft = prev.namingDrafts?.[format] || { name: "", notes: "" };
+          return {
+            ...prev,
+            namingDrafts: {
+              ...prev.namingDrafts,
+              [format]: { ...currentDraft, [key]: value },
+            },
+          };
+        }
         case "UPDATE_TIMER":
           return { ...prev, timer: { ...prev.timer, ...action.payload } };
         // WinnersCourt handlers

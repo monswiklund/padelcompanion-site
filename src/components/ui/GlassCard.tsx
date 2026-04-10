@@ -13,7 +13,7 @@ const variants = {
   hover:
     "bg-glass-background backdrop-blur-md border border-glass-border shadow-lg hover:border-accent/30 hover:shadow-xl transition-all duration-300",
   active:
-    "bg-accent/20 backdrop-blur-md border border-accent/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]",
+    "bg-accent/20 backdrop-blur-md border border-accent/50 shadow-[0_0_15px_rgba(249,115,22,0.2)]",
 };
 
 const paddingClasses = {
@@ -33,7 +33,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   return (
     <motion.div
       className={cn(
-        "rounded-2xl relative overflow-hidden",
+        "rounded-xl relative overflow-hidden",
         variants[variant],
         paddingClasses[padding],
         className,
@@ -44,9 +44,6 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       transition={{ duration: 0.3 }}
       {...props}
     >
-      {/* Noise Texture Overlay (Optional, adds premium feel) */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </motion.div>

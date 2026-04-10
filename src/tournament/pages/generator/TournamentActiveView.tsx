@@ -11,6 +11,7 @@ import { CloudService } from "@/tournament/sync/cloud";
 import { saveTournamentCloudLink, getTournamentCloudLink } from "@/tournament/sync/sessionLink";
 import { buildTournamentShareUrl } from "@/tournament/navigation";
 import PlayoffStandings from "@/tournament/ui/components/PlayoffStandings";
+import { SettingsIcon, CloudIcon, TrophyIcon, RefreshIcon, EditIcon } from "@/components/ui/Icons";
 import {
   formatEstimatedRoundStart,
   getEstimatedRoundStartRelativeLabel,
@@ -42,7 +43,7 @@ const TournamentActiveView: React.FC = () => {
     showConfirmModal(
       "Finish Tournament",
       "Are you sure you want to finish the tournament? This will reveal the final standings and save it to history!",
-      "Finish & Celebrate 🎉",
+      "Finish & Celebrate",
       () => {
         dispatch({
           type: "UPDATE_FIELD",
@@ -61,7 +62,7 @@ const TournamentActiveView: React.FC = () => {
         const el = document.querySelector(".leaderboard-section");
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-        showToast("Tournament Finished & Saved! 🏆");
+        showToast("Tournament Finished & Saved!");
       }
     );
   };
@@ -71,6 +72,21 @@ const TournamentActiveView: React.FC = () => {
       undo();
       showToast("Undo successful");
     }
+  };
+
+  const handleRename = () => {
+    showInputModal(
+      "Rename Tournament",
+      "Enter new tournament name:",
+      (newName) => {
+        if (newName) {
+          dispatch({ type: "UPDATE_FIELD", key: "tournamentName", value: newName.trim() });
+          showToast("Tournament renamed");
+        }
+      },
+      "",
+      tournamentName || "Unnamed Tournament"
+    );
   };
 
   const handleAddLatePlayer = () => {
@@ -219,9 +235,15 @@ const TournamentActiveView: React.FC = () => {
       {/* Header */}
       <header className="mb-12">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-foreground mb-3 tracking-tight">
-            {tournamentName || "Live Tournament"}
-          </h2>
+          <div 
+            className="group cursor-pointer inline-flex items-center justify-center gap-3 mb-3"
+            onClick={handleRename}
+          >
+            <h2 className="text-3xl font-bold text-foreground tracking-tight group-hover:text-accent transition-colors">
+              {tournamentName || "Live Tournament"}
+            </h2>
+            <EditIcon size={18} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-all -translate-y-1 group-hover:translate-y-0" />
+          </div>
           <div className="flex flex-wrap justify-center gap-2">
             <span className="px-3 py-1 bg-accent/10 text-accent text-xs font-bold rounded-full border border-accent/20 uppercase tracking-widest">
               {formatLabel}
@@ -284,7 +306,7 @@ const TournamentActiveView: React.FC = () => {
                 }`}
                 title="View Settings"
               >
-                <span className="text-lg">⚙️</span>
+                <SettingsIcon size={18} />
               </button>
 
               <div className="w-px h-6 bg-border mx-0.5 hidden sm:block" />
@@ -295,7 +317,7 @@ const TournamentActiveView: React.FC = () => {
                 disabled={isSyncing}
                 title="Save tournament to cloud and copy share code"
               >
-                <span className="text-base leading-none">{isSyncing ? "…" : "☁"}</span>
+                <CloudIcon size={18} />
                 <span className="hidden md:inline text-[10px] md:text-xs uppercase tracking-widest font-black">
                   {isSyncing ? "Syncing" : "Share"}
                 </span>
@@ -306,7 +328,7 @@ const TournamentActiveView: React.FC = () => {
                   className="h-10 md:h-11 px-3 md:px-4 bg-success text-white rounded-2xl font-black shadow-lg shadow-success/20 hover:shadow-success/40 transition-all flex items-center gap-1.5"
                   onClick={handleEnd}
                 >
-                  <span className="leading-none text-sm -mt-0.5">🏆</span>
+                  <TrophyIcon size={16} />
                   <span className="hidden lg:inline text-[10px] md:text-xs uppercase tracking-widest font-black">Finish</span>
                 </button>
               )}
@@ -316,7 +338,7 @@ const TournamentActiveView: React.FC = () => {
                 onClick={handleReset}
                 title="Reset Tournament"
               >
-                <span className="text-lg">🔄</span>
+                <RefreshIcon size={18} />
               </button>
             </div>
           </div>

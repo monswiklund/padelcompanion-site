@@ -15,6 +15,14 @@ import {
   BracketTeam,
   BracketConfig,
 } from "@/tournament/bracket/bracketCore";
+import { TournamentIdentity } from "@/components/tournament/TournamentIdentity";
+import {
+  ConfigSection,
+  ConfigRow,
+  ConfigStepper,
+  ConfigToggle,
+  ConfigSelect,
+} from "@/components/ui/ConfigElements";
 
 interface SetupTeam {
   id: string;
@@ -25,7 +33,7 @@ interface SetupTeam {
 type AssignStrategy = "random" | "alternate" | "half" | "manual";
 
 export const BracketSetup: React.FC = () => {
-  const { dispatch } = useTournament();
+  const { state, dispatch } = useTournament();
   const navigate = useNavigate();
 
   const [teams, setTeams] = useState<SetupTeam[]>(() => {
@@ -200,6 +208,11 @@ export const BracketSetup: React.FC = () => {
   );
 
   const handleCreateBracket = useCallback(() => {
+    // Sync naming draft to active tournament before creating
+    const draft = state.namingDrafts?.bracket || { name: "", notes: "" };
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentName", value: draft.name });
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentNotes", value: draft.notes });
+
     if (teams.length < 2) {
       showToast("Add at least 2 teams", "error");
       return;
@@ -313,14 +326,26 @@ export const BracketSetup: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Tournament Identity */}
+      <TournamentIdentity
+        format="bracket"
+        initialName={state.namingDrafts?.bracket?.name || ""}
+        initialNotes={state.namingDrafts?.bracket?.notes || ""}
+        onUpdate={(key, value) => 
+          dispatch({ type: "UPDATE_NAMING_DRAFT", format: "bracket", key, value })
+        }
+        className="animate-in fade-in slide-in-from-top-4 duration-500"
+      />
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
         className="text-center mb-12"
       >
         <div className="flex items-center justify-center gap-3 mb-4">
-          <h2 className="text-4xl font-black bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-accent">
             Bracket Setup
           </h2>
           <HelpButton
@@ -328,9 +353,6 @@ export const BracketSetup: React.FC = () => {
             content={HELP_BRACKET.content}
           />
         </div>
-        <p className="text-muted-foreground font-medium">
-          Configure your tournament structure
-        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -461,44 +483,15 @@ export const BracketSetup: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <GlassCard className="space-y-8 border-white/5">
-            <div>
-              <h3 className="text-xl font-bold mb-6">Tournament Settings</h3>
-
+            <ConfigSection title="Tournament Settings">
               <div className="space-y-6">
-                {/* Settings Toggles */}
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setUsePools(!usePools)}
-                    className={cn(
-                      "p-4 rounded-2xl border-2 transition-all flex flex-col gap-2 text-left",
-                      usePools
-                        ? "bg-accent/10 border-accent shadow-lg shadow-accent/20"
-                        : "bg-white/5 border-white/10 hover:border-white/20"
-                    )}
-                  >
-                    <span className="text-xs font-black uppercase text-muted-foreground tracking-widest">
-                      Pools
-                    </span>
-                    <span className="text-sm font-bold">
-                      {usePools ? "Enabled" : "Disabled"}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setUseDoubleElimination(!useDoubleElimination)}
-                    className={cn(
-                      "p-4 rounded-2xl border-2 transition-all flex flex-col gap-2 text-left",
-                      useDoubleElimination
-                        ? "bg-error/10 border-error shadow-lg shadow-error/20"
-                        : "bg-white/5 border-white/10 hover:border-white/20"
-                    )}
-                  >
-                    <span className="text-xs font-black uppercase text-muted-foreground tracking-widest">
-                      Losers Bracket
-                    </span>
-                    <span className="text-sm font-bold">
-                      {useDoubleElimination ? "Enabled" : "Disabled"}
-                    </span>
-                  </button>
+                <div className="divide-y divide-white/[0.06] bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <ConfigRow label="Pools" hint="Group stage before bracket">
+                    <ConfigToggle enabled={usePools} onChange={() => setUsePools(!usePools)} />
+                  </ConfigRow>
+                  <ConfigRow label="Losers Bracket" hint="Double elimination">
+                    <ConfigToggle enabled={useDoubleElimination} onChange={() => setUseDoubleElimination(!useDoubleElimination)} />
+                  </ConfigRow>
                 </div>
 
                 {/* Sub-config for Pools */}
@@ -510,102 +503,62 @@ export const BracketSetup: React.FC = () => {
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-6 overflow-hidden"
                     >
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                        <label className="text-sm font-bold block mb-3">
-                          Number of Pools
-                        </label>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setPoolCount(Math.max(2, poolCount - 1))}
-                            disabled={poolCount <= 2}
-                            className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-lg font-black hover:bg-accent/20 hover:border-accent/30 hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 disabled:hover:border-white/10 disabled:hover:text-foreground transition-all"
-                          >
-                            -
-                          </button>
-                          <span className="text-accent font-black text-xl w-6 text-center">
-                            {poolCount}
-                          </span>
-                          <button
-                            onClick={() => setPoolCount(Math.min(8, poolCount + 1))}
-                            disabled={poolCount >= 8}
-                            className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-lg font-black hover:bg-accent/20 hover:border-accent/30 hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 disabled:hover:border-white/10 disabled:hover:text-foreground transition-all"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
+                      <div className="divide-y divide-white/[0.06] bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <ConfigRow label="Number of Pools" hint="Total pools">
+                          <ConfigStepper
+                            value={poolCount}
+                            min={2}
+                            max={8}
+                            onChange={(v) => setPoolCount(v)}
+                          />
+                        </ConfigRow>
 
-                      <div className="grid grid-cols-2 gap-4">
                         {poolCount > 1 && (
-                          <div className={cn(
-                            "bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col gap-2",
-                            poolCount === 2 ? "col-span-2" : ""
-                          )}>
-                            <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">
-                              Strategy
-                            </label>
-                            <select
-                              className="bg-transparent text-sm font-bold outline-none cursor-pointer"
+                          <ConfigRow label="Strategy" hint="Team assignment">
+                            <ConfigSelect
                               value={assignStrategy}
-                              onChange={(e) =>
-                                setAssignStrategy(e.target.value as any)
-                              }
+                              onChange={(e) => setAssignStrategy(e.target.value as any)}
+                              className="w-auto"
                             >
                               <option value="random">Random</option>
                               <option value="alternate">Alternate</option>
                               <option value="half">Split Half</option>
                               <option value="manual">Manual</option>
-                            </select>
-                          </div>
+                            </ConfigSelect>
+                          </ConfigRow>
                         )}
                         {poolCount >= 2 && poolCount > 1 && (
-                          <button
-                            onClick={() => setSharedFinal(!sharedFinal)}
-                            className={cn(
-                              "p-4 rounded-2xl border transition-all flex flex-col gap-2 text-left",
-                              sharedFinal
-                                ? "bg-accent/10 border-accent/30"
-                                : "bg-white/5 border-white/5",
-                            )}
-                          >
-                            <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">
-                              Grand Final
-                            </label>
-                            <span className="text-sm font-bold">
-                              {sharedFinal ? "Shared" : "Independent"}
-                            </span>
-                          </button>
+                          <ConfigRow label="Grand Final" hint="Combine pool winners">
+                            <ConfigToggle enabled={sharedFinal} onChange={() => setSharedFinal(!sharedFinal)} />
+                          </ConfigRow>
                         )}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col gap-2">
-                    <label className="text-xs font-black uppercase text-muted-foreground tracking-widest">
-                      Score
-                    </label>
-                    <select
-                      className="bg-transparent text-sm font-bold outline-none cursor-pointer"
+                <div className="divide-y divide-white/[0.06] bg-white/5 p-4 rounded-2xl border border-white/5">
+                  <ConfigRow label="Score" hint="Bracket point tracking">
+                    <ConfigSelect
                       value={scoreType}
                       onChange={(e) => setScoreType(e.target.value as any)}
+                      className="w-auto"
                     >
                       <option value="points">Points</option>
                       <option value="games">Games</option>
                       <option value="sets">Sets</option>
-                    </select>
-                  </div>
+                    </ConfigSelect>
+                  </ConfigRow>
                 </div>
               </div>
-            </div>
+            </ConfigSection>
 
             <Button
               size="lg"
               disabled={teams.length < 2}
               onClick={handleCreateBracket}
               fullWidth
-              className="py-6 rounded-2xl text-lg font-black shadow-xl shadow-accent/20"
+              className="mt-6"
             >
               Start Tournament
             </Button>

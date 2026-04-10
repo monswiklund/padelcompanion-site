@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { applySeo } from "@/shared/seo";
+import { CheckIcon, UsersIcon, BallIcon, CrownIcon, TrophyIcon } from "@/components/ui/Icons";
 
 const TournamentLandingPage: React.FC = () => {
   useEffect(() => {
@@ -120,13 +121,13 @@ const TournamentLandingPage: React.FC = () => {
 
           <div className="flex flex-wrap justify-center gap-6 text-sm animate-fade-in-up animation-delay-300">
             <span className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-success">✓</span> Instant scheduling
+              <CheckIcon size={16} className="text-success" /> Instant scheduling
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-success">✓</span> Real-time leaderboards
+              <CheckIcon size={16} className="text-success" /> Real-time leaderboards
             </span>
             <span className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-success">✓</span> No signup required
+              <CheckIcon size={16} className="text-success" /> No signup required
             </span>
           </div>
         </div>
@@ -150,9 +151,12 @@ const TournamentLandingPage: React.FC = () => {
               to="/tournament/generator"
               className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
-              <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
-                The Social Favorite
-              </span>
+              <div className="flex items-center gap-3 mb-4">
+                <UsersIcon className="w-5 h-5 text-[#f97316]" />
+                <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  The Social Favorite
+                </span>
+              </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">Mexicano</h3>
               <p className="text-muted-foreground">
                 The ultimate mixer. Partners rotate every match, and the system
@@ -165,9 +169,12 @@ const TournamentLandingPage: React.FC = () => {
               to="/tournament/generator"
               className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
-              <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
-                Classic & Fair
-              </span>
+              <div className="flex items-center gap-3 mb-4">
+                <BallIcon className="w-5 h-5 text-[#2dd4bf]" />
+                <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  Classic & Fair
+                </span>
+              </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">
                 Americano
               </h3>
@@ -182,9 +189,12 @@ const TournamentLandingPage: React.FC = () => {
               to="/tournament/winners-court"
               className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
-              <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
-                King of the Hill
-              </span>
+              <div className="flex items-center gap-3 mb-4">
+                <CrownIcon className="w-5 h-5 text-[#af52de]" />
+                <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  King of the Hill
+                </span>
+              </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">
                 Winners Court
               </h3>
@@ -198,9 +208,12 @@ const TournamentLandingPage: React.FC = () => {
               to="/tournament/bracket"
               className="group bg-card border border-border rounded-2xl p-6 hover:border-accent transition-all hover:-translate-y-1"
             >
-              <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full mb-4">
-                Tournament Mode
-              </span>
+              <div className="flex items-center gap-3 mb-4">
+                <TrophyIcon className="w-5 h-5 text-[#eab308]" />
+                <span className="inline-block text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  Tournament Mode
+                </span>
+              </div>
               <h3 className="text-2xl font-bold text-foreground mb-3">
                 Knockout Bracket
               </h3>
@@ -225,7 +238,7 @@ const TournamentLandingPage: React.FC = () => {
           </p>
           <ul className="space-y-4">
             <li className="flex items-start gap-4">
-              <span className="text-accent text-xl">✓</span>
+              <CheckIcon size={20} className="text-accent shrink-0 mt-0.5" />
               <div>
                 <strong className="text-foreground">Dead simple setup.</strong>{" "}
                 <span className="text-muted-foreground">
@@ -234,7 +247,7 @@ const TournamentLandingPage: React.FC = () => {
               </div>
             </li>
             <li className="flex items-start gap-4">
-              <span className="text-accent text-xl">✓</span>
+              <CheckIcon size={20} className="text-accent shrink-0 mt-0.5" />
               <div>
                 <strong className="text-foreground">Works on any device.</strong>{" "}
                 <span className="text-muted-foreground">
@@ -244,7 +257,7 @@ const TournamentLandingPage: React.FC = () => {
               </div>
             </li>
             <li className="flex items-start gap-4">
-              <span className="text-accent text-xl">✓</span>
+              <CheckIcon size={20} className="text-accent shrink-0 mt-0.5" />
               <div>
                 <strong className="text-foreground">Smart logic.</strong>{" "}
                 <span className="text-muted-foreground">

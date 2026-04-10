@@ -11,6 +11,13 @@ import {
   getCourtDisplayName,
   syncDivisionCourtNames,
 } from "../../ui/courtNames";
+import { TournamentIdentity } from "@/components/tournament/TournamentIdentity";
+import {
+  ConfigSection,
+  ConfigRow,
+  ConfigStepper,
+  ConfigSelect,
+} from "@/components/ui/ConfigElements";
 
 interface DivisionTeam {
   id: string;
@@ -229,6 +236,11 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
   };
 
   const handleGenerate = async () => {
+    // Sync naming draft to active tournament before generating
+    const draft = state.namingDrafts?.division || { name: "", notes: "" };
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentName", value: draft.name });
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentNotes", value: draft.notes });
+
     // Count teams per division
     const divCounts = new Map<string, number>();
     players.forEach((p: any) => {
@@ -315,10 +327,20 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      {/* Tournament Identity */}
+      <TournamentIdentity
+        format="division"
+        initialName={state.namingDrafts?.division?.name || ""}
+        initialNotes={state.namingDrafts?.division?.notes || ""}
+        onUpdate={(key, value) => 
+          dispatch({ type: "UPDATE_NAMING_DRAFT", format: "division", key, value })
+        }
+      />
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold text-foreground">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-accent">
             Division Setup
           </h2>
           <HelpButton
@@ -326,10 +348,6 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
             content={HELP_DIVISION.content}
           />
         </div>
-        <p className="text-muted-foreground">
-          Add teams and assign them to divisions. All teams in the same division
-          will play each other.
-        </p>
       </div>
 
       {/* Notices */}
@@ -485,93 +503,61 @@ export const DivisionSetup: React.FC<DivisionSetupProps> = ({
         {/* Config Section */}
         <div className="space-y-6">
           <GlassCard>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">
-              Division Settings
-            </h4>
-            <div className="divide-y divide-white/[0.06]">
-              {/* Total Courts (Derived) */}
-              <div className="flex items-center justify-between gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">Total Courts</span>
-                  <span className="text-xs text-muted-foreground ml-1.5">(Derived from divisions)</span>
-                </div>
-                <div className="text-center font-bold text-foreground px-4 py-2 bg-popover rounded-xl border border-border">
-                  {state.divisions ? state.divisions.reduce((acc: number, d: any) => acc + Math.max(1, d.courts), 0) : 2}
-                </div>
-              </div>
+            <ConfigSection title="Division Settings">
+              <div className="divide-y divide-white/[0.06]">
+                {/* Total Courts (Derived) */}
+                <ConfigRow label="Total Courts" hint="Derived from divisions">
+                  <div className="text-center font-bold text-foreground px-4 py-2 bg-popover rounded-xl border border-border">
+                    {state.divisions ? state.divisions.reduce((acc: number, d: any) => acc + Math.max(1, d.courts), 0) : 2}
+                  </div>
+                </ConfigRow>
 
-              {/* Scoring Mode */}
-              <div className="flex items-center justify-between gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">Scoring</span>
-                  <span className="text-xs text-muted-foreground ml-1.5">(Win condition)</span>
-                </div>
-                <select
-                  className="px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
-                  value={state.scoringMode}
-                  onChange={(e) => {
-                    const mode = e.target.value;
-                    dispatch({ type: "UPDATE_FIELD", key: "scoringMode", value: mode });
-                    const presets: Record<string, number> = { total: 24, race: 14, time: 15 };
-                    if (presets[mode]) {
-                      dispatch({ type: "UPDATE_FIELD", key: "pointsPerMatch", value: presets[mode] });
-                    }
-                  }}
-                >
-                  <option value="total">Total Points</option>
-                  <option value="race">Race to</option>
-                  <option value="time">Timed</option>
-                </select>
-              </div>
-
-              {/* Points/Time */}
-              <div className="flex items-center justify-between gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">
-                    {state.scoringMode === "time" ? "Minutes" : state.scoringMode === "race" ? "Race to" : "Total Points"}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1.5">
-                    ({state.scoringMode === "time" ? "Duration" : "Target score"})
-                  </span>
-                </div>
-                <div className="flex items-center bg-popover rounded-xl border border-border overflow-hidden">
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    disabled={state.pointsPerMatch <= 4}
-                    onClick={() => dispatch({ type: "UPDATE_FIELD", key: "pointsPerMatch", value: state.pointsPerMatch - (state.scoringMode === "time" ? 1 : 2) })}
+                {/* Scoring Mode */}
+                <ConfigRow label="Scoring" hint="Win condition">
+                  <ConfigSelect
+                    value={state.scoringMode}
+                    onChange={(e) => {
+                      const mode = e.target.value;
+                      dispatch({ type: "UPDATE_FIELD", key: "scoringMode", value: mode });
+                      const presets: Record<string, number> = { total: 24, race: 14, time: 15 };
+                      if (presets[mode]) {
+                        dispatch({ type: "UPDATE_FIELD", key: "pointsPerMatch", value: presets[mode] });
+                      }
+                    }}
                   >
-                    −
-                  </button>
-                  <div className="w-10 text-center font-bold text-foreground">{state.pointsPerMatch}</div>
-                  <button
-                    type="button"
-                    className="w-10 h-10 flex items-center justify-center text-lg font-bold text-accent hover:bg-accent/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    disabled={state.pointsPerMatch >= 50}
-                    onClick={() => dispatch({ type: "UPDATE_FIELD", key: "pointsPerMatch", value: state.pointsPerMatch + (state.scoringMode === "time" ? 1 : 2) })}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+                    <option value="total">Total Points</option>
+                    <option value="race">Race to</option>
+                    <option value="time">Timed</option>
+                  </ConfigSelect>
+                </ConfigRow>
 
-              {/* Tiebreaker */}
-              <div className="flex items-center justify-between gap-3 py-3">
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm font-medium text-foreground">Tiebreaker</span>
-                  <span className="text-xs text-muted-foreground ml-1.5">(When points are equal)</span>
-                </div>
-                <select
-                  className="px-3 py-2.5 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors text-sm"
-                  value={tiebreaker}
-                  onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "tiebreaker", value: e.target.value })}
+                {/* Points/Time */}
+                <ConfigRow
+                  label={state.scoringMode === "time" ? "Minutes" : state.scoringMode === "race" ? "Race to" : "Total Points"}
+                  hint={state.scoringMode === "time" ? "Duration" : "Target score"}
                 >
-                  <option value="difference">Game Difference</option>
-                  <option value="most_won">Most Games Won</option>
-                  <option value="shared">Shared (Equal)</option>
-                </select>
+                  <ConfigStepper
+                    value={state.pointsPerMatch}
+                    min={4}
+                    max={50}
+                    step={state.scoringMode === "time" ? 1 : 2}
+                    onChange={(v) => dispatch({ type: "UPDATE_FIELD", key: "pointsPerMatch", value: v })}
+                  />
+                </ConfigRow>
+
+                {/* Tiebreaker */}
+                <ConfigRow label="Tiebreaker" hint="When points are equal">
+                  <ConfigSelect
+                    value={tiebreaker}
+                    onChange={(e) => dispatch({ type: "UPDATE_FIELD", key: "tiebreaker", value: e.target.value })}
+                  >
+                    <option value="difference">Game Difference</option>
+                    <option value="most_won">Most Games Won</option>
+                    <option value="shared">Shared (Equal)</option>
+                  </ConfigSelect>
+                </ConfigRow>
               </div>
-            </div>
+            </ConfigSection>
 
             <Button
               size="lg"

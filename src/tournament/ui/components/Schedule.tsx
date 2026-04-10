@@ -15,6 +15,7 @@ import {
 } from "./scheduleTiming";
 import { getCourtDisplayName } from "../courtNames";
 import { getDivisionColor, DIVISION_COLORS } from "../../core/constants";
+import { CheckIcon } from "@/components/ui/Icons";
 const getDivisionStyles = (division: string, divisions: any[]) => {
   const colors = getDivisionColor(divisions, division);
   return `${colors.bg} ${colors.text} ${colors.border}`;
@@ -366,8 +367,8 @@ const RoundCard: React.FC<{
             </span>
           )}
           {round.completed ? (
-            <span className="px-2 py-0.5 text-xs font-medium bg-success/20 text-success rounded-full">
-              ✓ Completed
+            <span className="px-2 py-0.5 text-xs font-medium bg-success/20 text-success rounded-full flex items-center gap-1">
+              <CheckIcon size={12} /> Completed
             </span>
           ) : state.roundStartedAt ? (
             <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded-full animate-pulse">
@@ -575,7 +576,7 @@ const RoundCard: React.FC<{
                 {/* Completed Checkmark Overlay */}
                 {(match.score1 != null && match.score2 != null) && !round.completed && (
                   <div className="absolute top-2 right-2 z-20 w-5 h-5 bg-success rounded-full flex items-center justify-center shadow-lg border border-white/20 animate-in zoom-in duration-300">
-                    <span className="text-[10px] text-white font-bold">✓</span>
+                    <CheckIcon size={12} className="text-white" />
                   </div>
                 )}
               </div>

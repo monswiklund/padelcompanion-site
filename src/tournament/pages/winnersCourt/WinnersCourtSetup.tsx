@@ -13,6 +13,13 @@ import {
   WCConfig,
   generateWinnersCourt,
 } from "@/tournament/winnersCourt/winnersCourtCore";
+import { TournamentIdentity } from "@/components/tournament/TournamentIdentity";
+import {
+  ConfigSection,
+  ConfigRow,
+  ConfigToggle,
+  ConfigSelect,
+} from "@/components/ui/ConfigElements";
 
 interface SetupPlayer {
   id: string;
@@ -253,6 +260,11 @@ export const WinnersCourtSetup: React.FC = () => {
   }, [poolCount]);
 
   const handleGenerate = useCallback(() => {
+    // Sync naming draft to active tournament before generating
+    const draft = state.namingDrafts?.winnersCourt || { name: "", notes: "" };
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentName", value: draft.name });
+    dispatch({ type: "UPDATE_FIELD", key: "tournamentNotes", value: draft.notes });
+
     // If skill levels enabled, sort players by skill (desc) before generating
     let sortedPlayers = [...players];
     if (useSkillLevels) {
@@ -385,10 +397,20 @@ export const WinnersCourtSetup: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
+      {/* Tournament Identity */}
+      <TournamentIdentity
+        format="winnersCourt"
+        initialName={state.namingDrafts?.winnersCourt?.name || ""}
+        initialNotes={state.namingDrafts?.winnersCourt?.notes || ""}
+        onUpdate={(key, value) => 
+          dispatch({ type: "UPDATE_NAMING_DRAFT", format: "winnersCourt", key, value })
+        }
+      />
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold text-foreground">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-accent">
             Winners Court Setup
           </h2>
           <HelpButton
@@ -396,9 +418,6 @@ export const WinnersCourtSetup: React.FC = () => {
             content={HELP_WINNERS_INTRO.content}
           />
         </div>
-        <p className="text-muted-foreground">
-          Skill-based court promotion. Win to move up, lose to move down.
-        </p>
       </div>
 
       {/* Notices */}
@@ -443,156 +462,84 @@ export const WinnersCourtSetup: React.FC = () => {
 
         {/* Settings */}
         <GlassCard>
-          <h3 className="text-lg font-bold text-foreground mb-4 pb-2 border-b border-border">
-            Settings
-          </h3>
-
-          <div className="space-y-6">
-            {/* Courts */}
-            <div className="max-w-[140px]">
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Courts
-              </label>
-              <select
-                className="w-full px-3 py-2 rounded-lg bg-popover border border-border text-foreground focus:outline-none focus:border-accent transition-colors"
-                value={selectedCourts}
-                onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
-              >
-                <option value={maxCourts}>Auto ({maxCourts})</option>
-                {Array.from({ length: maxCourts }, (_, i) => i + 1).map((c) => (
-                  <option key={c} value={c}>
-                    {c} {c === 1 ? "Court" : "Courts"}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[10px] leading-tight text-muted-foreground mt-1">
-                Active matches. Extras queue.
-              </p>
-            </div>
-
-            {/* Use Skill Levels Toggle */}
-            <div className="bg-popover p-4 rounded-xl border border-border">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-foreground">
-                  Use Skill Levels
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setUseSkillLevels(!useSkillLevels)}
-                  className={`relative w-12 h-6 rounded-full transition-colors border border-border ${
-                    useSkillLevels ? "bg-accent border-accent" : "bg-muted/30"
-                  }`}
+          <ConfigSection title="Settings">
+            <div className="divide-y divide-white/[0.06]">
+              {/* Courts */}
+              <ConfigRow label="Courts" hint="Active matches. Extras queue.">
+                <ConfigSelect
+                  value={selectedCourts}
+                  onChange={(e) => setCourtCountInput(parseInt(e.target.value))}
                 >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                      useSkillLevels ? "translate-x-6" : ""
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Rank players (1-10) to seed courts (Higher skill = Court 1).
-              </p>
-            </div>
+                  <option value={maxCourts}>Auto ({maxCourts})</option>
+                  {Array.from({ length: maxCourts }, (_, i) => i + 1).map((c) => (
+                    <option key={c} value={c}>
+                      {c} {c === 1 ? "Court" : "Courts"}
+                    </option>
+                  ))}
+                </ConfigSelect>
+              </ConfigRow>
 
-            {/* Twist Mode Toggle */}
-            <div className="bg-popover p-4 rounded-xl border border-border">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-foreground">
-                  Twist Mode
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setIsTwist(!isTwist)}
-                  className={`relative w-12 h-6 rounded-full transition-colors border border-border ${
-                    isTwist ? "bg-accent border-accent" : "bg-muted/30"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                      isTwist ? "translate-x-6" : ""
-                    }`}
-                  />
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Partners swap after every round (Winners split, Losers split).
-              </p>
-            </div>
+              {/* Use Skill Levels Toggle */}
+              <ConfigRow label="Use Skill Levels" hint="Rank players (1-10) to seed courts (Higher skill = Court 1)">
+                <ConfigToggle enabled={useSkillLevels} onChange={() => setUseSkillLevels(!useSkillLevels)} />
+              </ConfigRow>
 
-            {/* Pools Selector */}
-            <div className="bg-popover p-4 rounded-xl border border-border">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-foreground">
-                  Pools
-                </label>
-                <select
-                  className="bg-muted px-2 py-1 rounded-lg border border-border text-foreground focus:outline-none focus:border-accent"
+              {/* Twist Mode Toggle */}
+              <ConfigRow label="Twist Mode" hint="Partners swap after every round (Winners split, Losers split)">
+                <ConfigToggle enabled={isTwist} onChange={() => setIsTwist(!isTwist)} />
+              </ConfigRow>
+
+              {/* Pools Selector */}
+              <ConfigRow label="Pools" hint="Split players into separate Winners Courts (A, B, etc.)">
+                <ConfigSelect
                   value={poolCount}
                   onChange={(e) => setPoolCount(parseInt(e.target.value))}
+                  className="w-auto"
                 >
                   {[1, 2, 3, 4, 5, 6].map((n) => (
                     <option key={n} value={n}>
                       {n} Pool{n > 1 ? "s" : ""}
                     </option>
                   ))}
-                </select>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Split players into separate Winners Courts (A, B, etc.).
-              </p>
+                </ConfigSelect>
+              </ConfigRow>
+
+              {/* Pool Assignment Options */}
+              {poolCount > 1 && (
+                <div className="py-3 space-y-3">
+                  <ConfigRow label="Pool Assignment" hint="How to distribute players">
+                    <ConfigSelect
+                      value={assignStrategy}
+                      onChange={(e) => setAssignStrategy(e.target.value as AssignStrategy)}
+                      className="w-auto"
+                    >
+                      <option value="random">Random</option>
+                      <option value="manual">Manual</option>
+                    </ConfigSelect>
+                  </ConfigRow>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={autoAssignSides}
+                    fullWidth
+                  >
+                    Assign Pools
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {/* Pool Assignment Options */}
-            {poolCount > 1 && (
-              <div className="animate-fade-in space-y-3 pt-4 border-t border-border">
-                <label className="block text-xs font-bold text-muted-foreground uppercase">
-                  Pool Assignment
-                </label>
-                <div className="flex bg-popover p-1 rounded-lg">
-                  {[
-                    { value: "random", label: "Random" },
-                    { value: "manual", label: "Manual" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`flex-1 text-center text-xs py-2 rounded transition-colors ${
-                        assignStrategy === opt.value
-                          ? "bg-accent text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() =>
-                        setAssignStrategy(opt.value as AssignStrategy)
-                      }
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={autoAssignSides}
-                  fullWidth
-                >
-                  Assign Pools
-                </Button>
-              </div>
-            )}
-
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center mt-6">
               <Button
                 size="lg"
                 disabled={players.length < 4}
                 onClick={handleGenerate}
-                className="px-12"
+                fullWidth
               >
                 Start Session
               </Button>
             </div>
-          </div>
+          </ConfigSection>
         </GlassCard>
       </div>
 

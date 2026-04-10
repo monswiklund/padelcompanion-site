@@ -4,6 +4,7 @@ import { useLeaderboard } from "@/tournament/ui/hooks/useLeaderboard";
 import { useTournament } from "@/context/TournamentContext";
 import { copyLeaderboardToClipboard } from "@/tournament/ui/setup/exportShare";
 import { showToast } from "@/shared/utils";
+import { SearchIcon, XIcon } from "@/components/ui/Icons";
 import PlayerMatchHistory from "./PlayerMatchHistory";
 
 const Leaderboard: React.FC = () => {
@@ -85,7 +86,7 @@ const Leaderboard: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto">
             {/* Criteria Tabs */}
-            <div className="flex bg-popover rounded-lg p-1 w-full sm:w-auto">
+            <div className="flex border-b border-border w-full sm:w-auto">
               {[
                 { id: "points", label: "Points" },
                 { id: "wins", label: "Wins" },
@@ -94,10 +95,10 @@ const Leaderboard: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  className={`flex-1 sm:flex-initial px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  className={`flex-1 sm:flex-initial px-3 py-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 -mb-px ${
                     rankingCriteria === tab.id
-                      ? "bg-accent text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "border-accent text-accent"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setCriteria(tab.id as any)}
                 >
@@ -158,7 +159,7 @@ const Leaderboard: React.FC = () => {
         {/* Search Bar */}
         <div className="relative w-full">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            🔍
+            <SearchIcon size={16} />
           </span>
           <input
             type="text"
@@ -172,7 +173,7 @@ const Leaderboard: React.FC = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               onClick={() => setSearchQuery("")}
             >
-              ✕
+              <XIcon size={14} />
             </button>
           )}
         </div>

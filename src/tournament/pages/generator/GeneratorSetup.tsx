@@ -13,6 +13,7 @@ import { useTournament } from "@/context/TournamentContext";
 import { generateSchedule } from "../../ui/setup/scheduleGeneration";
 import { state as legacyState } from "../../core/state";
 import { HELP_AMERICANO, HELP_MEXICANO } from "../../content/help";
+import { TournamentIdentity } from "@/components/tournament/TournamentIdentity";
 
 interface GeneratorPlayer {
   id: string;
@@ -53,6 +54,11 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
     }
 
     try {
+      // Sync naming draft to active tournament before generating
+      const draft = state.namingDrafts?.[format] || { name: "", notes: "" };
+      dispatch({ type: "UPDATE_FIELD", key: "tournamentName", value: draft.name });
+      dispatch({ type: "UPDATE_FIELD", key: "tournamentNotes", value: draft.notes });
+
       Object.assign(legacyState, state);
 
       console.log("[Generator] Pre-generation State:", {
@@ -138,10 +144,20 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      {/* Tournament Identity */}
+      <TournamentIdentity
+        format={format}
+        initialName={state.namingDrafts?.[format]?.name || ""}
+        initialNotes={state.namingDrafts?.[format]?.notes || ""}
+        onUpdate={(key, value) => 
+          dispatch({ type: "UPDATE_NAMING_DRAFT", format, key, value })
+        }
+      />
+
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <h2 className="text-3xl font-bold text-foreground">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-accent">
             {format === "americano"
               ? "Americano"
               : format === "mexicano"
@@ -164,9 +180,6 @@ export const GeneratorSetup: React.FC<GeneratorSetupProps> = ({
             }
           />
         </div>
-        <p className="text-muted-foreground">
-          Add players and configure your tournament settings.
-        </p>
       </div>
 
       {/* Notices */}
