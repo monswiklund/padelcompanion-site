@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Select, Switch } from "bits-ui";
   import HelpButton from "./HelpButton.svelte";
   import {
     HELP_AMERICANO,
@@ -159,19 +160,16 @@
             <span class="text-sm font-bold text-white">Team Mode</span>
             <div class="text-[11px] text-muted-foreground">Fixed teams</div>
           </div>
-          <button
-            type="button"
-            onclick={toggleTeamMexicano}
-            class="relative w-12 h-6.5 rounded-full transition-colors border {
-              isTeamMex ? 'bg-accent border-accent' : 'bg-white/[0.04] border-white/10'
-            }"
+          <Switch.Root
+            checked={isTeamMex}
+            onCheckedChange={toggleTeamMexicano}
+            aria-label="Team Mexicano"
+            class="relative w-12 h-6.5 rounded-full transition-colors border data-[state=checked]:bg-accent data-[state=checked]:border-accent data-[state=unchecked]:bg-white/[0.04] data-[state=unchecked]:border-white/10 cursor-pointer"
           >
-            <span
-              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 {
-                isTeamMex ? 'translate-x-5.5' : ''
-              }"
-            ></span>
-          </button>
+            <Switch.Thumb
+              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 data-[state=checked]:translate-x-5.5"
+            />
+          </Switch.Root>
         </div>
       {/if}
 
@@ -208,11 +206,11 @@
           <span class="text-sm font-bold text-white">Scoring</span>
           <div class="text-[11px] text-muted-foreground">Win condition</div>
         </div>
-        <select
-          class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
+        <Select.Root
+          type="single"
           value={config.scoringMode}
-          onchange={(e) => {
-            const mode = (e.target as HTMLSelectElement).value as any;
+          onValueChange={(v) => {
+            const mode = v as any;
             onChange("scoringMode", mode);
             const presets: Record<string, number> = {
               total: 24,
@@ -224,10 +222,22 @@
             }
           }}
         >
-          {#each CONFIG_OPTIONS.scoringMode as o}
-            <option value={o.value}>{o.label}</option>
-          {/each}
-        </select>
+          <Select.Trigger class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between min-w-[120px] outline-none cursor-pointer">
+            {CONFIG_OPTIONS.scoringMode.find(o => o.value === config.scoringMode)?.label}
+            <span class="text-white/50 text-[10px] ml-2">▼</span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[140px]" sideOffset={4}>
+              <Select.Viewport>
+                {#each CONFIG_OPTIONS.scoringMode as o}
+                  <Select.Item value={o.value} label={o.label} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                    {o.label}
+                  </Select.Item>
+                {/each}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
       </div>
 
       <!-- Points stepper -->
@@ -287,15 +297,27 @@
             <span class="text-sm font-bold text-white">Partner Repeats</span>
             <div class="text-[11px] text-muted-foreground">Max same pair plays</div>
           </div>
-          <select
-            class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
-            value={config.maxRepeats}
-            onchange={(e) => onChange("maxRepeats", parseInt((e.target as HTMLSelectElement).value))}
+          <Select.Root
+            type="single"
+            value={config.maxRepeats.toString()}
+            onValueChange={(v) => onChange("maxRepeats", parseInt(v))}
           >
-            {#each CONFIG_OPTIONS.maxRepeats as o}
-              <option value={o.value}>{o.label}</option>
-            {/each}
-          </select>
+            <Select.Trigger class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between min-w-[120px] outline-none cursor-pointer">
+              {CONFIG_OPTIONS.maxRepeats.find(o => o.value === config.maxRepeats)?.label}
+              <span class="text-white/50 text-[10px] ml-2">▼</span>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[140px]" sideOffset={4}>
+                <Select.Viewport>
+                  {#each CONFIG_OPTIONS.maxRepeats as o}
+                    <Select.Item value={o.value.toString()} label={o.label} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                      {o.label}
+                    </Select.Item>
+                  {/each}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
         </div>
 
         <!-- Pairing Style -->
@@ -304,15 +326,27 @@
             <span class="text-sm font-bold text-white">Pairing Style</span>
             <div class="text-[11px] text-muted-foreground">Matchup logic</div>
           </div>
-          <select
-            class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
+          <Select.Root
+            type="single"
             value={config.pairingStrategy}
-            onchange={(e) => onChange("pairingStrategy", (e.target as HTMLSelectElement).value)}
+            onValueChange={(v) => onChange("pairingStrategy", v)}
           >
-            {#each CONFIG_OPTIONS.pairingStrategy as o}
-              <option value={o.value}>{o.label}</option>
-            {/each}
-          </select>
+            <Select.Trigger class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between min-w-[120px] outline-none cursor-pointer">
+              {CONFIG_OPTIONS.pairingStrategy.find(o => o.value === config.pairingStrategy)?.label}
+              <span class="text-white/50 text-[10px] ml-2">▼</span>
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[140px]" sideOffset={4}>
+                <Select.Viewport>
+                  {#each CONFIG_OPTIONS.pairingStrategy as o}
+                    <Select.Item value={o.value} label={o.label} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                      {o.label}
+                    </Select.Item>
+                  {/each}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
         </div>
 
         <!-- Strict Pattern -->
@@ -321,28 +355,17 @@
             <span class="text-sm font-bold text-white">Strict Pattern</span>
             <div class="text-[11px] text-muted-foreground">Force pattern pairings</div>
           </div>
-          <button
-            type="button"
+          <Switch.Root
+            checked={config.strictStrategy && config.pairingStrategy !== "optimal"}
             disabled={config.pairingStrategy === "optimal"}
-            onclick={() => {
-              if (config.pairingStrategy !== "optimal") {
-                onChange("strictStrategy", !config.strictStrategy);
-              }
-            }}
-            class="relative w-12 h-6.5 rounded-full transition-colors border {
-              config.pairingStrategy === "optimal"
-                ? 'opacity-30 cursor-not-allowed bg-black/10 border-white/5'
-                : config.strictStrategy
-                  ? 'bg-accent border-accent'
-                  : 'bg-white/[0.04] border-white/10'
-            }"
+            onCheckedChange={(v) => onChange("strictStrategy", v)}
+            aria-label="Strict Pattern"
+            class="relative w-12 h-6.5 rounded-full transition-colors border data-[state=checked]:bg-accent data-[state=checked]:border-accent data-[state=unchecked]:bg-white/[0.04] data-[state=unchecked]:border-white/10 data-[disabled]:opacity-30 data-[disabled]:cursor-not-allowed data-[disabled]:bg-black/10 data-[disabled]:border-white/5 cursor-pointer"
           >
-            <span
-              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 {
-                config.strictStrategy && config.pairingStrategy !== "optimal" ? 'translate-x-5.5' : ''
-              }"
-            ></span>
-          </button>
+            <Switch.Thumb
+              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 data-[state=checked]:translate-x-5.5"
+            />
+          </Switch.Root>
         </div>
       </div>
     </div>
@@ -362,15 +385,27 @@
           <span class="text-sm font-bold text-white">Court Names</span>
           <div class="text-[11px] text-muted-foreground">Label format</div>
         </div>
-        <select
-          class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
+        <Select.Root
+          type="single"
           value={config.courtFormat}
-          onchange={(e) => onChange("courtFormat", (e.target as HTMLSelectElement).value as any)}
+          onValueChange={(v) => onChange("courtFormat", v as any)}
         >
-          {#each CONFIG_OPTIONS.courtFormat as o}
-            <option value={o.value}>{o.label}</option>
-          {/each}
-        </select>
+          <Select.Trigger class="bg-black/30 text-xs px-3 py-2 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between min-w-[120px] outline-none cursor-pointer">
+            {CONFIG_OPTIONS.courtFormat.find(o => o.value === config.courtFormat)?.label}
+            <span class="text-white/50 text-[10px] ml-2">▼</span>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[140px]" sideOffset={4}>
+              <Select.Viewport>
+                {#each CONFIG_OPTIONS.courtFormat as o}
+                  <Select.Item value={o.value} label={o.label} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                    {o.label}
+                  </Select.Item>
+                {/each}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
       </div>
 
       {#if config.courtFormat === "custom"}

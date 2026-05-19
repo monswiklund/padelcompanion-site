@@ -2,6 +2,13 @@
   import { onMount } from "svelte";
   import { slide } from "svelte/transition";
   import Icons from "$lib/components/Icons.svelte";
+  import { Select } from "bits-ui";
+
+  const SUBJECT_OPTIONS = [
+    { value: "General Inquiry", label: "General Inquiry" },
+    { value: "Bug Report", label: "Bug Report" },
+    { value: "Feature Request", label: "Feature Request" },
+  ];
 
   const FAQ_DATA = [
     {
@@ -224,10 +231,11 @@
             
             <div class="space-y-4">
               <div>
-                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                <label for="contact-name" class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
                   Name
                 </label>
                 <input
+                  id="contact-name"
                   type="text"
                   required
                   bind:value={contactName}
@@ -235,12 +243,13 @@
                   class="w-full bg-popover border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
-              
+
               <div>
-                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                <label for="contact-email" class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
                   Email
                 </label>
                 <input
+                  id="contact-email"
                   type="email"
                   required
                   bind:value={contactEmail}
@@ -248,30 +257,39 @@
                   class="w-full bg-popover border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
-              
+
               <div>
-                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                <span id="contact-subject-label" class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
                   Subject
-                </label>
-                <select
-                  required
-                  bind:value={contactSubject}
-                  class="w-full bg-popover border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-accent transition-colors cursor-pointer"
-                >
-                  <option value="" disabled selected>
-                    Select a topic
-                  </option>
-                  <option value="General Inquiry">General Inquiry</option>
-                  <option value="Bug Report">Bug Report</option>
-                  <option value="Feature Request">Feature Request</option>
-                </select>
+                </span>
+                <Select.Root type="single" bind:value={contactSubject} required>
+                  <Select.Trigger
+                    class="w-full bg-popover border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-accent transition-colors cursor-pointer flex items-center justify-between"
+                    aria-labelledby="contact-subject-label"
+                  >
+                    {SUBJECT_OPTIONS.find((o) => o.value === contactSubject)?.label ?? "Select a topic"}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content class="z-[1001] bg-popover border border-border rounded-xl shadow-2xl p-1 min-w-[var(--bits-select-anchor-width)]" sideOffset={4}>
+                      <Select.Viewport>
+                        {#each SUBJECT_OPTIONS as o}
+                          <Select.Item value={o.value} label={o.label} class="px-3 py-2 text-foreground data-[highlighted]:bg-accent/10 rounded-lg cursor-pointer outline-none transition-colors">
+                            {o.label}
+                          </Select.Item>
+                        {/each}
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
               </div>
-              
+
               <div>
-                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                <label for="contact-message" class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
                   Message
                 </label>
                 <textarea
+                  id="contact-message"
                   rows="4"
                   required
                   bind:value={contactMessage}

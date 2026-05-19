@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Select } from "bits-ui";
   import { showToast } from "$lib/shared/utils";
 
   interface Pair {
@@ -109,25 +110,49 @@
       {#if isAdding}
         <div class="bg-black/20 p-4 rounded-xl border border-white/5 animate-fade-in space-y-3">
           <div class="flex flex-col sm:flex-row items-center gap-2">
-            <select
-              class="w-full sm:flex-1 bg-black/35 text-xs p-3.5 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
-              bind:value={p1}
+            <Select.Root
+              type="single"
+              value={p1?.toString()}
+              onValueChange={(v) => p1 = v}
             >
-              <option value="">Select Player 1...</option>
-              {#each getAvailablePlayers(p1).filter((p) => p.id !== p2) as p}
-                <option value={p.id}>{p.name}</option>
-              {/each}
-            </select>
+              <Select.Trigger class="w-full sm:flex-1 bg-black/35 text-xs p-3.5 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between outline-none cursor-pointer">
+                {p1 ? getPlayerName(p1) : "Select Player 1..."}
+                <span class="text-white/50 text-[10px] ml-2">▼</span>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[200px]" sideOffset={4}>
+                  <Select.Viewport>
+                    {#each getAvailablePlayers(p1).filter((p) => p.id !== p2) as p}
+                      <Select.Item value={p.id.toString()} label={p.name} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                        {p.name}
+                      </Select.Item>
+                    {/each}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
             <span class="text-muted-foreground font-black font-display">&</span>
-            <select
-              class="w-full sm:flex-1 bg-black/35 text-xs p-3.5 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold"
-              bind:value={p2}
+            <Select.Root
+              type="single"
+              value={p2?.toString()}
+              onValueChange={(v) => p2 = v}
             >
-              <option value="">Select Player 2...</option>
-              {#each getAvailablePlayers(p2).filter((p) => p.id !== p1) as p}
-                <option value={p.id}>{p.name}</option>
-              {/each}
-            </select>
+              <Select.Trigger class="w-full sm:flex-1 bg-black/35 text-xs p-3.5 rounded-xl border border-white/10 text-white focus:outline-none focus:border-accent font-sans font-bold flex items-center justify-between outline-none cursor-pointer">
+                {p2 ? getPlayerName(p2) : "Select Player 2..."}
+                <span class="text-white/50 text-[10px] ml-2">▼</span>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content class="z-[1001] bg-[#1c1c1e] border border-white/10 rounded-xl shadow-2xl p-1 font-sans text-sm min-w-[200px]" sideOffset={4}>
+                  <Select.Viewport>
+                    {#each getAvailablePlayers(p2).filter((p) => p.id !== p1) as p}
+                      <Select.Item value={p.id.toString()} label={p.name} class="px-3 py-2 text-white data-[highlighted]:bg-white/10 rounded-lg cursor-pointer outline-none transition-colors">
+                        {p.name}
+                      </Select.Item>
+                    {/each}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
           </div>
           <div class="flex justify-end gap-2.5 pt-2">
             <button

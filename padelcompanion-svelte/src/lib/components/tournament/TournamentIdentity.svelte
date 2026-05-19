@@ -17,7 +17,9 @@
     className = ""
   }: Props = $props();
 
+  // svelte-ignore state_referenced_locally
   let localName = $state(initialName || "");
+  // svelte-ignore state_referenced_locally
   let localNotes = $state(initialNotes || "");
 
   $effect(() => {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Popover, Slider } from "bits-ui";
   import Schedule from "./Schedule.svelte";
   import Leaderboard from "./Leaderboard.svelte";
   import PlayoffStandings from "./PlayoffStandings.svelte";
@@ -261,103 +262,102 @@
           <MatchTimer />
         </div>
 
-        <!-- Right action tools -->
-        <div class="flex items-center justify-end gap-2 shrink-0">
-          <button
-            type="button"
-            onclick={() => (showSettings = !showSettings)}
-            class="w-10 h-10 md:w-11 md:h-11 rounded-xl transition-all flex items-center justify-center border border-0 cursor-pointer {
-              showSettings 
-                ? 'bg-accent text-white shadow-glow' 
-                : 'bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground border border-white/5'
-            }"
-            title="View Settings"
-          >
-            <Icons name="settings" size="16" />
-          </button>
+          <!-- Right action tools -->
+          <div class="flex items-center justify-end gap-2 shrink-0">
+            <Popover.Root bind:open={showSettings}>
+              <Popover.Trigger class="w-10 h-10 md:w-11 md:h-11 rounded-xl transition-all flex items-center justify-center border border-0 cursor-pointer data-[state=open]:bg-accent data-[state=open]:text-white data-[state=open]:shadow-glow data-[state=closed]:bg-white/[0.03] data-[state=closed]:hover:bg-white/[0.06] data-[state=closed]:text-muted-foreground data-[state=closed]:border-white/5" title="View Settings">
+                <Icons name="settings" size="16" />
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content side="top" align="end" sideOffset={8} class="z-[60] w-56 bg-[#18181b]/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-5 animate-fade-in-up">
+                  <h4 class="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-4 font-display">View Settings</h4>
+                  <div class="space-y-5">
+                    <div class="space-y-2">
+                      <div class="flex justify-between items-center mb-1">
+                        <span class="text-[9px] font-black text-white uppercase tracking-wider">Grid Layout</span>
+                      </div>
+                      <div class="flex gap-1 bg-black/20 p-0.5 rounded-lg border border-white/5">
+                        {#each [0, 1, 2, 3, 4] as num}
+                          <button
+                            type="button"
+                            onclick={() => tournament.updateField("gridColumns", num)}
+                            class="flex-1 h-7 rounded text-[9px] font-black transition-all border-0 cursor-pointer {
+                              ts.gridColumns === num
+                                ? 'bg-accent text-white'
+                                : 'bg-transparent text-muted-foreground hover:text-white'
+                            }"
+                          >
+                            {num === 0 ? "Auto" : num}
+                          </button>
+                        {/each}
+                      </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                      <div class="flex justify-between items-center">
+                        <span class="text-[9px] font-black text-white uppercase tracking-wider">Zoom Level</span>
+                        <span class="text-[9px] font-mono text-accent font-black">{ts.textSize}%</span>
+                      </div>
+                      <Slider.Root
+                        type="single"
+                        value={ts.textSize}
+                        onValueChange={(v) => tournament.updateField("textSize", v)}
+                        min={50}
+                        max={350}
+                        step={10}
+                        class="relative flex w-full touch-none select-none items-center py-2"
+                      >
+                        <span class="relative h-1 w-full grow overflow-hidden rounded-full bg-white/10">
+                          <Slider.Range class="absolute h-full bg-accent" />
+                        </span>
+                        <Slider.Thumb index={0} class="block h-4 w-4 rounded-full bg-white shadow transition-colors cursor-pointer outline-none hover:scale-110 active:scale-95" />
+                      </Slider.Root>
+                    </div>
+                  </div>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
 
-          <div class="w-px h-6 bg-white/5 mx-0.5 hidden sm:block" />
+            <div class="w-px h-6 bg-white/5 mx-0.5 hidden sm:block"></div>
 
-          <!-- Share / Sync -->
-          <button
-            type="button"
-            class="h-10 md:h-11 px-3.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-0"
-            onclick={handleCloudSync}
-            disabled={isSyncing}
-            title="Save tournament to cloud and copy share code"
-          >
-            <Icons name="cloud" size="16" />
-            <span class="hidden md:inline text-[9px] uppercase tracking-widest font-black">
-              {isSyncing ? "Syncing" : "Share"}
-            </span>
-          </button>
-
-          <!-- End / Finish -->
-          {#if !isDivision && ts.schedule.some((r) => r.completed)}
+            <!-- Share / Sync -->
             <button
               type="button"
-              class="h-10 md:h-11 px-3.5 bg-success hover:bg-success/90 text-white rounded-xl font-black shadow-lg shadow-success/20 hover:shadow-success/40 transition-all flex items-center gap-1.5 cursor-pointer border-0"
-              onclick={handleEnd}
+              class="h-10 md:h-11 px-3.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl font-black shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 transition-all flex items-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer border-0"
+              onclick={handleCloudSync}
+              disabled={isSyncing}
+              title="Save tournament to cloud and copy share code"
             >
-              <Icons name="trophy" size="14" />
-              <span class="hidden lg:inline text-[9px] uppercase tracking-widest font-black">Finish</span>
+              <Icons name="cloud" size="16" />
+              <span class="hidden md:inline text-[9px] uppercase tracking-widest font-black">
+                {isSyncing ? "Syncing" : "Share"}
+              </span>
             </button>
-          {/if}
 
-          <!-- Reset -->
-          <button
-            type="button"
-            class="w-10 h-10 md:w-11 md:h-11 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-white/5 bg-white/[0.03] rounded-xl transition-colors flex items-center justify-center cursor-pointer border-0"
-            onclick={handleReset}
-            title="Reset Tournament"
-          >
-            <Icons name="refresh" size="16" />
-          </button>
-        </div>
-      </div>
+            <!-- End / Finish -->
+            {#if !isDivision && ts.schedule.some((r) => r.completed)}
+              <button
+                type="button"
+                class="h-10 md:h-11 px-3.5 bg-success hover:bg-success/90 text-white rounded-xl font-black shadow-lg shadow-success/20 hover:shadow-success/40 transition-all flex items-center gap-1.5 cursor-pointer border-0"
+                onclick={handleEnd}
+              >
+                <Icons name="trophy" size="14" />
+                <span class="hidden lg:inline text-[9px] uppercase tracking-widest font-black">Finish</span>
+              </button>
+            {/if}
 
-      <!-- Settings Dropdown Drawer -->
-      {#if showSettings}
-        <div class="absolute right-4 sm:right-8 bottom-[calc(100%+8px)] w-56 bg-[#18181b]/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl p-5 animate-fade-in-up z-[60]">
-          <h4 class="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-4 font-display">View Settings</h4>
-          <div class="space-y-5">
-            <div class="space-y-2">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[9px] font-black text-white uppercase tracking-wider">Grid Layout</span>
-              </div>
-              <div class="flex gap-1 bg-black/20 p-0.5 rounded-lg border border-white/5">
-                {#each [0, 1, 2, 3, 4] as num}
-                  <button
-                    type="button"
-                    onclick={() => tournament.updateField("gridColumns", num)}
-                    class="flex-1 h-7 rounded text-[9px] font-black transition-all border-0 cursor-pointer {
-                      ts.gridColumns === num
-                        ? 'bg-accent text-white'
-                        : 'bg-transparent text-muted-foreground hover:text-white'
-                    }"
-                  >
-                    {num === 0 ? "Auto" : num}
-                  </button>
-                {/each}
-              </div>
-            </div>
-            
-            <div class="space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="text-[9px] font-black text-white uppercase tracking-wider">Zoom Level</span>
-                <span class="text-[9px] font-mono text-accent font-black">{ts.textSize}%</span>
-              </div>
-              <input
-                type="range" min="50" max="350" step="10"
-                class="w-full accent-accent cursor-pointer h-1 rounded-full appearance-none bg-white/10"
-                value={ts.textSize}
-                oninput={(e) => tournament.updateField("textSize", parseInt((e.target as HTMLInputElement).value))}
-              />
-            </div>
+            <!-- Reset -->
+            <button
+              type="button"
+              class="w-10 h-10 md:w-11 md:h-11 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 border border-white/5 bg-white/[0.03] rounded-xl transition-colors flex items-center justify-center cursor-pointer border-0"
+              onclick={handleReset}
+              title="Reset Tournament"
+            >
+              <Icons name="refresh" size="16" />
+            </button>
           </div>
         </div>
-      {/if}
-    </div>
+      </div>
   </div>
 
   <!-- Playoff Standings -->

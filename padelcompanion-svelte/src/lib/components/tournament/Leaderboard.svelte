@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ToggleGroup } from "bits-ui";
   import Icons from "$lib/components/Icons.svelte";
   import PlayerMatchHistory from "./PlayerMatchHistory.svelte";
   import { tournament } from "$lib/stores/tournament.svelte";
@@ -168,26 +169,26 @@
 
       <div class="flex flex-col sm:flex-row gap-4 items-center w-full xl:w-auto">
         <!-- Criteria Tabs -->
-        <div class="flex border-b border-white/5 w-full sm:w-auto">
+        <ToggleGroup.Root
+          type="single"
+          value={rankingCriteria}
+          onValueChange={(v) => { if (v) tournament.updateField("rankingCriteria", v); }}
+          class="flex border-b border-white/5 w-full sm:w-auto"
+        >
           {#each [
             { id: "points", label: "Points" },
             { id: "wins", label: "Wins" },
             { id: "winRatio", label: "Win %" },
             { id: "pointRatio", label: "Pts %" }
           ] as tab}
-            <button
-              type="button"
-              class="flex-1 sm:flex-initial px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border-b-2 -mb-px {
-                rankingCriteria === tab.id
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-muted-foreground hover:text-white'
-              }"
-              onclick={() => tournament.updateField("rankingCriteria", tab.id)}
+            <ToggleGroup.Item
+              value={tab.id}
+              class="flex-1 sm:flex-initial px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all border-b-2 -mb-px data-[state=on]:border-accent data-[state=on]:text-accent data-[state=off]:border-transparent data-[state=off]:text-muted-foreground hover:data-[state=off]:text-white outline-none cursor-pointer"
             >
               {tab.label}
-            </button>
+            </ToggleGroup.Item>
           {/each}
-        </div>
+        </ToggleGroup.Root>
 
         <div class="flex gap-4 items-center w-full sm:w-auto justify-end">
           <!-- Column Selector -->

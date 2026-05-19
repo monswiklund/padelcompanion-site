@@ -1,0 +1,322 @@
+
+> padelcompanion-svelte@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /Users/mans/Dev/padelcompanion-site/padelcompanion-svelte
+Getting Svelte diagnostics...
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/HistorySection.svelte:277:5
+Warn: Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus (svelte)
+    <!-- Modal container -->
+    <div
+      transition:scale={{ duration: 250, start: 0.95 }}
+      class="bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl relative z-10 select-none overflow-hidden"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      role="dialog"
+    >
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
+
+      <!-- Title -->
+      <h3 class="text-2xl font-black text-white mb-3 tracking-tight font-display">
+        Open Tournament
+      </h3>
+
+      <div class="space-y-4 py-2 font-sans mb-6">
+        <p class="text-sm text-muted-foreground leading-relaxed">
+          Enter the share code from another device to restore the tournament here.
+        </p>
+        <div class="relative group">
+          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-accent flex items-center justify-center">
+            <Icons name="cloud" class="w-5 h-5" />
+          </div>
+          <input
+            type="text"
+            placeholder="ABC123"
+            class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-black/30 border border-white/10 text-white placeholder:text-muted-foreground/30 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all uppercase tracking-[0.25em] font-black text-lg"
+            bind:value={shareCode}
+            oninput={() => (shareCode = shareCode.toUpperCase())}
+          />
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+        <button
+          onclick={() => (isOpenByCode = false)}
+          disabled={isLoadingCode}
+          class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onclick={handleLoadByCode}
+          disabled={isLoadingCode}
+          class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all"
+        >
+          {isLoadingCode ? "Loading..." : "Open"}
+        </button>
+      </div>
+    </div>
+  </div>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/PlayerList.svelte:49:35
+Warn: This reference only captures the initial value of `defaultView`. Did you mean to reference it inside a closure instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+  let inputValue = $state("");
+  let viewMode = $state<ViewMode>(defaultView);
+  let showAll = $state(false);
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/PlayerList.svelte:300:5
+Warn: Elements with the 'dialog' interactive role must have a tabindex value
+https://svelte.dev/e/a11y_interactive_supports_focus (svelte)
+  >
+    <div
+      transition:scale={{ duration: 200, start: 0.95 }}
+      class="bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl relative z-10 select-none overflow-hidden"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
+      role="dialog"
+    >
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
+
+      <h3 class="text-2xl font-black text-white mb-3 tracking-tight font-display mt-2">
+        {importTitle}
+      </h3>
+
+      <div class="space-y-4 py-2 font-sans mb-6">
+        <div class="text-sm text-muted-foreground">Paste one name per line. Duplicate entries will be ignored.</div>
+        <textarea
+          class="min-h-56 w-full rounded-2xl bg-black/30 border border-white/10 px-4 py-3.5 text-white placeholder:text-muted-foreground/35 focus:outline-none focus:border-accent transition-all shadow-sm resize-y"
+          placeholder={importPlaceholder}
+          bind:value={importValue}
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+        <button
+          type="button"
+          onclick={closeImport}
+          class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onclick={submitImport}
+          disabled={!importValue.trim()}
+          class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all disabled:opacity-50 disabled:pointer-events-none"
+        >
+          Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/PlayoffStandings.svelte:40:7
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+      <h3 class="text-xl font-black text-white uppercase tracking-wider">Playoff Results</h3>
+      <div class="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+    </div>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentActiveView.svelte:320:13
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+
+            <div class="w-px h-6 bg-white/5 mx-0.5 hidden sm:block" />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentActiveView.svelte:301:34
+Error: Type '{ children: () => any; value: number[]; onValueChange: (v: any) => void; min: number; max: number; step: number; class: string; }' is not assignable to type 'SliderRootProps | undefined'.
+  Type '{ children: () => any; value: number[]; onValueChange: (v: any) => void; min: number; max: number; step: number; class: string; }' is not assignable to type 'Omit<SliderMultiRootPropsWithoutHTML, "children" | "child"> & { child?: Snippet<[SliderRootSnippetProps & { ...; }]> | undefined; children?: Snippet<...> | undefined; style?: string | ... 2 more ... | undefined; ref?: HTMLElement | ... 1 more ... | undefined; } & Without<...>'.
+    Property 'type' is missing in type '{ children: () => any; value: number[]; onValueChange: (v: any) => void; min: number; max: number; step: number; class: string; }' but required in type 'Omit<SliderMultiRootPropsWithoutHTML, "children" | "child">'. (ts)
+                      </div>
+                      <Slider.Root
+                        value={[ts.textSize]}
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentActiveView.svelte:303:41
+Error: Parameter 'v' implicitly has an 'any' type. (ts)
+                        value={[ts.textSize]}
+                        onValueChange={(v) => tournament.updateField("textSize", v[0])}
+                        min={50}
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentActiveView.svelte:312:37
+Error: Type '{ class: string; }' is not assignable to type 'Omit<{ disabled?: boolean | undefined; index: number; }, "children" | "child"> & { child?: Snippet<[SliderThumbSnippetProps & { props: Record<string, unknown>; }]> | undefined; children?: Snippet<...> | undefined; style?: string | ... 2 more ... | undefined; ref?: HTMLElement | ... 1 more ... | undefined; } & Withou...'.
+  Property 'index' is missing in type '{ class: string; }' but required in type 'Omit<{ disabled?: boolean | undefined; index: number; }, "children" | "child">'. (ts)
+                        </span>
+                        <Slider.Thumb class="block h-4 w-4 rounded-full bg-white shadow transition-colors cursor-pointer outline-none hover:scale-110 active:scale-95" />
+                      </Slider.Root>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentConfig.svelte:163:11
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+          </div>
+          <button
+            type="button"
+            onclick={toggleTeamMexicano}
+            class="relative w-12 h-6.5 rounded-full transition-colors border {
+              isTeamMex ? 'bg-accent border-accent' : 'bg-white/[0.04] border-white/10'
+            }"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 {
+                isTeamMex ? 'translate-x-5.5' : ''
+              }"
+            ></span>
+          </button>
+        </div>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentConfig.svelte:361:11
+Warn: Buttons and links should either contain text or have an `aria-label`, `aria-labelledby` or `title` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+          </div>
+          <button
+            type="button"
+            disabled={config.pairingStrategy === "optimal"}
+            onclick={() => {
+              if (config.pairingStrategy !== "optimal") {
+                onChange("strictStrategy", !config.strictStrategy);
+              }
+            }}
+            class="relative w-12 h-6.5 rounded-full transition-colors border {
+              config.pairingStrategy === "optimal"
+                ? 'opacity-30 cursor-not-allowed bg-black/10 border-white/5'
+                : config.strictStrategy
+                  ? 'bg-accent border-accent'
+                  : 'bg-white/[0.04] border-white/10'
+            }"
+          >
+            <span
+              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-lg transition-transform duration-300 {
+                config.strictStrategy && config.pairingStrategy !== "optimal" ? 'translate-x-5.5' : ''
+              }"
+            ></span>
+          </button>
+        </div>
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentIdentity.svelte:20:26
+Warn: This reference only captures the initial value of `initialName`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+
+  let localName = $state(initialName || "");
+  let localNotes = $state(initialNotes || "");
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/lib/components/tournament/TournamentIdentity.svelte:21:27
+Warn: This reference only captures the initial value of `initialNotes`. Did you mean to reference it inside a derived instead?
+https://svelte.dev/e/state_referenced_locally (svelte)
+  let localName = $state(initialName || "");
+  let localNotes = $state(initialNotes || "");
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+layout.svelte:104:19
+Warn: Avoid using autofocus
+https://svelte.dev/e/a11y_autofocus (svelte)
+                  onkeydown={(e) => e.key === "Enter" && handleConfirm()}
+                  autoFocus
+                />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:229:5
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+    <!-- Background glow/gradients -->
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-background to-background" />
+    <div class="absolute top-1/4 left-0 w-full h-[500px] bg-gradient-to-b from-transparent via-primary/5 to-transparent -rotate-12 blur-3xl -z-10 pointer-events-none" />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:230:5
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-background to-background" />
+    <div class="absolute top-1/4 left-0 w-full h-[500px] bg-gradient-to-b from-transparent via-primary/5 to-transparent -rotate-12 blur-3xl -z-10 pointer-events-none" />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:323:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        <div class="md:col-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col lg:flex-row items-center gap-12 overflow-hidden relative group">
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:338:15
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+            <div class="bg-background/90 backdrop-blur-md border border-white/5 rounded-2xl p-5 shadow-2xl w-full max-w-sm mx-auto relative overflow-hidden">
+              <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-warning to-success" />
+              <div class="flex justify-between items-center mb-5 border-b border-white/5 pb-3">
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:341:19
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<span ...></span>` rather than `<span ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+                <span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  {demoPhase === 'leaderboard' ? 'Live Standings' : 'Live Match'}
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:421:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        <div class="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
+          <div class="absolute inset-0 bg-gradient-to-b from-warning/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div class="w-12 h-12 bg-warning/10 rounded-2xl flex items-center justify-center mb-6 border border-warning/20">
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:435:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        <div class="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
+          <div class="absolute inset-0 bg-gradient-to-b from-success/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div class="w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center mb-6 border border-success/20">
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:449:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        <div class="md:col-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group">
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div class="relative z-20 flex-1">
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:494:11
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        <div class="md:col-span-3 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group">
+          <div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div class="relative z-20 flex-1">
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/+page.svelte:550:5
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+    <!-- Glow backdrops -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/support/+page.svelte:227:17
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+              <div>
+                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                  Name
+                </label>
+                <input
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/support/+page.svelte:240:17
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+              <div>
+                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                  Email
+                </label>
+                <input
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/support/+page.svelte:253:17
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+              <div>
+                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                  Subject
+                </label>
+                <select
+
+/Users/mans/Dev/padelcompanion-site/padelcompanion-svelte/src/routes/support/+page.svelte:271:17
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+              <div>
+                <label class="block text-xs uppercase tracking-wider font-bold text-muted-foreground mb-2">
+                  Message
+                </label>
+                <textarea
+
+====================================
+svelte-check found 3 errors and 24 warnings in 9 files

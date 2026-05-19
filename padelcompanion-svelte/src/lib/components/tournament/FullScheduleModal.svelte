@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fade, scale } from "svelte/transition";
+  import { Dialog } from "bits-ui";
   import { tournament } from "$lib/stores/tournament.svelte";
   import { formatEstimatedRoundStart } from "$lib/tournament/ui/components/scheduleTiming";
   import { getCourtDisplayName } from "$lib/tournament/courtNames";
@@ -69,42 +70,43 @@
   }
 </script>
 
-{#if isOpen}
-  <!-- Backdrop -->
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-  <!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
-  <div
-    transition:fade={{ duration: 150 }}
-    class="fixed inset-0 bg-black/75 backdrop-blur-md z-[900] flex items-center justify-center p-4 sm:p-6"
-    onclick={onClose}
-    role="button"
-    tabindex="0"
-  >
-    <!-- Modal Container -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      transition:scale={{ duration: 200, start: 0.97 }}
-      class="bg-[#18181b] border border-white/10 rounded-[2rem] p-6 sm:p-8 w-full max-w-7xl shadow-2xl relative select-none overflow-hidden flex flex-col max-h-[90vh]"
-      onclick={(e) => e.stopPropagation()}
-    >
-      <!-- Title -->
-      <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/5 shrink-0">
-        <h3 class="text-xl font-black text-white flex items-center gap-2 tracking-tight font-display">
-          <span class="text-accent">📅</span>
-          <span>Full Tournament Schedule</span>
-        </h3>
-        <button
-          type="button"
-          onclick={onClose}
-          class="w-8 h-8 rounded-full bg-white/[0.04] border border-white/5 text-muted-foreground hover:text-white transition-all flex items-center justify-center font-bold"
-        >
-          ✕
-        </button>
-      </div>
+<Dialog.Root open={isOpen} onOpenChange={(v) => !v && onClose()}>
+  <Dialog.Portal>
+    <Dialog.Overlay forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:fade={{ duration: 150 }}
+            class="fixed inset-0 bg-black/75 backdrop-blur-md z-[900]"
+          ></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
 
-      <!-- Schedule Content -->
-      <div
+    <Dialog.Content forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:scale={{ duration: 200, start: 0.97 }}
+            class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#18181b] border border-white/10 rounded-[2rem] p-6 sm:p-8 w-full max-w-7xl shadow-2xl z-[901] select-none flex flex-col max-h-[90vh] overflow-hidden"
+          >
+            <!-- Title -->
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/5 shrink-0">
+              <Dialog.Title class="text-xl font-black text-white flex items-center gap-2 tracking-tight font-display m-0">
+                <span class="text-accent">📅</span>
+                <span>Full Tournament Schedule</span>
+              </Dialog.Title>
+              <Dialog.Close
+                class="w-8 h-8 rounded-full bg-white/[0.04] border border-white/5 text-muted-foreground hover:text-white transition-all flex items-center justify-center font-bold cursor-pointer"
+              >
+                ✕
+              </Dialog.Close>
+            </div>
+
+            <!-- Schedule Content -->
+            <div
         bind:this={containerEl}
         class="space-y-6 overflow-y-auto pr-2 custom-scrollbar flex-1 p-1"
       >
@@ -207,7 +209,10 @@
             </div>
           </div>
         {/each}
-      </div>
-    </div>
-  </div>
-{/if}
+            </div>
+          </div>
+        {/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

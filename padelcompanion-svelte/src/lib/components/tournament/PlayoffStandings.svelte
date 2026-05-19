@@ -37,7 +37,7 @@
   <div class="space-y-6 mb-12 animate-fade-in font-sans select-none">
     <div class="flex items-center gap-3 px-2">
       <h3 class="text-xl font-black text-white uppercase tracking-wider">Playoff Results</h3>
-      <div class="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+      <div class="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

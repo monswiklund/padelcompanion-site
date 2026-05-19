@@ -6,6 +6,7 @@
   import Icons from "$lib/components/Icons.svelte";
   import PhoneMockup from "$lib/components/landing/PhoneMockup.svelte";
   import WatchMockup from "$lib/components/landing/WatchMockup.svelte";
+  import Button from "$lib/components/ui/Button.svelte";
 
   // --- Scroll Spy Navigation Configuration ---
   const SECTIONS = [
@@ -226,8 +227,8 @@
     id="hero"
   >
     <!-- Background glow/gradients -->
-    <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-background to-background" />
-    <div class="absolute top-1/4 left-0 w-full h-[500px] bg-gradient-to-b from-transparent via-primary/5 to-transparent -rotate-12 blur-3xl -z-10 pointer-events-none" />
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-background to-background"></div>
+    <div class="absolute top-1/4 left-0 w-full h-[500px] bg-gradient-to-b from-transparent via-primary/5 to-transparent -rotate-12 blur-3xl -z-10 pointer-events-none"></div>
 
     <div class="container max-w-[1200px] mx-auto text-center relative z-10">
       <div class="max-w-4xl mx-auto animate-fade-in-up">
@@ -249,18 +250,12 @@
 
         <!-- CTA Buttons -->
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-20">
-          <a
-            href="/tournament/generator"
-            class="w-full sm:w-auto px-8 py-4 bg-foreground text-background hover:bg-foreground/90 rounded-full font-bold text-lg shadow-lg hover-glow transition-all"
-          >
+          <Button href="/tournament/generator" variant="primary" size="lg" class="w-full sm:w-auto">
             Start Web Engine
-          </a>
-          <button
-            onclick={() => handleNavClick("download")}
-            class="w-full sm:w-auto px-8 py-4 bg-card hover:bg-popover border border-border text-foreground rounded-full font-bold text-lg shadow-md transition-all cursor-pointer"
-          >
+          </Button>
+          <Button onclick={() => handleNavClick("download")} variant="secondary" size="lg" class="w-full sm:w-auto">
             Get Mobile Access
-          </button>
+          </Button>
         </div>
 
         <!-- Words rotator header -->
@@ -320,7 +315,7 @@
         
         <!-- Leaderboard Demo Bento Card -->
         <div class="md:col-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col lg:flex-row items-center gap-12 overflow-hidden relative group">
-          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
           
           <div class="relative z-20 flex-1">
             <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 border border-accent/20">
@@ -335,10 +330,10 @@
           <!-- Dynamic Leaderboard Simulator -->
           <div class="relative z-10 flex-1 w-full flex items-center justify-center">
             <div class="bg-background/90 backdrop-blur-md border border-white/5 rounded-2xl p-5 shadow-2xl w-full max-w-sm mx-auto relative overflow-hidden">
-              <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-warning to-success" />
+              <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent via-warning to-success"></div>
               <div class="flex justify-between items-center mb-5 border-b border-white/5 pb-3">
                 <span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                   {demoPhase === 'leaderboard' ? 'Live Standings' : 'Live Match'}
                 </span>
                 <span class="text-[10px] font-bold text-muted-foreground/50">Round {round}/6</span>
@@ -418,7 +413,7 @@
 
         <!-- Custom Rules Bento Card -->
         <div class="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
-          <div class="absolute inset-0 bg-gradient-to-b from-warning/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-b from-warning/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           <div class="w-12 h-12 bg-warning/10 rounded-2xl flex items-center justify-center mb-6 border border-warning/20">
             <Icons name="settings" class="w-6 h-6 text-warning" />
           </div>
@@ -432,7 +427,7 @@
 
         <!-- Game Formats Bento Card -->
         <div class="bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
-          <div class="absolute inset-0 bg-gradient-to-b from-success/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-b from-success/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
           <div class="w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center mb-6 border border-success/20">
             <Icons name="crown" class="w-6 h-6 text-success" />
           </div>
@@ -446,7 +441,7 @@
 
         <!-- Live Sync Bento Card -->
         <div class="md:col-span-2 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group">
-          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-tr from-accent/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
           <div class="relative z-20 flex-1">
             <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center mb-6 border border-accent/20">
               <Icons name="refresh" class="w-6 h-6 text-accent" />
@@ -491,7 +486,7 @@
         
         <!-- Deep Analytics Card -->
         <div class="md:col-span-3 bg-card/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-12 overflow-hidden relative group">
-          <div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          <div class="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
           <div class="relative z-20 flex-1">
             <Icons name="trending-up" class="w-10 h-10 mb-6 text-primary drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]" />
             <h3 class="text-3xl md:text-4xl font-black mb-4 tracking-tight font-display">Deep Personal Analytics</h3>
@@ -547,7 +542,7 @@
        ============================================ -->
   <section class="py-32 relative overflow-hidden" id="download">
     <!-- Glow backdrops -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10" />
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none -z-10"></div>
     
     <div class="container max-w-[1200px] mx-auto px-6">
       <div class="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">

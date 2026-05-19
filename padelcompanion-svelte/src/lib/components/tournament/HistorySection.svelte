@@ -10,6 +10,7 @@
   import { state as globalState, restoreState } from "$lib/tournament/core/state";
   import Icons from "../Icons.svelte";
   import { fade, scale } from "svelte/transition";
+  import { Dialog } from "bits-ui";
 
   interface HistoryItem {
     id: string;
@@ -262,67 +263,70 @@
   {/if}
 </section>
 
-<!-- Custom Open with Code Modal -->
-{#if isOpenByCode}
-  <!-- Backdrop -->
-  <div
-    transition:fade={{ duration: 200 }}
-    class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800] flex items-center justify-center p-6"
-    onclick={() => !isLoadingCode && (isOpenByCode = false)}
-    onkeydown={(e) => e.key === "Escape" && !isLoadingCode && (isOpenByCode = false)}
-    role="button"
-    tabindex="0"
-  >
-    <!-- Modal container -->
-    <div
-      transition:scale={{ duration: 250, start: 0.95 }}
-      class="bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl relative z-10 select-none overflow-hidden"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="dialog"
-    >
-      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
+<!-- Open with Code Modal -->
+<Dialog.Root open={isOpenByCode} onOpenChange={(v) => !v && !isLoadingCode && (isOpenByCode = false)}>
+  <Dialog.Portal>
+    <Dialog.Overlay forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:fade={{ duration: 200 }}
+            class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800]"
+          ></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
+    <Dialog.Content forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:scale={{ duration: 250, start: 0.95 }}
+            class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl z-[801] select-none overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
 
-      <!-- Title -->
-      <h3 class="text-2xl font-black text-white mb-3 tracking-tight font-display">
-        Open Tournament
-      </h3>
+            <Dialog.Title class="text-2xl font-black text-white mb-3 tracking-tight font-display">
+              Open Tournament
+            </Dialog.Title>
 
-      <div class="space-y-4 py-2 font-sans mb-6">
-        <p class="text-sm text-muted-foreground leading-relaxed">
-          Enter the share code from another device to restore the tournament here.
-        </p>
-        <div class="relative group">
-          <div class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-accent flex items-center justify-center">
-            <Icons name="cloud" class="w-5 h-5" />
+            <div class="space-y-4 py-2 font-sans mb-6">
+              <p class="text-sm text-muted-foreground leading-relaxed">
+                Enter the share code from another device to restore the tournament here.
+              </p>
+              <div class="relative group">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-accent flex items-center justify-center">
+                  <Icons name="cloud" class="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="ABC123"
+                  class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-black/30 border border-white/10 text-white placeholder:text-muted-foreground/30 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all uppercase tracking-[0.25em] font-black text-lg"
+                  bind:value={shareCode}
+                  oninput={() => (shareCode = shareCode.toUpperCase())}
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+              <Dialog.Close
+                disabled={isLoadingCode}
+                class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
+              >
+                Cancel
+              </Dialog.Close>
+              <button
+                onclick={handleLoadByCode}
+                disabled={isLoadingCode}
+                class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all"
+              >
+                {isLoadingCode ? "Loading..." : "Open"}
+              </button>
+            </div>
           </div>
-          <input
-            type="text"
-            placeholder="ABC123"
-            class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-black/30 border border-white/10 text-white placeholder:text-muted-foreground/30 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all uppercase tracking-[0.25em] font-black text-lg"
-            bind:value={shareCode}
-            oninput={() => (shareCode = shareCode.toUpperCase())}
-          />
-        </div>
-      </div>
-
-      <!-- Footer Buttons -->
-      <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
-        <button
-          onclick={() => (isOpenByCode = false)}
-          disabled={isLoadingCode}
-          class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onclick={handleLoadByCode}
-          disabled={isLoadingCode}
-          class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all"
-        >
-          {isLoadingCode ? "Loading..." : "Open"}
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}
+        {/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

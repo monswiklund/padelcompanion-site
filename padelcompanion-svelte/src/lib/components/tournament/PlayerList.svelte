@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { ToggleGroup, Dialog } from "bits-ui";
   import { onMount, type Snippet } from "svelte";
   import { StorageService } from "$lib/shared/storage";
   import { cn } from "$lib/shared/utils";
@@ -45,6 +46,7 @@
   }: Props = $props();
 
   let inputValue = $state("");
+  // svelte-ignore state_referenced_locally
   let viewMode = $state<ViewMode>(defaultView);
   let showAll = $state(false);
   let dragIndex = $state<number | null>(null);
@@ -175,42 +177,39 @@
   <!-- View Toggle -->
   {#if showViewToggle && items.length > 0}
     <div class="flex justify-end gap-1.5">
-      <button
-        type="button"
-        title="List"
-        onclick={() => toggleView("list")}
-        class="p-2 rounded-xl transition-colors {
-          viewMode === 'list'
-            ? 'bg-accent/10 border border-accent/20 text-accent'
-            : 'text-muted-foreground hover:text-white bg-white/[0.02]'
-        }"
+      <ToggleGroup.Root
+        type="single"
+        value={viewMode}
+        onValueChange={(v) => { if (v) toggleView(v as ViewMode); }}
+        class="flex gap-1.5"
       >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-[15px] h-[15px]">
-          <line x1="8" y1="6" x2="21" y2="6"></line>
-          <line x1="8" y1="12" x2="21" y2="12"></line>
-          <line x1="8" y1="18" x2="21" y2="18"></line>
-          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-        </svg>
-      </button>
-      <button
-        type="button"
-        title="Grid"
-        onclick={() => toggleView("grid")}
-        class="p-2 rounded-xl transition-colors {
-          viewMode === 'grid'
-            ? 'bg-accent/10 border border-accent/20 text-accent'
-            : 'text-muted-foreground hover:text-white bg-white/[0.02]'
-        }"
-      >
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-[15px] h-[15px]">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-      </button>
+        <ToggleGroup.Item
+          value="list"
+          title="List"
+          class="p-2 rounded-xl transition-colors data-[state=on]:bg-accent/10 data-[state=on]:border data-[state=on]:border-accent/20 data-[state=on]:text-accent data-[state=off]:text-muted-foreground data-[state=off]:hover:text-white data-[state=off]:bg-white/[0.02] outline-none cursor-pointer"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-[15px] h-[15px]">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+        </ToggleGroup.Item>
+        <ToggleGroup.Item
+          value="grid"
+          title="Grid"
+          class="p-2 rounded-xl transition-colors data-[state=on]:bg-accent/10 data-[state=on]:border data-[state=on]:border-accent/20 data-[state=on]:text-accent data-[state=off]:text-muted-foreground data-[state=off]:hover:text-white data-[state=off]:bg-white/[0.02] outline-none cursor-pointer"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-[15px] h-[15px]">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </ToggleGroup.Item>
+      </ToggleGroup.Root>
     </div>
   {/if}
 
@@ -290,54 +289,60 @@
 </div>
 
 <!-- Batch Import Modal -->
-{#if isImportOpen}
-  <div
-    transition:fade={{ duration: 150 }}
-    class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800] flex items-center justify-center p-6"
-    onclick={closeImport}
-    onkeydown={(e) => e.key === "Escape" && closeImport()}
-    role="button"
-    tabindex="0"
-  >
-    <div
-      transition:scale={{ duration: 200, start: 0.95 }}
-      class="bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl relative z-10 select-none overflow-hidden"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="dialog"
-    >
-      <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
+<Dialog.Root open={isImportOpen} onOpenChange={(v) => !v && closeImport()}>
+  <Dialog.Portal>
+    <Dialog.Overlay forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:fade={{ duration: 150 }}
+            class="fixed inset-0 bg-black/70 backdrop-blur-md z-[800]"
+          ></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
+    <Dialog.Content forceMount>
+      {#snippet child({ props, open: isModalOpen })}
+        {#if isModalOpen}
+          <div
+            {...props}
+            transition:scale={{ duration: 200, start: 0.95 }}
+            class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1c1c1e] border border-white/10 rounded-[2.5rem] p-8 w-full max-w-lg shadow-2xl z-[801] select-none overflow-hidden"
+          >
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-warning to-success"></div>
 
-      <h3 class="text-2xl font-black text-white mb-3 tracking-tight font-display mt-2">
-        {importTitle}
-      </h3>
+            <Dialog.Title class="text-2xl font-black text-white mb-3 tracking-tight font-display mt-2">
+              {importTitle}
+            </Dialog.Title>
 
-      <div class="space-y-4 py-2 font-sans mb-6">
-        <div class="text-sm text-muted-foreground">Paste one name per line. Duplicate entries will be ignored.</div>
-        <textarea
-          class="min-h-56 w-full rounded-2xl bg-black/30 border border-white/10 px-4 py-3.5 text-white placeholder:text-muted-foreground/35 focus:outline-none focus:border-accent transition-all shadow-sm resize-y"
-          placeholder={importPlaceholder}
-          bind:value={importValue}
-        ></textarea>
-      </div>
+            <div class="space-y-4 py-2 font-sans mb-6">
+              <div class="text-sm text-muted-foreground">Paste one name per line. Duplicate entries will be ignored.</div>
+              <textarea
+                class="min-h-56 w-full rounded-2xl bg-black/30 border border-white/10 px-4 py-3.5 text-white placeholder:text-muted-foreground/35 focus:outline-none focus:border-accent transition-all shadow-sm resize-y"
+                placeholder={importPlaceholder}
+                bind:value={importValue}
+              ></textarea>
+            </div>
 
-      <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
-        <button
-          type="button"
-          onclick={closeImport}
-          class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onclick={submitImport}
-          disabled={!importValue.trim()}
-          class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all disabled:opacity-50 disabled:pointer-events-none"
-        >
-          Import
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}
+            <div class="flex items-center justify-end gap-3 border-t border-white/5 pt-4">
+              <Dialog.Close
+                class="px-4 py-2 text-xs font-black uppercase tracking-wider text-muted-foreground hover:text-white transition-colors"
+              >
+                Cancel
+              </Dialog.Close>
+              <button
+                type="button"
+                onclick={submitImport}
+                disabled={!importValue.trim()}
+                class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-black uppercase tracking-wider shadow-md shadow-accent/15 transition-all disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        {/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
