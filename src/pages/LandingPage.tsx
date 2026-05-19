@@ -435,24 +435,24 @@ const LandingPage: React.FC = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-4xl mx-auto"
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-8">
-              Padel Companion 2.0
+            <span className="inline-block py-1 px-4 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-8">
+              Padel Companion
             </span>
-            <h1 className="text-6xl md:text-[8rem] font-black leading-[0.9] tracking-tighter mb-8">
-              The ultimate <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-dark">
-                padel engine.
+            <h1 className="text-6xl md:text-8xl font-bold leading-[0.95] tracking-tighter mb-8 font-display">
+              Play. Track. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-light">
+                Dominate.
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed mb-12">
-              Organize perfect <RotatingText /> in your browser. Track your daily matches on your wrist. Build your legacy.
+              Run <RotatingText /> directly in your browser. No sign-ups, no friction. Just padel.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/tournament/generator"
                 onClick={() => window.scrollTo(0, 0)}
-                className="inline-flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-transform shadow-lg hover:scale-105 active:scale-95"
+                className="inline-flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 px-8 py-4 rounded-full text-lg font-bold transition-transform shadow-lg hover:scale-105 active:scale-95 font-display"
               >
                 Start Free Tournament
               </Link>
@@ -462,7 +462,7 @@ const LandingPage: React.FC = () => {
                   e.preventDefault();
                   document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="inline-flex items-center justify-center bg-transparent border border-border hover:bg-white/5 text-foreground px-8 py-4 rounded-full text-lg font-bold transition-transform hover:scale-105 active:scale-95"
+                className="inline-flex items-center justify-center bg-transparent border border-border hover:bg-white/5 text-foreground px-8 py-4 rounded-full text-lg font-bold transition-transform hover:scale-105 active:scale-95 font-display"
               >
                 Get the App
               </a>
@@ -502,21 +502,20 @@ const LandingPage: React.FC = () => {
             className="mb-16 md:mb-24 flex flex-col md:flex-row items-start md:items-end justify-between gap-8"
           >
             <div className="max-w-2xl">
-              <span className="inline-block py-1 px-3 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-6">
+              <span className="inline-block py-1 px-4 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold tracking-widest uppercase mb-6">
                 For the Organizer
               </span>
-              <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1.1] mb-6">
-                The Web <span className="text-[#f97316]">Engine</span>
+              <h2 className="text-4xl md:text-6xl font-bold tracking-tighter leading-[1.1] mb-6 font-display">
+                Zero setup. <span className="text-[#f97316]">Just play.</span>
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Run Americano, Mexicano, Brackets, and Winner's Court straight from your browser. 
-                No sign-ups required. Instantly share live leaderboards with everyone at the club.
+                Start Americano, Mexicano, and Winner's Court in two clicks. Everyone at the court can follow the live leaderboard on their own phone—no app or account required to join.
               </p>
             </div>
             <Link
               to="/tournament/generator"
               onClick={() => window.scrollTo(0, 0)}
-              className="shrink-0 inline-flex items-center justify-center bg-[#f97316] text-white px-6 py-3 rounded-full text-sm font-bold transition-all shadow-[0_10px_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 hover:bg-[#f97316]/90"
+              className="shrink-0 inline-flex items-center justify-center bg-[#f97316] text-white px-6 py-3 rounded-full text-sm font-bold transition-all shadow-[0_10px_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 hover:bg-[#f97316]/90 font-display"
             >
               Start Web Tournament →
             </Link>
@@ -533,9 +532,9 @@ const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 <div className="relative z-10 max-w-md mb-8">
                    <TrophyIcon className="w-10 h-10 mb-6 text-accent drop-shadow-[0_0_15px_rgba(249,115,22,0.4)]" />
-                   <h3 className="text-3xl font-black mb-4 tracking-tight">Perfect Matchmaking</h3>
+                   <h3 className="text-3xl font-bold mb-4 tracking-tight">Smart Matchmaking</h3>
                    <p className="text-muted-foreground leading-relaxed">
-                     Our algorithms handle the complex rotations to ensure perfectly balanced games, no matter the format. You just focus on playing.
+                     No more spreadsheet headaches. Our scheduler calculates balanced rotations automatically. You just key in the scores and play.
                    </p>
                 </div>
                 <div className="relative z-10 w-full mt-auto">

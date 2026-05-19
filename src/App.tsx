@@ -9,6 +9,7 @@ import {
 import { TournamentProvider } from "./context/TournamentContext";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
+import SmoothScroll from "./components/layout/SmoothScroll";
 
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -41,52 +42,54 @@ const TournamentLayout: React.FC = () => (
 const App: React.FC = () => {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <Header />
-        <main className="flex-1 pt-20">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/tournament" element={<TournamentLayout />}>
-                <Route path="generator" element={<GeneratorPage />} />
-                <Route path="division" element={<DivisionPage />} />
-                <Route path="session/:shareCode" element={<SharedTournamentPage />} />
-                <Route path="bracket" element={<BracketPage />} />
-                <Route path="winners-court" element={<WinnersCourtPage />} />
-                <Route path="history" element={<HistoryPage />} />
-              </Route>
+      <SmoothScroll>
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
+          <Header />
+          <main className="flex-1 pt-20">
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/tournament" element={<TournamentLayout />}>
+                  <Route path="generator" element={<GeneratorPage />} />
+                  <Route path="division" element={<DivisionPage />} />
+                  <Route path="session/:shareCode" element={<SharedTournamentPage />} />
+                  <Route path="bracket" element={<BracketPage />} />
+                  <Route path="winners-court" element={<WinnersCourtPage />} />
+                  <Route path="history" element={<HistoryPage />} />
+                </Route>
 
-              {/* Support & Legal */}
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
+                {/* Support & Legal */}
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
 
-              {/* Alias routes that also link to Support */}
-              <Route path="/contact" element={<SupportPage />} />
-              <Route path="/delete-account" element={<SupportPage />} />
+                {/* Alias routes that also link to Support */}
+                <Route path="/contact" element={<SupportPage />} />
+                <Route path="/delete-account" element={<SupportPage />} />
 
-              {/* Redirects for legacy URLs */}
-              <Route path="/index.html" element={<Navigate to="/" replace />} />
-              <Route
-                path="/support.html"
-                element={<Navigate to="/support" replace />}
-              />
-              <Route
-                path="/privacy.html"
-                element={<Navigate to="/privacy" replace />}
-              />
-              <Route
-                path="/terms.html"
-                element={<Navigate to="/terms" replace />}
-              />
+                {/* Redirects for legacy URLs */}
+                <Route path="/index.html" element={<Navigate to="/" replace />} />
+                <Route
+                  path="/support.html"
+                  element={<Navigate to="/support" replace />}
+                />
+                <Route
+                  path="/privacy.html"
+                  element={<Navigate to="/privacy" replace />}
+                />
+                <Route
+                  path="/terms.html"
+                  element={<Navigate to="/terms" replace />}
+                />
 
-              {/* 404 Page */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
+                {/* 404 Page */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+          </main>
+          <Footer />
+        </div>
+      </SmoothScroll>
     </Router>
   );
 };
