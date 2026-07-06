@@ -1,1 +1,0 @@
-import{j as o,c as n}from"./main-BNBZgYLk.js";const e={standard:"p-6",compact:"p-4",none:"p-0"},c=({children:r,className:s="",style:a={},padding:d="standard"})=>o.jsx("div",{className:n("bg-card border border-border rounded-2xl",e[d],s),style:a,children:r});export{c as C};

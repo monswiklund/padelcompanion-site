@@ -10,7 +10,7 @@
   </defs>
 
   <!-- Blue Carpet (Full Court) -->
-  <rect width="720" height="360" fill="#2563eb" filter="url(#noise)"/>
+  <rect width="720" height="360" fill="#3888FF" filter="url(#noise)"/>
   
   <!-- White Court Lines -->
   <!-- Outer rectangle (edge of playable area) -->
@@ -26,5 +26,5 @@
   <!-- The Net (Center Line) -->
   <line x1="360" y1="0" x2="360" y2="360" stroke="white" stroke-width="3" stroke-opacity="0.6"/>
   <!-- Net dashed detail -->
-  <line x1="360" y1="0" x2="360" y2="360" stroke="#1e3a8a" stroke-width="1.5" stroke-dasharray="3 3" stroke-opacity="0.4"/>
+  <line x1="360" y1="0" x2="360" y2="360" stroke="#007AFF" stroke-width="1.5" stroke-dasharray="3 3" stroke-opacity="0.4"/>
 </svg>
