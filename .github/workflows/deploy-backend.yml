@@ -124,7 +124,15 @@ jobs:
             sleep 2
           done
 
-          curl --fail --silent --show-error https://api.padelcompanion.se/api/health >/dev/null
+          public_healthy=false
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error https://api.padelcompanion.se/api/health >/dev/null; then
+              public_healthy=true
+              break
+            fi
+            sleep 2
+          done
+          [ "$public_healthy" = true ]
 
           trap - ERR
           find "$base/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' \
