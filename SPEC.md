@@ -60,3 +60,4 @@ B2|2026-07-06|score picker callback read nullable active selector; backdrop div 
 B3|2026-07-20|backend Dockerfile still started deleted `backend/server.js` after the TypeScript migration|V10
 B4|2026-07-20|`api.padelcompanion.se` pointed at Hetzner but was absent from the tracked Caddy configuration, so TLS and cloud sync failed|V11
 B5|2026-07-20|backend Docker builds had no allowlisted context, so local env and persisted session files could enter the image|V10
+B6|2026-07-20|the imported production release lacked an executable bit on its restore verifier, so direct script execution stopped deployment after backup|V10

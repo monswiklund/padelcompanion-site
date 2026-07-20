@@ -66,7 +66,7 @@ jobs:
           PORT: ${{ secrets.HETZNER_PORT }}
           USER: ${{ secrets.HETZNER_USER }}
         run: |
-          ssh -p "${PORT:-22}" "$USER@$HOST" "RELEASE_SHA='$GITHUB_SHA' RELEASE_ID='$GITHUB_SHA-$GITHUB_RUN_ATTEMPT' bash -s" <<'REMOTE'
+          ssh -p "${PORT:-22}" "$USER@$HOST" "RELEASE_SHA='$GITHUB_SHA' RELEASE_ID='$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT' bash -s" <<'REMOTE'
           set -Eeuo pipefail
 
           base=/srv/apps/padel-companion
@@ -100,8 +100,8 @@ jobs:
           ln -s "$base/shared/backend.env" "$release/backend/.env"
           rm -f "$archive"
 
-          "$previous/backend/scripts/server_backup_postgres.sh"
-          "$previous/backend/scripts/server_verify_restore.sh"
+          sh "$previous/backend/scripts/server_backup_postgres.sh"
+          sh "$previous/backend/scripts/server_verify_restore.sh"
 
           cd "$release"
           docker compose -p ops -f ops/docker-compose.api.yml config --quiet
