@@ -34,6 +34,8 @@ V6: Winners Court → advance only when all courts complete; next round order wi
 V7: Bracket → bye auto-advance only through empty source; pending source match blocks downstream winner
 V8: Shared stats → completed match records points, pointsLost, W/L/D, matchPoints, `playedWith`, `playedAgainst`, byes
 V9: Tournament UI → `npm run check` passes; touch score controls ≥44px; score picker never reads nullable active selector
+V10: Backend release image starts the tracked TypeScript API without env or persisted data in its build context; migration failures stop deployment; manual GitHub deployment backs up Postgres, preserves the existing Compose project, verifies public health, and restores the previous image on failure
+V11: `api.padelcompanion.se` terminates TLS in the tracked shared Caddy stack and proxies `/api/*` to the healthy Padel Companion API container
 
 §T
 id|status|task|cites
@@ -47,8 +49,14 @@ T7|x|run focused mode-contract tests|V1,V2,V3,V4,V5,V6,V7
 T8|x|run full suite after SPEC rewrite|V1,V2,V3,V4,V5,V6,V7,V8
 T9|x|run production build for svelte app|V1,V2,V3,V4,V5,V6,V7,V8
 T10|x|run svelte check for tournament UI|V9
+T11|x|repair the TypeScript backend image and make migration failures fatal|V10
+T12|x|add manual backend deployment with backup, health verification, and rollback|V10
+T13|x|add the public Padel Companion API route to shared Caddy|V11
 
 §B
 id|date|cause|fix
 B1|2026-05-19|bracket auto-advanced bye-side team past pending source match|V7
 B2|2026-07-06|score picker callback read nullable active selector; backdrop div broke a11y check|V9
+B3|2026-07-20|backend Dockerfile still started deleted `backend/server.js` after the TypeScript migration|V10
+B4|2026-07-20|`api.padelcompanion.se` pointed at Hetzner but was absent from the tracked Caddy configuration, so TLS and cloud sync failed|V11
+B5|2026-07-20|backend Docker builds had no allowlisted context, so local env and persisted session files could enter the image|V10

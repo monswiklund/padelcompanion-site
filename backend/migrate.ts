@@ -34,9 +34,10 @@ async function migrate() {
 		console.log('Migration completed successfully.');
 	} catch (err) {
 		console.error('Migration failed:', err);
+		throw err;
 	} finally {
 		await client.end();
 	}
 }
 
-migrate();
+await migrate();

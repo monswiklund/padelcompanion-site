@@ -1,0 +1,137 @@
+name: Deploy backend
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: padel-companion-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: npm ci
+      - run: npm run check
+      - run: npm run api:test
+      - name: Verify backend image
+        run: |
+          docker build -f backend/Dockerfile -t padel-companion-api:test .
+          container="$(docker run -d -e SESSION_STORE=file padel-companion-api:test)"
+          trap 'docker rm -f "$container" >/dev/null 2>&1 || true' EXIT
+          for attempt in $(seq 1 20); do
+            if docker exec "$container" node -e "fetch('http://127.0.0.1:8787/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs "$container"
+          exit 1
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Package release
+        run: tar --exclude=.git --exclude=node_modules -czf "${RUNNER_TEMP}/padel-companion-${GITHUB_SHA}.tar.gz" .
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.HETZNER_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.HETZNER_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload release
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          PORT: ${{ secrets.HETZNER_PORT }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: scp -P "${PORT:-22}" "${RUNNER_TEMP}/padel-companion-${GITHUB_SHA}.tar.gz" "$USER@$HOST:/tmp/padel-companion-${GITHUB_SHA}.tar.gz"
+
+      - name: Deploy with backup and rollback
+        env:
+          HOST: ${{ secrets.HETZNER_HOST }}
+          PORT: ${{ secrets.HETZNER_PORT }}
+          USER: ${{ secrets.HETZNER_USER }}
+        run: |
+          ssh -p "${PORT:-22}" "$USER@$HOST" "RELEASE_SHA='$GITHUB_SHA' RELEASE_ID='$GITHUB_SHA-$GITHUB_RUN_ATTEMPT' bash -s" <<'REMOTE'
+          set -Eeuo pipefail
+
+          base=/srv/apps/padel-companion
+          release="$base/releases/$RELEASE_ID"
+          archive="/tmp/padel-companion-$RELEASE_SHA.tar.gz"
+          current="$base/current"
+          previous="$(readlink -f "$current")"
+          previous_image="$(docker inspect padel_companion_api --format '{{.Image}}')"
+          switched=false
+
+          rollback() {
+            status=$?
+            if [ "$status" -eq 0 ]; then
+              return
+            fi
+
+            if [ "$switched" = true ]; then
+              echo "Deployment failed; restoring $previous"
+              ln -sfn "releases/$(basename "$previous")" "$current"
+              docker tag "$previous_image" ops-api:latest
+              cd /root/padelcompanion-site/ops
+              docker compose -p ops -f docker-compose.api.yml up -d --no-build --force-recreate api
+            fi
+            exit "$status"
+          }
+          trap rollback ERR
+
+          test ! -e "$release"
+          mkdir -p "$release"
+          tar -xzf "$archive" -C "$release"
+          ln -s "$base/shared/backend.env" "$release/backend/.env"
+          rm -f "$archive"
+
+          "$previous/backend/scripts/server_backup_postgres.sh"
+          "$previous/backend/scripts/server_verify_restore.sh"
+
+          cd "$release"
+          docker compose -p ops -f ops/docker-compose.api.yml config --quiet
+          docker compose -p ops -f ops/docker-compose.api.yml build api
+          docker compose -p ops -f ops/docker-compose.api.yml run --rm -T --no-deps api npm run api:migrate </dev/null
+
+          ln -sfn "releases/$RELEASE_ID" "$current"
+          switched=true
+          cd /root/padelcompanion-site/ops
+          docker compose -p ops -f docker-compose.api.yml up -d --no-deps api
+
+          for attempt in $(seq 1 30); do
+            if [ "$(docker inspect padel_companion_api --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')" = healthy ]; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker logs --tail 100 padel_companion_api
+              false
+            fi
+            sleep 2
+          done
+
+          curl --fail --silent --show-error https://api.padelcompanion.se/api/health >/dev/null
+
+          trap - ERR
+          find "$base/releases" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' \
+            | sort -nr \
+            | awk 'NR > 5 {print $2}' \
+            | while read -r old_release; do
+                [ "$old_release" = "$(readlink -f "$current")" ] || rm -rf "$old_release"
+              done
+          echo "Deployed $RELEASE_SHA as $RELEASE_ID"
+          REMOTE

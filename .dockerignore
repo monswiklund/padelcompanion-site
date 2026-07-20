@@ -1,0 +1,8 @@
+*
+!package.json
+!package-lock.json
+!backend/
+!backend/**
+backend/.env
+backend/.env.local
+backend/data/*.json
