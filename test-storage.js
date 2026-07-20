@@ -1,2 +1,1 @@
-const fs = require('fs');
-console.log("Storage check scripted.");
+console.log('Storage check scripted.');

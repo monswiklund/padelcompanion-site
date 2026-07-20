@@ -1,0 +1,274 @@
+{
+  "audit320": [
+    {
+      "name": "home",
+      "route": "/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/home-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "tournament",
+      "route": "/tournament/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/tournament-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "generator",
+      "route": "/tournament/generator/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/generator-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "division",
+      "route": "/tournament/division/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/division-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "bracket",
+      "route": "/tournament/bracket/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/bracket-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "winners-court",
+      "route": "/tournament/winners-court/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/winners-court-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "history",
+      "route": "/tournament/history/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/history-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "support",
+      "route": "/support/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/support-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "privacy",
+      "route": "/privacy/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/privacy-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    {
+      "name": "terms",
+      "route": "/terms/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/terms-320.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    }
+  ],
+  "audit390": [
+    {
+      "name": "home",
+      "route": "/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/home-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "tournament",
+      "route": "/tournament/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/tournament-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "generator",
+      "route": "/tournament/generator/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/generator-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "division",
+      "route": "/tournament/division/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/division-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "bracket",
+      "route": "/tournament/bracket/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/bracket-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "winners-court",
+      "route": "/tournament/winners-court/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/winners-court-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "history",
+      "route": "/tournament/history/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/history-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "support",
+      "route": "/support/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/support-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "privacy",
+      "route": "/privacy/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/privacy-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    },
+    {
+      "name": "terms",
+      "route": "/terms/",
+      "screenshot": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit/terms-390.png",
+      "errors": [],
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390
+    }
+  ],
+  "flow": {
+    "setup": {
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    "active": {
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    "modal": {
+      "scroll": false,
+      "smallTargets": [],
+      "smallInputs": [],
+      "overflow": [],
+      "scrollWidth": 320,
+      "bodyScrollWidth": 320
+    },
+    "errors": []
+  },
+  "outDir": "/Users/mans/Dev/padelcompanion-site/.codex-screenshots/mobile-audit"
+}

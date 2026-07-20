@@ -1,71 +1,52 @@
-# Padel Companion
+# sv
 
-This repo contains the web app and a minimal tournament session backend for
-sharing and restoring tournament state across devices.
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Local development
+## Creating a project
 
-Frontend only:
+If you're seeing this, you've probably already done this step. Congrats!
 
-```bash
+```sh
+# create a new project
+npx sv create my-app
+```
+
+To recreate this project with the same configuration:
+
+```sh
+# recreate this project
+npx sv@0.15.3 create --template minimal --types ts --add eslint prettier tailwindcss="plugins:none" sveltekit-adapter="adapter:static" vitest="usages:unit" --install npm padelcompanion-svelte
+```
+
+## Developing
+
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```sh
 npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
 ```
 
-Frontend + backend:
+## Building
 
-```bash
-npm run dev:full
+To create a production version of your app:
+
+```sh
+npm run build
 ```
 
-Backend only:
+You can preview the production build with `npm run preview`.
 
-```bash
-npm run api
-```
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
-Run the PostgreSQL migration:
+## Backend
 
-```bash
-npm run api:migrate
-```
+Refer to the backend directory for server logic.
 
-The frontend uses `/api` during development and Vite proxies it to
-`http://localhost:8787`.
+Backend session storage:
 
-## Backend storage
-
-The backend supports two storage modes:
-
-- `file`: default local fallback using `backend/data/sessions.json`
-- `postgres`: enabled when `DATABASE_URL` is set
-
-Healthcheck:
-
-```bash
-curl http://localhost:8787/api/health
-```
-
-## PostgreSQL setup
-
-1. Copy [backend/.env.example](/Users/mans/Dev/padelcompanion-site/backend/.env.example) into your runtime environment.
-2. Create a PostgreSQL database.
-3. Run `npm run api:migrate` or apply [001_create_tournament_sessions.sql](/Users/mans/Dev/padelcompanion-site/backend/migrations/001_create_tournament_sessions.sql).
-4. Start the backend with `DATABASE_URL` set.
-
-Example:
-
-```bash
-export DATABASE_URL='postgresql://postgres:postgres@localhost:5432/padel_companion'
-node backend/server.js
-```
-
-## Hetzner direction
-
-For a first production version on a Hetzner VM:
-
-- run the frontend as static assets behind Caddy
-- run `backend/server.js` as a separate service
-- use PostgreSQL as the primary session store
-- keep the current file store only as local-development fallback
-- use [docker-compose.api.yml](/Users/mans/Dev/padelcompanion-site/ops/docker-compose.api.yml) to attach the API to the existing Docker network
-- use [Caddyfile.padel_companion.example](/Users/mans/Dev/padelcompanion-site/ops/Caddyfile.padel_companion.example) as the reverse-proxy snippet
+- Default/`SESSION_STORE=auto`: use Postgres only when `DATABASE_URL` is set, otherwise file storage.
+- `SESSION_STORE=postgres`: use `DATABASE_URL` or `PGHOST`/`PGUSER`/`PGPASSWORD`/`PGDATABASE`.
+- `SESSION_STORE=file`: always use file storage, with optional `STORE_PATH`.
